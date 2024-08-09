@@ -1,0 +1,521 @@
+// Interactive Data Models
+digraph {
+	graph [bgcolor="#EEEEEE" rankdir=TB splines=spline]
+	node [fontname=Roboto fontsize=12 shape=none]
+	edge [fontname=Roboto fontsize=10]
+	Eksplorasi [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+        <TR><TD COLSPAN="2" BGCOLOR="#3F51B5"><FONT COLOR="white">Eksplorasi</FONT></TD></TR>
+        <TR>
+                         <TD BGCOLOR="#BBDEFB">id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR (PK)</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">well_id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(64) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">kkks</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(64) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">lapangan</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">wilayah_kerja</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tipe_kontrak</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tipe_pekerjaan</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(11) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">no_afe</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tahun_wpnb</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">status</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">plan_mulai</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">plan_selesai</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">plan_budget</TD>
+                         <TD BGCOLOR="#BBDEFB">NUMERIC(10, 2) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">plan_schedule</TD>
+                         <TD BGCOLOR="#BBDEFB">JSON ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">date_created</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">last_edited</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">created_by_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">last_edited_by_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR></TABLE>> URL="http://Eksplorasi_details.html"]
+	Eksplorasi -> Well [label=well color="#1E88E5" style=dashed tooltip="Relation between Eksplorasi and Well"]
+	Eksplorasi -> LogPekerjaan [label=log_pekerjaan color="#1E88E5" style=dashed tooltip="Relation between Eksplorasi and LogPekerjaan"]
+	Eksplorasi -> User [label=last_edited_by color="#1E88E5" style=dashed tooltip="Relation between Eksplorasi and User"]
+	Eksploitasi [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+        <TR><TD COLSPAN="2" BGCOLOR="#3F51B5"><FONT COLOR="white">Eksploitasi</FONT></TD></TR>
+        <TR>
+                         <TD BGCOLOR="#BBDEFB">id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR (PK)</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">well_id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(64) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">kkks</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(64) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">lapangan</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">wilayah_kerja</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tipe_kontrak</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tipe_pekerjaan</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(11) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">no_afe</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tahun_wpnb</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">status</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">plan_mulai</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">plan_selesai</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">plan_budget</TD>
+                         <TD BGCOLOR="#BBDEFB">NUMERIC(10, 2) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">plan_schedule</TD>
+                         <TD BGCOLOR="#BBDEFB">JSON ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">date_created</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">last_edited</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">created_by_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">last_edited_by_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR></TABLE>> URL="http://Eksploitasi_details.html"]
+	Eksploitasi -> Well [label=well color="#1E88E5" style=dashed tooltip="Relation between Eksploitasi and Well"]
+	Eksploitasi -> LogPekerjaan [label=log_pekerjaan color="#1E88E5" style=dashed tooltip="Relation between Eksploitasi and LogPekerjaan"]
+	Eksploitasi -> User [label=last_edited_by color="#1E88E5" style=dashed tooltip="Relation between Eksploitasi and User"]
+	Workover [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+        <TR><TD COLSPAN="2" BGCOLOR="#3F51B5"><FONT COLOR="white">Workover</FONT></TD></TR>
+        <TR>
+                         <TD BGCOLOR="#BBDEFB">id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR (PK)</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">well_id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(64) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">kkks</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(64) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">lapangan</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">wilayah_kerja</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tipe_kontrak</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tipe_pekerjaan</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(11) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">no_afe</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tahun_wpnb</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">status</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">plan_mulai</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">plan_selesai</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">plan_budget</TD>
+                         <TD BGCOLOR="#BBDEFB">NUMERIC(10, 2) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">plan_schedule</TD>
+                         <TD BGCOLOR="#BBDEFB">JSON ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">date_created</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">last_edited</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">created_by_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">last_edited_by_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR></TABLE>> URL="http://Workover_details.html"]
+	Workover -> Well [label=well color="#1E88E5" style=dashed tooltip="Relation between Workover and Well"]
+	Workover -> LogPekerjaan [label=log_pekerjaan color="#1E88E5" style=dashed tooltip="Relation between Workover and LogPekerjaan"]
+	Workover -> User [label=last_edited_by color="#1E88E5" style=dashed tooltip="Relation between Workover and User"]
+	WellService [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+        <TR><TD COLSPAN="2" BGCOLOR="#3F51B5"><FONT COLOR="white">WellService</FONT></TD></TR>
+        <TR>
+                         <TD BGCOLOR="#BBDEFB">id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR (PK)</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">well_id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(64) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">kkks</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(64) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">lapangan</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">wilayah_kerja</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tipe_kontrak</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tipe_pekerjaan</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(11) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">no_afe</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tahun_wpnb</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">status</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(32) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">plan_mulai</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">plan_selesai</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">plan_budget</TD>
+                         <TD BGCOLOR="#BBDEFB">NUMERIC(10, 2) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">plan_schedule</TD>
+                         <TD BGCOLOR="#BBDEFB">JSON ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">date_created</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">last_edited</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">created_by_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">last_edited_by_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR></TABLE>> URL="http://WellService_details.html"]
+	WellService -> Well [label=well color="#1E88E5" style=dashed tooltip="Relation between WellService and Well"]
+	WellService -> LogPekerjaan [label=log_pekerjaan color="#1E88E5" style=dashed tooltip="Relation between WellService and LogPekerjaan"]
+	WellService -> User [label=last_edited_by color="#1E88E5" style=dashed tooltip="Relation between WellService and User"]
+	LogPekerjaan [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+        <TR><TD COLSPAN="2" BGCOLOR="#3F51B5"><FONT COLOR="white">LogPekerjaan</FONT></TD></TR>
+        <TR>
+                         <TD BGCOLOR="#BBDEFB">id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR (PK)</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">waktu</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">kedalaman</TD>
+                         <TD BGCOLOR="#BBDEFB">NUMERIC ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">depth_path</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(5) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">reference_point</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(2) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">daily_cost</TD>
+                         <TD BGCOLOR="#BBDEFB">NUMERIC(10, 2) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">summary</TD>
+                         <TD BGCOLOR="#BBDEFB">TEXT ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">current_operations</TD>
+                         <TD BGCOLOR="#BBDEFB">TEXT ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">next_operations</TD>
+                         <TD BGCOLOR="#BBDEFB">TEXT ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">pekerjaan_id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR></TABLE>> URL="http://LogPekerjaan_details.html"]
+	LogPekerjaan -> Pekerjaan [label=pekerjaan color="#1E88E5" style=dashed tooltip="Relation between LogPekerjaan and Pekerjaan"]
+	User [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+        <TR><TD COLSPAN="2" BGCOLOR="#3F51B5"><FONT COLOR="white">User</FONT></TD></TR>
+        <TR>
+                         <TD BGCOLOR="#BBDEFB">id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER (PK,Index)</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">username</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR (Unique,Index)</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">email</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR (Unique,Index)</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">hashed_password</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">kkks_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">role</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(5) ()</TD>
+                         </TR></TABLE>> URL="http://User_details.html"]
+	User -> KKKS [label=kkks color="#1E88E5" style=dashed tooltip="Relation between User and KKKS"]
+	KKKS [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+        <TR><TD COLSPAN="2" BGCOLOR="#3F51B5"><FONT COLOR="white">KKKS</FONT></TD></TR>
+        <TR>
+                         <TD BGCOLOR="#BBDEFB">id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR (PK,Index)</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">nama_kkks</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR (Unique,Index)</TD>
+                         </TR></TABLE>> URL="http://KKKS_details.html"]
+	KKKS -> User [label=users color="#1E88E5" style=dashed tooltip="Relation between KKKS and User"]
+	Pengajuan [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+        <TR><TD COLSPAN="2" BGCOLOR="#3F51B5"><FONT COLOR="white">Pengajuan</FONT></TD></TR>
+        <TR>
+                         <TD BGCOLOR="#BBDEFB">id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR (PK)</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tanggal_diajukan</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tanggal_ditolak</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tanggal_disetujui</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">status</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(8) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">pekerjaan_id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">kendala_id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">created_by_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">last_edited_by_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR></TABLE>> URL="http://Pengajuan_details.html"]
+	Pengajuan -> Pekerjaan [label=pekerjaan color="#1E88E5" style=dashed tooltip="Relation between Pengajuan and Pekerjaan"]
+	Pengajuan -> Kendala [label=kendala color="#1E88E5" style=dashed tooltip="Relation between Pengajuan and Kendala"]
+	Pengajuan -> User [label=created_by color="#1E88E5" style=dashed tooltip="Relation between Pengajuan and User"]
+	Pengajuan -> User [label=last_edited_by color="#1E88E5" style=dashed tooltip="Relation between Pengajuan and User"]
+	Operasi [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+        <TR><TD COLSPAN="2" BGCOLOR="#3F51B5"><FONT COLOR="white">Operasi</FONT></TD></TR>
+        <TR>
+                         <TD BGCOLOR="#BBDEFB">id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR (PK)</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tanggal_mulai</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tanggal_selesai</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">status</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(10) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">pekerjaan_id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">kendala_id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">created_by_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">last_edited_by_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR></TABLE>> URL="http://Operasi_details.html"]
+	Operasi -> Pekerjaan [label=pekerjaan color="#1E88E5" style=dashed tooltip="Relation between Operasi and Pekerjaan"]
+	Operasi -> Kendala [label=kendala color="#1E88E5" style=dashed tooltip="Relation between Operasi and Kendala"]
+	Operasi -> User [label=created_by color="#1E88E5" style=dashed tooltip="Relation between Operasi and User"]
+	Operasi -> User [label=last_edited_by color="#1E88E5" style=dashed tooltip="Relation between Operasi and User"]
+	PPP [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+        <TR><TD COLSPAN="2" BGCOLOR="#3F51B5"><FONT COLOR="white">PPP</FONT></TD></TR>
+        <TR>
+                         <TD BGCOLOR="#BBDEFB">id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR (PK)</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tanggal_mulai</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tanggal_selesai</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">status</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(10) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">pekerjaan_id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">kendala_id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">created_by_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">last_edited_by_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR></TABLE>> URL="http://PPP_details.html"]
+	PPP -> Pekerjaan [label=pekerjaan color="#1E88E5" style=dashed tooltip="Relation between PPP and Pekerjaan"]
+	PPP -> Kendala [label=kendala color="#1E88E5" style=dashed tooltip="Relation between PPP and Kendala"]
+	PPP -> User [label=created_by color="#1E88E5" style=dashed tooltip="Relation between PPP and User"]
+	PPP -> User [label=last_edited_by color="#1E88E5" style=dashed tooltip="Relation between PPP and User"]
+	CloseOut [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+        <TR><TD COLSPAN="2" BGCOLOR="#3F51B5"><FONT COLOR="white">CloseOut</FONT></TD></TR>
+        <TR>
+                         <TD BGCOLOR="#BBDEFB">id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR (PK)</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tanggal_mulai</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">tanggal_selesai</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">status</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(10) ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">pekerjaan_id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">kendala_id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">created_by_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">last_edited_by_id</TD>
+                         <TD BGCOLOR="#BBDEFB">INTEGER ()</TD>
+                         </TR></TABLE>> URL="http://CloseOut_details.html"]
+	CloseOut -> Pekerjaan [label=pekerjaan color="#1E88E5" style=dashed tooltip="Relation between CloseOut and Pekerjaan"]
+	CloseOut -> Kendala [label=kendala color="#1E88E5" style=dashed tooltip="Relation between CloseOut and Kendala"]
+	CloseOut -> User [label=created_by color="#1E88E5" style=dashed tooltip="Relation between CloseOut and User"]
+	CloseOut -> User [label=last_edited_by color="#1E88E5" style=dashed tooltip="Relation between CloseOut and User"]
+	Well [label=<
+        <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0">
+        <TR><TD COLSPAN="2" BGCOLOR="#3F51B5"><FONT COLOR="white">Well</FONT></TD></TR>
+        <TR>
+                         <TD BGCOLOR="#BBDEFB">id</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR(64) (PK)</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">well_name</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">job</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">afe_number</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">purpose</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">reentry</TD>
+                         <TD BGCOLOR="#BBDEFB">BOOLEAN ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">well_type</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">work_area</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">field</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">position</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">actual_elevation_gl</TD>
+                         <TD BGCOLOR="#BBDEFB">FLOAT ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">actual_elevation_rkb</TD>
+                         <TD BGCOLOR="#BBDEFB">FLOAT ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">actual_surface_coordinate_lat</TD>
+                         <TD BGCOLOR="#BBDEFB">FLOAT ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">actual_surface_coordinate_lon</TD>
+                         <TD BGCOLOR="#BBDEFB">FLOAT ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">actual_subsurface_coordinate_lat</TD>
+                         <TD BGCOLOR="#BBDEFB">FLOAT ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">actual_subsurface_coordinate_lon</TD>
+                         <TD BGCOLOR="#BBDEFB">FLOAT ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">actual_coordinate_datum</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">actual_final_depth_md</TD>
+                         <TD BGCOLOR="#BBDEFB">FLOAT ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">actual_final_depth_tvd</TD>
+                         <TD BGCOLOR="#BBDEFB">FLOAT ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">actual_hydrocarbon</TD>
+                         <TD BGCOLOR="#BBDEFB">VARCHAR ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">actual_start_date</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR><TR>
+                         <TD BGCOLOR="#BBDEFB">actual_end_date</TD>
+                         <TD BGCOLOR="#BBDEFB">DATETIME ()</TD>
+                         </TR></TABLE>> URL="http://Well_details.html"]
+	Well -> Pekerjaan [label=pekerjaan color="#1E88E5" style=dashed tooltip="Relation between Well and Pekerjaan"]
+}
