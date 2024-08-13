@@ -5,7 +5,7 @@ from app.routers.geometry.schemas import WilayahKerjaSchema, FieldSchema
 
 def create_wk(db: Session, wk: WilayahKerjaSchema ):
     
-    db_wk = WilayahKerja(
+    db_wk = Area(
         **wk.model_dump()
     )
     db.add(db_wk)

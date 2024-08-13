@@ -1,7 +1,12 @@
 from sqlalchemy.orm import relationship, declared_attr
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, JSON, Enum, Text, Boolean
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, JSON, Enum, Text, Boolean, Float, Table
 from enum import Enum as PyEnum
 from app.database import Base
+import uuid
+
+class DataPhase(PyEnum):
+    PLAN = 'PLAN'
+    ACTUAL = 'ACTUAL'
 
 class TahapanBase(Base):
     __abstract__ = True
@@ -128,51 +133,67 @@ class CloseOut(TahapanBase):
     
     status = Column(Enum(StatusOperasi))
 
-class TipePekerjaan(PyEnum):
+class JobType(PyEnum):
     EKSPLORASI = 'EKSPLORASI'
     EKSPLOITASI = 'EKSPLOITASI'
     WORKOVER = 'WORKOVER'
     WELLSERVICE = 'WELSERVICE'
 
-class DepthPath(PyEnum):
+
+class ContractType(PyEnum):
+    COST_RECOVERY = 'COST_RECOVERY'
+    GROSS_SPLIT = 'GROSS_SPLIT'
+
+class RigType(PyEnum):
+    JACK_UP = 'JACK-UP'
+    BARGE = 'BARGE'
+    FLOATER = 'FLOATER'
+    SEMI_SUBMERSIBLE = 'SEMI-SUBMERSIBLE'
+    DRILLSHIP = 'DRILLSHIP'
+
+class Job(Base):
+
+    __tablename__ = 'jobs'
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     
-    TVD = 'TVD'
-    TVDSS = 'TVDSS'
-    MD = 'MD'
-
-class DepthReferencePoint(PyEnum):
+    #well
+    well_id = Column(String(36), ForeignKey('wells.id'))
+    well = relationship("Job", back_populates="jobs")
     
-    GL = 'GL'
-    KB = 'KB'
-    RT = 'RT'
-
-
-class Pekerjaan(Base):
-
-    __tablename__ = 'pekerjaan'
-
-    id = Column(String, primary_key=True)
+    #kkks information
+    kkks_id = Column(String(36), ForeignKey('kkks.id'))
+    last_edited_by = relationship("KKKS", foreign_keys=[kkks_id])
     
-    #well_id = Column(String(64), ForeignKey('wells.id'))
-    #well = relationship('Well', back_populates='pekerjaan')
+    field_id = Column(String(36), ForeignKey('fields.id'))
+    field = relationship('Field', back_populates='jobs')
     
-    kkks = Column(String(64))
-    lapangan = Column(String(32))
-    wilayah_kerja = Column(String(32))
-    tipe_kontrak = Column(String(32))
-    tipe_pekerjaan = Column(Enum(TipePekerjaan))
-    no_afe = Column(String(32))
-    tahun_wpnb = Column(Integer)
-    status = Column(String(32))
+    #contract information
+    contract_type = Column(Enum(ContractType))
+    job_type = Column(Enum(JobType))
+    
+    afe_number = Column(String)
+    wpb_year = Column(Integer)
     
     #plan
-    plan_mulai = Column(DateTime)
-    plan_selesai = Column(DateTime)
-    plan_budget = Column(Numeric(precision=10, scale=2))
-    plan_schedule = Column(JSON)
-
-    log_pekerjaan = relationship('LogPekerjaan', back_populates='pekerjaan')
+    plan_start = Column(DateTime)
+    plan_end = Column(DateTime)
+    plan_total_budget = Column(Numeric(precision=10, scale=2))
     
+    #actual
+    actual_start = Column(DateTime)
+    actual_end = Column(DateTime)
+    actual_total_budget = Column(Numeric(precision=10, scale=2))
+    
+    #rig information
+    rig_name = Column(String)
+    rig_type = Column(Enum(RigType))
+    rig_horse_power = Column(Float)
+
+    #job activity
+    job_activity = relationship('JobActivity', back_populates='job')
+    
+    #other
     date_created = Column(DateTime)
     last_edited = Column(DateTime)
 
@@ -182,48 +203,105 @@ class Pekerjaan(Base):
     last_edited_by = relationship("User", foreign_keys=[created_by_id])
     
     __mapper_args__ = {
-        'polymorphic_identity': 'pekerjaan',
-        'polymorphic_on': tipe_pekerjaan
+        'polymorphic_identity': 'jobs',
+        'polymorphic_on': job_type
     }
 
-class LogPekerjaan(Base):
-    
-    __tablename__ = 'log_pekerjaan'
-    
-    id = Column(String, primary_key=True)
 
-    waktu = Column(DateTime)
-    kedalaman = Column(Numeric)
-    depth_path = Column(Enum(DepthPath))
-    reference_point = Column(Enum(DepthReferencePoint))
+from app.routers.well.models import DepthUOM, DepthDatum
+
+class JobActivity(Base):
+    
+    __tablename__ = 'job_activity'
+    
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+
+    time = Column(DateTime)
+    
+    measured_depth = Column(Float)
+    measured_depth_uoum = Column(Enum(DepthUOM))
+    measured_depth_datum = Column(Enum(DepthDatum))
+    
+    true_vertical_depth = Column(Float)
+    true_vertical_depth_uoum = Column(Enum(DepthUOM))
+    
+    true_vertical_depth_sub_sea = Column(Float)
+    true_vertical_depth_sub_sea_uoum = Column(Enum(DepthUOM))
+    
     daily_cost = Column(Numeric(precision=10, scale=2))
     
     summary = Column(Text)
     current_operations = Column(Text)
     next_operations = Column(Text)
     
-    pekerjaan_id = Column(String, ForeignKey('pekerjaan.id'))
-    pekerjaan = relationship('Pekerjaan', back_populates='log_pekerjaan')
+    job_id = Column(String, ForeignKey('jobs.id'))
+    job = relationship('Job', back_populates='job_activity')
 
-
-class Eksplorasi(Pekerjaan):
+class Eksplorasi(Job):
     __mapper_args__ = {
-        'polymorphic_identity': TipePekerjaan.EKSPLORASI
+        'polymorphic_identity': JobType.EKSPLORASI
+    }
+    
+
+
+class Eksploitasi(Job):
+    __mapper_args__ = {
+        'polymorphic_identity': JobType.EKSPLOITASI
     }
 
-class Eksploitasi(Pekerjaan):
+class Workover(Job):
     __mapper_args__ = {
-        'polymorphic_identity': TipePekerjaan.EKSPLOITASI
+        'polymorphic_identity': JobType.WORKOVER
     }
 
-class Workover(Pekerjaan):
+class WellService(Job):
     __mapper_args__ = {
-        'polymorphic_identity': TipePekerjaan.WORKOVER
+        'polymorphic_identity': JobType.WELLSERVICE
     }
 
-class WellService(Pekerjaan):
-    __mapper_args__ = {
-        'polymorphic_identity': TipePekerjaan.WELLSERVICE
-    }
+class WorkBreakdownStructure(Base):
+    
+    __tablename__ = 'wbs'
+    
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    job_id = Column(String(36), ForeignKey('jobs.id'))
+    
+    data_phase = Column(Enum(DataPhase))
+    
+    event = Column(String)
+    start_date = Column(DateTime)
+    end_data = Column(DateTime)
+    remarks = Column(Text)
+
+class HazardType(PyEnum):
+    GAS_KICK = "GAS KICK"
+    STUCK_PIPE = "STUCK PIPE"
+    LOST_CIRCULATION = "LOST CIRCULATION"
+    WELL_CONTROL = "WELL CONTROL"
+    EQUIPMENT_FAILURE = "EQUIPMENT FAILURE"
+    OTHER = "OTHER"
+
+class Severity(PyEnum):
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
+
+class DrillingHazard(Base):
+    
+    __tablename__ = 'drilling_hazard'
+    
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    job_id = Column(String(36), ForeignKey('jobs.id'))
+    
+    data_phase = Column(Enum(DataPhase))
+    
+    hazard_type = Column(Enum(HazardType))
+    hazard_description = Column(Text)
+    severity = Column(Enum(Severity))
+    mitigation = Column(Text)
+    
+    remark = Column(Text)
+
 
 

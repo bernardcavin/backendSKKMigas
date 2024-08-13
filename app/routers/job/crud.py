@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 
-from app.routers.job.models import Eksplorasi,Eksploitasi, Workover, WellService, TipePekerjaan
-from app.routers.job.schemas import Job
+from app.routers.job.models import Eksplorasi,Eksploitasi, Workover, WellService, TipePekerjaan, LogPekerjaan
+from app.routers.job.schemas import Job, LogPekerjaanSchema
 
 from typing import Union
 
@@ -22,3 +22,13 @@ def create_job(db: Session, job: Job ):
     db.commit()
     db.refresh(db_job)
     return db_job
+
+def create_job_log(db: Session, job_log: LogPekerjaanSchema ):
+    
+    db_job_log = LogPekerjaan(
+        **job_log.model_dump()
+    )
+    db.add(db_job_log)
+    db.commit()
+    db.refresh(db_job_log)
+    return db_job_log
