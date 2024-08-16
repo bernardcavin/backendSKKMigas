@@ -4,26 +4,26 @@ from enum import Enum as PyEnum
 from app.database import Base
 import uuid
 
-class FaseWK(PyEnum):
-    EKSPLORASI = "EKSPLORASI"
-    EKSPLOITASI = "EKSPLOITASI"
+class AreaPhase(PyEnum):
+    EXPLORATION = "EXPLORATION"
+    DEVELOPMENT = "DEVELOPMENT"
 
-class JenisWK(PyEnum):
-    KONVENSIONAL = "KONVENSIONAL"
-    NONKONVENSIONAL = "NON-KONVENSIONAL"
+class AreaType(PyEnum):
+    CONVENTIONAL = "CONVENTIONAL"
+    NONCONVENTIONAL = "NON-CONVENTIONAL"
 
-class LokasiWK(PyEnum):
+class AreaPosition(PyEnum):
     ONSHORE = "ONSHORE"
     OFFSHORE = "OFFSHORE"
     ONSHORE_AND_OFFSHORE = "ONSHORE AND OFFSHORE"
 
-class ProduksiWK(PyEnum):
-    NONPRODUKSI = 'NON-PRODUKSI'
-    PENGEMBANGAN = 'PENGEMBANGAN'
-    PRODUKSI = 'PRODUKSI'
-    OFF = 'OFF NON-PRODUKSI'
+class AreaProductionStatus(PyEnum):
+    NONPRODUCTION = 'NON-PRODUCTION'
+    DEVELOPMENT = 'DEVELOPMENT'
+    PRODUCTION = 'PRODUCTION'
+    OFF = 'OFF NON-PRODUCTION'
 
-class RegionWK(PyEnum):
+class AreaRegion(PyEnum):
     REGION_I = 'REGION I'
     REGION_II = 'REGION II'
     REGION_III = 'REGION III'
@@ -57,23 +57,24 @@ class Area(Base):
     
     __tablename__ = 'area'
 
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     label = Column(String, unique=True)
-    nama_wk = Column(String, unique=True, index=True)
-    fase = Column(Enum(FaseWK))
-    jenis = Column(Enum(JenisWK))
-    lokasi = Column(Enum(LokasiWK))
-    produksi = Column(Enum(ProduksiWK))
-    region = Column(Enum(RegionWK))
+    area_name = Column(String, unique=True, index=True)
+    area_phase = Column(Enum(AreaPhase))
+    area_type = Column(Enum(AreaType))
+    area_position = Column(Enum(AreaPosition))
+    area_production_status = Column(Enum(AreaProductionStatus))
+    area_region = Column(Enum(AreaRegion))
     fields = relationship("Field", back_populates="area")
+    strat_units = relationship("StratUnit", back_populates="area")
     geojson = Column(JSON)
 
 class Field(Base):   
 
     __tablename__ = 'fields'
     
-    id = Column(String, primary_key=True, index=True)
-    nama_field = Column(String)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    field_name = Column(String)
     area_id = Column(String, ForeignKey('area.id'))
     area = relationship("Area", back_populates="fields")
     geojson = Column(JSON)
@@ -87,6 +88,7 @@ class StratUnit(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     area_id = Column(String, ForeignKey('area.id'))
+    area = relationship("Area", back_populates="strat_units")
     
     strat_unit_name = Column(String)
     strat_type = Column(Enum(StratType))

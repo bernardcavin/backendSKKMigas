@@ -56,6 +56,13 @@ class CasingUOM(PyEnum):
     FEET = 'FEET'
     METER = 'METER'
 
+class CasingType(PyEnum):
+    CONDUCTOR_PIPE = 'CONDUCTOR PIPE'
+    SURFACE_CASING = 'SURFACE CASING'
+    INTERMEDIATE_CASING = 'INTERMEDIATE CASING'
+    PRODUCTION_CASING = 'PRODUCTION CASING'
+    PRODUCTION_LINER = 'PRODUCTION LINER'
+
 class DepthUOM(PyEnum):
     FEET = 'FEET'
     METER = 'METER'
@@ -75,6 +82,24 @@ class SizeUOM(PyEnum):
     KILOBYTE = 'KILOBYTE'
     MEGABYTE = 'MEGABYTE'
 
+class LogType(PyEnum):
+    GAMMA_RAY = 'GAMMA RAY'
+    DENSITY = 'DENSITY'
+    POROSITY = 'POROSITY'
+
+class GRLogUOM(PyEnum):
+    API = 'API'
+    CPS = 'CPS'
+
+class DENLogUOM(PyEnum):
+    GRAM_PER_CC = 'G/CC'
+    GRAM_PER_CM3 = 'G/CM3'
+    KILOGRAM_PER_M3 = 'KG/M3'
+
+class PORLogUOM(PyEnum):
+    PERCENT = '%'
+    DECIMAL = 'DECIMAL'
+
 class Well(Base):
     
     __tablename__ = 'wells'
@@ -83,9 +108,9 @@ class Well(Base):
     
     uwi = Column(String)
     field_id = Column(String, ForeignKey('fields.id'))   
-    field = relationship('Field', back_populates='well')
+    field = relationship('Field', back_populates='wells')
     
-    job = relationship('Job', back_populates='well')
+    data_phase = Column(Enum(DataPhase))
     
     # Basic Information
     well_name = Column(String)
@@ -102,7 +127,7 @@ class Well(Base):
     surface_longitude = Column(Float)  # Surface Longitude (PPDM: SURFACE_LONGITUDE)
     surface_latitude = Column(Float)  # Surface Latitude (PPDM: SURFACE_LATITUDE)
     bottom_hole_longitude = Column(Float)
-    bottom_hole_longitude = Column(Float)
+    bottom_hole_latitude = Column(Float)
         
     # Seismic Information
     line_name = Column(String)  # Line Name (PPDM: LINE_NAME)
@@ -125,9 +150,12 @@ class Well(Base):
     ground_elev = Column(Float)  # Ground Elevation (PPDM: GROUND_ELEV)
     ground_elev_ouom = Column(Enum(DepthUOM)) # Ground Elevation ODepthUOM (PPDM: GROUND_ELEV_ODepthUOM)
     
-    depth_datum = Column(Enum(DepthDatum))  # Depth Datum (PPDM: DEPTH_DATUM)
+    mean_sea_level = Column(Float)
+    mean_sea_level_ouom = Column(Enum(DepthDatum))
     
     # Depths
+    depth_datum = Column(Enum(DepthDatum))  # Depth Datum (PPDM: DEPTH_DATUM)
+    
     drill_td = Column(Float)  # Drill Total Depth (PPDM: DRILL_TD)
     drill_td_ouom = Column(Enum(DepthUOM))  # Drill Total Depth ODepthUOM (PPDM: DRILL_TD_ODepthUOM)
     
@@ -145,18 +173,18 @@ class Well(Base):
 
     remark = Column(Text)  # Remarks (PPDM: REMARK)
     
-    documents = relationship('Document', back_populates='well')
-    well_logs = relationship('WellLog', back_populates='well')
+    documents = relationship('WellDocument', back_populates='well')
+    well_log_documents = relationship('WellLogDocument', back_populates='well')
     well_samples = relationship('WellSample', back_populates='well')
     well_core_samples = relationship('WellCoreSample', back_populates='well')
     well_casing = relationship('WellCasing', back_populates='well')
     well_trajectory = relationship('WellTrajectory', back_populates='well')
     well_ppfg = relationship('PorePressureFractureGradient', back_populates='well')
-    well_log = relationship('WellLog', back_populates='well')
+    well_logs = relationship('WellLog', back_populates='well')
     well_drilling_parameter = relationship('DrillingParameter', back_populates='well')
     well_strat = relationship('WellStrat', back_populates='well')
     
-class Document(Base):
+class WellDocument(Base):
     __tablename__ = 'well_documents'
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
@@ -188,7 +216,7 @@ class WellLogDocument(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     well_id = Column(String(36), ForeignKey('wells.id'))
-    well = relationship('Well', back_populates='well_logs')
+    well = relationship('Well', back_populates='well_log_documents')
     
     logging_company = Column(String)
     media_type = Column(Enum(MediaType))
@@ -265,8 +293,9 @@ class WellCasing(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     well_id = Column(String(36), ForeignKey('wells.id'))
     well = relationship('Well', back_populates='well_casing')
-    
-    data_phase = Column(Enum(DataPhase))
+
+    casing_type = Column(Enum(CasingType))
+    grade = Column(String)
     
     inside_diameter = Column(Float)
     inside_diameter_ouom = Column(Enum(CasingUOM))
@@ -284,8 +313,6 @@ class WellTrajectory(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     well_id = Column(String(36), ForeignKey('wells.id'))
     well = relationship('Well', back_populates='well_trajectory')
-
-    data_phase = Column(Enum(DataPhase))
 
     measured_depth = Column(Float)  # Measured Depth
     true_vertical_depth = Column(Float)  # True Vertical Depth
@@ -305,35 +332,13 @@ class PorePressureFractureGradient(Base):
     well_id = Column(String(36), ForeignKey('wells.id'))
     well = relationship('Well', back_populates='well_ppfg')
     
-    data_phase = Column(Enum(DataPhase))
-    
-    true_vertical_depth_datum = Column(Enum(DepthDatum))
-    true_vertical_depth = Column(Float)
-    true_vertical_depth_uoum = Column(Enum(DepthUOM))
+    depth_datum = Column(Enum(DepthDatum))
+    depth = Column(Float)
+    depth_uoum = Column(Enum(DepthUOM))
     
     overburden_stress = Column(Float)
     pore_pressure = Column(Float)
     fracture_pressure = Column(Float)
-    
-    remark = Column(Text)
-
-class LogType(PyEnum):
-    GAMMA_RAY = 'GAMMA RAY'
-    DENSITY = 'DENSITY'
-    POROSITY = 'POROSITY'
-
-class GRLogUOM(PyEnum):
-    API = 'API'
-    CPS = 'CPS'
-
-class DENLogUOM(PyEnum):
-    GRAM_PER_CC = 'G/CC'
-    GRAM_PER_CM3 = 'G/CM3'
-    KILOGRAM_PER_M3 = 'KG/M3'
-
-class PORLogUOM(PyEnum):
-    PERCENT = '%'
-    DECIMAL = 'DECIMAL'
 
 class WellLog(Base):
     
@@ -341,11 +346,11 @@ class WellLog(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     well_id = Column(String(36), ForeignKey('wells.id'))
-    well = relationship('Well', back_populates='well_log')
+    well = relationship('Well', back_populates='well_logs')
     
-    measured_depth_datum = Column(Enum(DepthDatum))
-    measured_depth = Column(Float)
-    measured_depth_uoum = Column(Enum(DepthUOM))
+    depth_datum = Column(Enum(DepthDatum))
+    depth = Column(Float)
+    depth_uoum = Column(Enum(DepthUOM))
     
     gamma_ray_log_name = Column(String)
     gamma_ray_log = Column(Float)
@@ -357,7 +362,7 @@ class WellLog(Base):
     
     porosity_log_name = Column(String)
     porosity_log = Column(Float)
-    porosity_log_ouom = Column(Enum(PORLogUOM))  
+    porosity_log_ouom = Column(Enum(PORLogUOM))
 
 class DrillingParameter(Base):
     
@@ -365,11 +370,11 @@ class DrillingParameter(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     well_id = Column(String(36), ForeignKey('wells.id'))
-    well = relationship('Well', back_populates='well_log')
+    well = relationship('Well', back_populates='well_drilling_parameter')
     
-    measured_depth_datum = Column(Enum(DepthDatum))
-    measured_depth = Column(Float)
-    measured_depth_uoum = Column(Enum(DepthUOM))
+    depth_datum = Column(Enum(DepthDatum))
+    depth = Column(Float)
+    depth_uoum = Column(Enum(DepthUOM))
     
     rate_of_penetration = Column(Float)
     weight_on_bit = Column(Float)
@@ -388,9 +393,11 @@ class WellStrat(Base):
     well_id = Column(String(36), ForeignKey('wells.id'))
     well = relationship('Well', back_populates='well_strat')
     
-    data_phase = Column(Enum(DataPhase))
-    
     strat_unit_id = Column(String(36), ForeignKey('area_strat.id'))
     strat_unit = relationship('StratUnit', back_populates='well_strat')
     
+    depth_datum = Column(Enum(DepthDatum))
+    top_depth = Column(Float)
+    bottom_depth = Column(Float)
+    depth_uoum = Column(Enum(DepthUOM))
     

@@ -15,7 +15,7 @@ class KKKS(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     nama_kkks = Column(String, unique=True, index=True)
     users = relationship("User", back_populates="kkks")
-    well = relationship("Well", back_populates="kkks")
+    jobs = relationship("Job", back_populates="kkks")
 
 class User(Base):
     __tablename__ = 'users'

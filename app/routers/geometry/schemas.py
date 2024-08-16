@@ -1,22 +1,45 @@
 
 from pydantic import BaseModel
-from app.routers.geometry.models import FaseWK,JenisWK,LokasiWK, ProduksiWK, RegionWK
+from app.routers.geometry.models import *
+from typing import List
 
-class WilayahKerjaSchema(BaseModel):
+class CreateFieldSchema(BaseModel):
+
+    field_name: str
+    area_id: str
+    geojson: str
+
+class CreateStratUnitSchema(Base):
     
-    id: str
+    area_id: str
+    
+    strat_unit_name: str
+    strat_type: StratType
+    strat_unit_type: StratUnitType
+    strat_petroleum_system: PetroleumSystem
+    
+    remark: str
+
+class CreateAreaSchema(BaseModel):
+    
     label: str
-    nama_wk: str
-    fase: FaseWK
-    jenis: JenisWK
-    lokasi: LokasiWK
-    produksi: ProduksiWK
-    region: RegionWK
+    area_name: str
+    area_phase: AreaPhase
+    area_type: AreaType
+    area_position: AreaPosition
+    area_production_status: AreaProductionStatus
+    area_region: AreaRegion
     geojson: str
     
-class FieldSchema(BaseModel):
-
+class GetFieldSchema(CreateFieldSchema):
     id: str
-    nama_field: str
-    wilayah_kerja_id: str
-    geojson: str
+
+class GetStratUnitSchema(CreateAreaSchema):
+    id: str
+    
+class GetAreaSchema(CreateAreaSchema):
+    
+    id: str
+    fields: List[GetFieldSchema]
+    strat_units: List[GetStratUnitSchema]
+
