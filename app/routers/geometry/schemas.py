@@ -34,7 +34,7 @@ class CreateAreaSchema(BaseModel):
 class GetFieldSchema(CreateFieldSchema):
     id: str
 
-class GetStratUnitSchema(CreateAreaSchema):
+class GetStratUnitSchema(CreateStratUnitSchema):
     id: str
     
 class GetAreaSchema(CreateAreaSchema):
