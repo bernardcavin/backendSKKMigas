@@ -183,6 +183,10 @@ class WellDocument(Base):
     __tablename__ = 'well_documents'
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+
+    file_id = Column(String(36), ForeignKey('files.id'))
+    file = relationship('FileDB', foreign_keys=[file_id])
+
     well_id = Column(String(36), ForeignKey('wells.id'))
     well = relationship('Well', back_populates='documents')
     
@@ -212,6 +216,9 @@ class WellLogDocument(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     well_id = Column(String(36), ForeignKey('wells.id'))
     well = relationship('Well', back_populates='well_log_documents')
+
+    file_id = Column(String(36), ForeignKey('files.id'))
+    file = relationship('FileDB', foreign_keys=[file_id])
     
     logging_company = Column(String)
     media_type = Column(Enum(MediaType))

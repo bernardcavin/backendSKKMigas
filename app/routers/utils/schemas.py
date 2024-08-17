@@ -6,10 +6,15 @@ import os
 from datetime import datetime
 
 class FileInfo(BaseModel):
+    id: str
     filename: str
     size: int
     content_type: str
     upload_time: datetime
+    file_location: str
+
+    class Config:
+        from_attributes = True
 
 class UploadResponse(BaseModel):
     message: str
@@ -18,3 +23,7 @@ class UploadResponse(BaseModel):
 class MultiUploadResponse(BaseModel):
     message: str
     files_info: List[FileInfo]
+
+class TabularData(BaseModel):
+    headers: List[str]
+    records: List[dict]

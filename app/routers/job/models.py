@@ -279,6 +279,9 @@ class JobDocument(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     job_id = Column(String(36), ForeignKey('jobs.id'))
     job = relationship('Job', back_populates='job_documents')
+
+    file_id = Column(String(36), ForeignKey('files.id'))
+    file = relationship('FileDB', foreign_keys=[file_id])
     
     title = Column(String)
     creator_name = Column(String)
