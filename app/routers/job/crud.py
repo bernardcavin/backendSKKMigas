@@ -216,8 +216,8 @@ def create_pengajuan_wows(db: Session, pengajuan: CreatePengajuanWOWS, user: Get
     )
     db.add(db_pengajuan)
     db.commit()
-    db.refresh(db_job_log)
-    return db_job_log
+    db.refresh(db_job)
+    return db_job
 
 # def create_pengajuan(db: Session, job_id: str, job_log: CreateJobActivity)
     db.refresh(db_pengajuan)
