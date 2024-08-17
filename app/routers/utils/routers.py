@@ -1,12 +1,41 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status,File,UploadFile
+import shutil
+from typing import List
 from sqlalchemy.orm import Session
 from app.routers.auth.models import *
 import json
+import os
 from app.routers.geometry.models import *
 from app.routers.job.models import ContractType, DataPhase, DrillingClass, HazardType, JobType, RigType, Severity, StatusCloseOut, StatusOperasi, StatusPPP, StatusPengajuan, WOWSClass, WOWSJobType
 from app.routers.well.models import CasingType, CasingUOM, DENLogUOM, DepthDatum, DepthUOM, Environment, LogType, MediaType, PORLogUOM, ProfileType, SizeUOM, VolumeUOM, WellType
+from app.routers.utils.schemas import *
+from app.routers.utils.crud.crud import *
+
+upload_dir = "upload"
+os.makedirs(upload_dir, exist_ok=True)
+
 
 router = APIRouter(prefix="/utils", tags=["utils"])
+
+@router.post("/uploadfile/", response_model=UploadResponse)
+async def create_upload_file(file: UploadFile = File(...)):
+    file_info = save_upload_file(file)
+    return UploadResponse(
+        message=f"File '{file.filename}' uploaded successfully",
+        file_info=file_info
+    )
+
+@router.post("/uploadfiles/", response_model=MultiUploadResponse)
+async def create_upload_files(files: List[UploadFile] = File(...)):
+    files_info = []
+    for file in files:
+        file_info = save_upload_file(file)
+        files_info.append(file_info)
+    
+    return MultiUploadResponse(
+        message=f"Successfully uploaded {len(files)} files",
+        files_info=files_info
+    )
 
 @router.get('/roles')
 async def get_roles():
