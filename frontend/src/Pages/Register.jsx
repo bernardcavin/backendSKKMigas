@@ -27,15 +27,14 @@ export function RegisterPage() {
     setSuccessMessage("");
     try {
       const response = await axios.post(
-        "http://localhost:8000/users/register",
-        new URLSearchParams({
-          nama: name,
+        "http://localhost:8000/auth/user/register",
+        {
+          username: name,
           email: email,
-          username: username,
+          kksd_id: username,
           password: password,
-          instansi: instansi,
-          detil_instansi: detilInstansi,
-        }),
+
+        },
         {
           headers: {
             "Content-Type": "application/json",
@@ -80,12 +79,12 @@ export function RegisterPage() {
 
   return (
     <div className="flex w-full items-center justify-center min-h-screen">
-      <Card color="transparent"  className="p-6 shadow-2xl" shadow={true}>
+      <Card color="transparent" className="p-6 shadow-2xl" shadow={true}>
         <Typography variant="h4" color="blue-gray" className="text-center">
-         Register Akun
+          Register Akun
         </Typography>
         <Typography color="gray" className="mt-1 font-normal text-center">
-          
+
         </Typography>
         <form
           className="mt-8 mb-2 w-80 max-w-screen-lg sm:w-96"

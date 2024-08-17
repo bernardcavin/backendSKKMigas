@@ -1,2 +1,9 @@
 myenv
 frontend/node_modules
+
+app/__pycache__
+
+# Ignore Python bytecode directories
+__pycache__
+
+
