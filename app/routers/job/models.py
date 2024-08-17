@@ -155,10 +155,8 @@ class CloseOut(Base,TahapanBase, ValidationBase):
     status = Column(Enum(StatusOperasi))
 
 class JobType(PyEnum):
-    EKSPLORASI = 'EKSPLORASI'
-    EKSPLOITASI = 'EKSPLOITASI'
-    WORKOVER = 'WORKOVER'
-    WELLSERVICE = 'WELSERVICE'
+    DRILLING = 'DRILLING'
+    WOWS = 'WOWS'
 
 class ContractType(PyEnum):
     COST_RECOVERY = 'COST-RECOVERY'
@@ -379,7 +377,7 @@ class WOWSClass(PyEnum):
 
 class Drilling(Job):
     __mapper_args__ = {
-        'polymorphic_identity': JobType.EKSPLORASI
+        'polymorphic_identity': JobType.DRILLING
     }
     
     drilling_class = Column(Enum(DrillingClass))
@@ -392,7 +390,7 @@ class Drilling(Job):
     
 class WOWS(Job):
     __mapper_args__ = {
-        'polymorphic_identity': JobType.WORKOVER
+        'polymorphic_identity': JobType.WOWS
     }
     
     wows_class = Column(Enum(WOWSClass))

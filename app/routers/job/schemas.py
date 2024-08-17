@@ -76,9 +76,9 @@ class CreateJobActivity(BaseModel):
 
 class JobBase(BaseModel):
 
+    field_id: str
+
     contract_type: Optional[ContractType]
-    
-    job_type: Optional[JobType]
     
     afe_number: Optional[str]
     wpb_year: Optional[int]
@@ -129,13 +129,12 @@ class DrillingBase:
     drilling_class: DrillingClass
 
 class CreateDrillingJob(DrillingBase,CreateJobBase):
-    
+
     planned_well: CreateWell
 
 class GetDrillingJob(DrillingBase,CreateJobBase):
     id: str
     planned_well: GetWell
-    final_well: GetWell
 
 class WOWSBase:
 
@@ -178,19 +177,11 @@ class GetWOWSJob(WOWSBase,CreateJobBase):
     id: str
     well: GetWell
 
-class PengajuanBase(BaseModel):
-
-    tanggal_diajukan: datetime
-    tanggal_ditolak: datetime
-    tanggal_disetujui: datetime
-    
-    status: StatusPengajuan
-
 class CreatePengajuanDrilling(BaseModel):
 
     job: CreateDrillingJob
     
-class GetPengajuanDrilling(PengajuanBase):
+class GetPengajuanDrilling(BaseModel):
 
     id: str
     job: GetDrillingJob
@@ -199,7 +190,7 @@ class CreatePengajuanWOWS(BaseModel):
 
     job: CreateWOWSJob
 
-class GetPengajuanWOWS(PengajuanBase):
+class GetPengajuanWOWS(BaseModel):
 
     id: str
     job: GetWOWSJob
