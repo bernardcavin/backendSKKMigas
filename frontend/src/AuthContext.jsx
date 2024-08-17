@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = () => {
     // Set user ketika login
-    const userData = { name: "John Doe", email: "john@example.com" }; // Contoh data
+    const userData = user; // Contoh data
     localStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);
     setIsAuthenticated(true);
