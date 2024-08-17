@@ -10,10 +10,12 @@ import {
 import { useNavigate } from "react-router-dom";
 
 export function RegisterPage() {
-  const [name, setName] = useState("");
+  const [namakks, setNamaKks] = useState("");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [instansi] = useState(""); // Nilai default kosong
   const [detilInstansi] = useState(""); // Nilai default kosong
   const [fieldErrors, setFieldErrors] = useState({}); // Untuk menampung error per field
@@ -25,14 +27,19 @@ export function RegisterPage() {
     e.preventDefault();
     setFieldErrors({});
     setSuccessMessage("");
+    if(password !== confirmPassword) {
+      setFieldErrors({ password: "Password and confirm password do not match." });
+      return;
+    }
     try {
       const response = await axios.post(
-        "http://localhost:8000/auth/user/register",
+        "http://localhost:8000/auth/user/create",
         {
-          username: name,
+          username: username,
           email: email,
-          kksd_id: username,
+          kkks_id: "Pemerintah",
           password: password,
+          role:"Admin"
 
         },
         {
@@ -91,25 +98,7 @@ export function RegisterPage() {
           onSubmit={handleRegister}
         >
           <div className="mb-4 flex flex-col gap-6">
-            <Typography variant="h6" color="blue-gray" className="-mb-3">
-              Name
-            </Typography>
-            <Input
-              size="lg"
-              placeholder="Your Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="!border-t-blue-gray-200 focus:!border-t-gray-900"
-              labelProps={{
-                className: "before:content-none after:content-none",
-              }}
-              required
-            />
-            {fieldErrors.nama && (
-              <Typography color="red" variant="small" className="mt-1">
-                {fieldErrors.nama}
-              </Typography>
-            )}
+            
 
             <Typography variant="h6" color="blue-gray" className="-mb-3">
               Username
@@ -160,6 +149,22 @@ export function RegisterPage() {
               placeholder="********"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="!border-t-blue-gray-200 focus:!border-t-gray-900"
+              labelProps={{
+                className: "before:content-none after:content-none",
+              }}
+              required
+            />
+            
+            <Typography variant="h6" color="blue-gray" className="-mb-3">
+              Password Confirm
+            </Typography>
+            <Input
+              type="password"
+              size="lg"
+              placeholder="*********"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               className="!border-t-blue-gray-200 focus:!border-t-gray-900"
               labelProps={{
                 className: "before:content-none after:content-none",
