@@ -9,8 +9,24 @@ import {
   Option,
 } from "@material-tailwind/react";
 import RadioButton from "../ChildComponets/RadioButton";
+import axios from "axios";
 
 const CardPageSumur = ({ sendData }) => {
+
+  const [typeWell, setTypeWell] = useState([]);
+
+  const getAllData = () => {
+    try {
+      axios.get('http://localhost:8000/utils/welltype').then((response) => {
+        console.log(response.data);
+        setTypeWell(response.data)
+      })
+    } catch (error) {
+      
+    }
+  }
+  
+
   const [formData, setFormData] = useState({
     job: {
       name: '',
@@ -35,8 +51,8 @@ const CardPageSumur = ({ sendData }) => {
   const statusOptions = ["Valid", "Proses", "Ditolak"];
 
   // Handle input change for text and select inputs
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (event) => {
+    const { name, value } = event.target;
     setFormData((prevState) => ({
       ...prevState,
       job: {
@@ -46,8 +62,20 @@ const CardPageSumur = ({ sendData }) => {
     }));
   };
 
+  const handleSelectChangeTypeWell = (value)=> {
+
+    setFormData((prevState) => ({
+      ...prevState,
+      job: {
+        ...prevState.job,
+        type_well: value,
+      },
+    }));
+  }
+
   // Handle change for radio buttons
   const handleRadioChange = (name, value) => {
+
     setFormData((prevState) => ({
       ...prevState,
       job: {
@@ -58,6 +86,7 @@ const CardPageSumur = ({ sendData }) => {
   };
 
   useEffect(() => {
+    
     // Call sendData whenever formData changes
     sendData(formData);
   }, [formData]);
@@ -153,12 +182,10 @@ const CardPageSumur = ({ sendData }) => {
             label="Pilih Type Well"
             name="type_well"
             value={formData.job.type_well}
-            onChange={handleChange}
+            onChange={handleSelectChangeTypeWell}
           >
-            {typeWellOptions.map((option) => (
-              <Option key={option} value={option}>
-                {option}
-              </Option>
+            {typeWell.map((typeWell,index) => (
+              <Option key={index} value={typeWell}>{typeWell}</Option>
             ))}
           </Select>
         </div>

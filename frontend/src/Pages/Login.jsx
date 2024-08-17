@@ -37,9 +37,9 @@ function LoginPage() {
       );
 
       const token = response.data.access_token;
-      console.log(response);
+      // console.log(response);
 
-      console.log(token);
+      // console.log(token);
 
       localStorage.setItem("token", token);
 

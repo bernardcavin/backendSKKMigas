@@ -27,7 +27,7 @@ const FormInput = () => {
         };
 
     const [formData, setFormData] = useState({ });
-    console.table(formData);
+    console.log(formData);
     
     // console.log(formData);
 
@@ -82,12 +82,12 @@ const FormInput = () => {
                 
                 <div className="flex flex-col w-full gap-4">
                     <CardPageSumur sendData={handleAllData} />
-                    <FormHSEPlan />
+                    {/* <FormHSEPlan />
                     <FormPageLainnya />
                     <FormPagePersonel />
                     <FormPagePosisi />
                     <FormPageSchedule sendData={handleAllData} />
-                    <FormPageTrajectory sendData={handleAllData} />
+                    <FormPageTrajectory sendData={handleAllData} /> */}
                     
                 </div>
 
