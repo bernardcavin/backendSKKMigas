@@ -32,25 +32,17 @@ class WellClass(PyEnum):
     WILDCAT = "DELINEATION"
 
 class WellStatus(PyEnum):
-    ACTIVE = ("ACT", "A well which is in active operation in accordance with the purpose for which it is licensed.")
-    SUSPENDED = ("SUS", "A well that failed to achieve or is no longer being used for its licensed purpose, and the well has not been plugged.")
-    ABANDONED = ("ABD", "A well which is officially plugged and abandoned.")
-    ABANDONED_WHIPSTOCKED = ("ABW", "A well drilled and plugged back and another hole drilled and whipstocked out of the same well bore.")
-    CAPPED = ("CAP", "A well with proven productivity (by test or judgment) which has not been placed on production.")
-    POTENTIAL = ("POT", "A newly-drilled or recompleted well in which suitability for production, injection or storage is assumed but not proven. This mode is applicable for a maximum of 12 months after the TD date or recompletion date of the well.")
-    ABANDONED_JUNKED = ("LOS", "A well abandoned because of mechanical difficulties in the hole.")
-    NOT_DRILLED = ("NDR", "A location for which a well licence has been issued but a well has not yet been drilled.")
-    CANCELLED = ("CAN", "A location for which a well licence was issued but the licence has been cancelled.")
-    UNKNOWN = ("UNK", "A well for which there is no available information on mode in Ministry records.")
-    NO_WELL_FOUND = ("NWF", "A well that could not be located in the field by a petroleum inspector.")
+    ACTIVE = "Active"
+    SUSPENDED = "Suspended"
+    ABANDONED = "Abandoned"
+    ABANDONED_WHIPSTOCKED = "Abandoned Whipstocked"
+    CAPPED = "Capped"
+    POTENTIAL = "Potential"
+    ABANDONED_JUNKED = "Abandoned Junked"
+    NOT_DRILLED = "Not Drilled"
+    CANCELLED = "Cancelled"
+    UNKNOWN = "Unknown"
 
-    def __init__(self, code, description):
-        self.code = code
-        self.description = description
-
-    def __str__(self):
-        return f"{self.name} ({self.code}): {self.description}"
-    
 class CasingUOM(PyEnum):
     INCH = 'INCH'
     FEET = 'FEET'
