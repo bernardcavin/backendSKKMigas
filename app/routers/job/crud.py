@@ -89,4 +89,4 @@ def create_job_activity(db: Session, job_id: str, job_log: CreateJobActivity):
     db.refresh(db_job_log)
     return db_job_log
 
-def create_pengajuan(db: Session, job_id: str, job_log: CreateJobActivity)
+# def create_pengajuan(db: Session, job_id: str, job_log: CreateJobActivity)
