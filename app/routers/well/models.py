@@ -260,7 +260,7 @@ class WellCoreSample(Base):
     
     __tablename__ = 'well_core_samples'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     well_id = Column(String(36), ForeignKey('wells.id'))
     well = relationship('Well', back_populates='well_core_samples')
     
@@ -299,7 +299,7 @@ class WellCasing(Base):
     outside_diameter_ouom = Column(Enum(CasingUOM))
     
     base_depth = Column(Float)
-    base_depth_ouom = Column(Enum(CasingUOM))
+    base_depth_ouom = Column(Enum(DepthUOM))
 
 class WellTrajectory(Base):
     
@@ -364,6 +364,7 @@ class DrillingParameter(Base):
     __tablename__ = 'well_drilling_parameter'
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+
     well_id = Column(String(36), ForeignKey('wells.id'))
     well = relationship('Well', back_populates='well_drilling_parameter')
     
@@ -395,4 +396,3 @@ class WellStrat(Base):
     top_depth = Column(Float)
     bottom_depth = Column(Float)
     depth_uoum = Column(Enum(DepthUOM))
-    

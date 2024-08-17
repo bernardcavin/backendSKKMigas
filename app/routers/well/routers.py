@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.routers.auth.models import Role
 from app.routers.auth.schemas import GetUser
 from app.routers.auth.utils import authorize, get_db, get_current_user
-from app.routers.job import crud, schemas, models
+from app.routers.well import crud, schemas, models
 
 router = APIRouter(prefix="/well", tags=["well"])
 

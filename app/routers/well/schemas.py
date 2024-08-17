@@ -232,20 +232,20 @@ class CreateWell(WellBase):
     well_trajectory: List[CreateWellTrajectory]
     well_ppfg: List[CreatePorePressureFractureGradient]
     well_logs: List[CreateWellLog]
-    well_drilling_parameters: List[CreateDrillingParameter]
+    well_drilling_parameter: List[CreateDrillingParameter]
     well_strat: List[CreateWellStrat]
 
 class GetWell(WellBase):
 
     id: str
 
-    documents: List[CreateWellDocument]
-    well_log_documents: List[CreateWellLogDocument]
-    well_samples: List[CreateWellSample]
-    well_core_samples: List[CreateWellCoreSample]
-    well_casing: List[CreateWellCasing]
-    well_trajectory: List[CreateWellTrajectory]
-    well_ppfg: List[CreatePorePressureFractureGradient]
-    well_logs: List[CreateWellLog]
-    well_drilling_parameters: List[CreateDrillingParameter]
-    well_strat: List[CreateWellStrat]
+    documents: List[GetWellDocument]
+    well_log_documents: List[GetWellLogDocument]
+    well_samples: List[GetWellSample]
+    well_core_samples: List[GetWellCoreSample]
+    well_casing: List[GetWellCasing]
+    well_trajectory: List[GetWellTrajectory]
+    well_ppfg: List[GetPorePressureFractureGradient]
+    well_logs: List[GetWellLog]
+    well_drilling_parameter: List[GetDrillingParameter]
+    well_strat: List[GetWellStrat]
