@@ -34,8 +34,7 @@ const FormPagePosisi = () => {
   console.log(data);
   
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const handleInputChange = (name, value) => {
     setData((prevState) => ({
       ...prevState,
       [name]: value,
@@ -113,7 +112,7 @@ const FormPagePosisi = () => {
               placeholder="Elevasi GL"
               name="elevasiGL"
               value={data.elevasiGL}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange("elevasiGL", e.target.value)}
             />
           </div>
           <div className="flex flex-col w-full">
@@ -125,7 +124,7 @@ const FormPagePosisi = () => {
               placeholder="Elevasi RKB"
               name="elevasiRKB"
               value={data.elevasiRKB}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange("elevasiRKB", e.target.value)}
             />
           </div>
         </div>
@@ -140,7 +139,7 @@ const FormPagePosisi = () => {
               placeholder="Elevasi MSL"
               name="elevasiMSL"
               value={data.elevasiMSL}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange("elevasiMSL", e.target.value)}
             />
           </div>
           <div className="flex flex-col w-full">
@@ -152,7 +151,9 @@ const FormPagePosisi = () => {
               placeholder="Elevasi Derrick Floor"
               name="elevasiDerrickFloor"
               value={data.elevasiDerrickFloor}
-              onChange={handleInputChange}
+              onChange={(e) =>
+                handleInputChange("elevasiDerrickFloor", e.target.value)
+              }
             />
           </div>
         </div>
@@ -167,7 +168,7 @@ const FormPagePosisi = () => {
               placeholder="Azimuth / Kemiringan Maks"
               name="azimuth"
               value={data.azimuth}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange("azimuth", e.target.value)}
             />
           </div>
           <div className="flex flex-col w-full">
@@ -179,7 +180,9 @@ const FormPagePosisi = () => {
               placeholder="Kick Off Point (KOP)"
               name="kickOffPoint"
               value={data.kickOffPoint}
-              onChange={handleInputChange}
+              onChange={(e) =>
+                handleInputChange("kickOffPoint", e.target.value)
+              }
             />
           </div>
         </div>
@@ -194,7 +197,9 @@ const FormPagePosisi = () => {
               placeholder="Depth Datum"
               name="depthDatum"
               value={data.depthDatum}
-              onChange={handleInputChange}
+              onChange={(e) =>
+                handleInputChange("depthDatum", e.target.value)
+              }
             />
           </div>
           <div className="flex flex-col w-full">
@@ -206,7 +211,7 @@ const FormPagePosisi = () => {
               placeholder="Drill Td"
               name="drillTd"
               value={data.drillTd}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange("drillTd", e.target.value)}
             />
           </div>
         </div>
@@ -221,7 +226,7 @@ const FormPagePosisi = () => {
               placeholder="Log Td"
               name="logTd"
               value={data.logTd}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange("logTd", e.target.value)}
             />
           </div>
           <div className="flex flex-col w-full">
@@ -233,7 +238,7 @@ const FormPagePosisi = () => {
               placeholder="Max TVD"
               name="maxTVD"
               value={data.maxTVD}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange("maxTVD", e.target.value)}
             />
           </div>
         </div>
@@ -248,7 +253,7 @@ const FormPagePosisi = () => {
               placeholder="Project Depth"
               name="projectDepth"
               value={data.projectDepth}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange("projectDepth", e.target.value)}
             />
           </div>
           <div className="flex flex-col w-full">
@@ -260,7 +265,7 @@ const FormPagePosisi = () => {
               placeholder="Final Td"
               name="finalTd"
               value={data.finalTd}
-              onChange={handleInputChange}
+              onChange={(e) => handleInputChange("finalTd", e.target.value)}
             />
           </div>
         </div>
@@ -275,7 +280,9 @@ const FormPagePosisi = () => {
               placeholder="Latitude Permukaan"
               name="latitudePermukaan"
               value={data.latitudePermukaan}
-              onChange={handleInputChange}
+              onChange={(e) =>
+                handleInputChange("latitudePermukaan", e.target.value)
+              }
             />
           </div>
           <div className="flex flex-col w-full">
@@ -287,7 +294,9 @@ const FormPagePosisi = () => {
               placeholder="Latitude Subsurface"
               name="latitudeSubsurface"
               value={data.latitudeSubsurface}
-              onChange={handleInputChange}
+              onChange={(e) =>
+                handleInputChange("latitudeSubsurface", e.target.value)
+              }
             />
           </div>
         </div>
@@ -302,7 +311,9 @@ const FormPagePosisi = () => {
               placeholder="Longitude Permukaan"
               name="longitudePermukaan"
               value={data.longitudePermukaan}
-              onChange={handleInputChange}
+              onChange={(e) =>
+                handleInputChange("longitudePermukaan", e.target.value)
+              }
             />
           </div>
           <div className="flex flex-col w-full">
@@ -314,7 +325,9 @@ const FormPagePosisi = () => {
               placeholder="Longitude Subsurface"
               name="longitudeSubsurface"
               value={data.longitudeSubsurface}
-              onChange={handleInputChange}
+              onChange={(e) =>
+                handleInputChange("longitudeSubsurface", e.target.value)
+              }
             />
           </div>
         </div>
@@ -328,7 +341,7 @@ const FormPagePosisi = () => {
             placeholder="Keterangan"
             name="keterangan"
             value={data.keterangan}
-            onChange={handleInputChange}
+            onChange={(e) => handleInputChange("keterangan", e.target.value)}
           />
         </div>
       </CardBody>
