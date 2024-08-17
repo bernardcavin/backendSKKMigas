@@ -155,10 +155,8 @@ class CloseOut(Base,TahapanBase, ValidationBase):
     status = Column(Enum(StatusOperasi))
 
 class JobType(PyEnum):
-    EKSPLORASI = 'EKSPLORASI'
-    EKSPLOITASI = 'EKSPLOITASI'
-    WORKOVER = 'WORKOVER'
-    WELLSERVICE = 'WELSERVICE'
+    DRILLING = 'DRILLING'
+    WOWS = 'WOWS'
 
 class ContractType(PyEnum):
     COST_RECOVERY = 'COST-RECOVERY'
@@ -281,6 +279,9 @@ class JobDocument(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     job_id = Column(String(36), ForeignKey('jobs.id'))
     job = relationship('Job', back_populates='job_documents')
+
+    file_id = Column(String(36), ForeignKey('files.id'))
+    file = relationship('FileDB', foreign_keys=[file_id])
     
     title = Column(String)
     creator_name = Column(String)
@@ -379,7 +380,7 @@ class WOWSClass(PyEnum):
 
 class Drilling(Job):
     __mapper_args__ = {
-        'polymorphic_identity': JobType.EKSPLORASI
+        'polymorphic_identity': JobType.DRILLING
     }
     
     drilling_class = Column(Enum(DrillingClass))
@@ -392,7 +393,7 @@ class Drilling(Job):
     
 class WOWS(Job):
     __mapper_args__ = {
-        'polymorphic_identity': JobType.WORKOVER
+        'polymorphic_identity': JobType.WOWS
     }
     
     wows_class = Column(Enum(WOWSClass))

@@ -9,7 +9,7 @@ from typing import Union
 from datetime import datetime
 
 
-def create_well(db: Session, well: CreateWell, data_phase: DataPhase, user: GetUser) -> Well:
+def create_well(db: Session, well: CreateWell, data_phase: DataPhase, user: GetUser, field_id: str) -> Well:
     
     db_well_plan = Well(
 
@@ -17,7 +17,7 @@ def create_well(db: Session, well: CreateWell, data_phase: DataPhase, user: GetU
         created_by_id=user.id,
 
         uwi=well.uwi,
-        field_id=well.field_id,
+        field_id=field_id,
         
         # Basic Information
         well_name=well.well_name,
@@ -144,7 +144,7 @@ def create_well(db: Session, well: CreateWell, data_phase: DataPhase, user: GetU
         )
         db.add(db_well_log)
 
-    for drilling_parameter in well.well_drilling_parameters:
+    for drilling_parameter in well.well_drilling_parameter:
         db_drilling_parameter = DrillingParameter(
             well_id=well_id,
             **drilling_parameter.model_dump()

@@ -1,265 +1,127 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardBody, CardHeader, Input, Typography, Button, Select, Option, CardFooter } from '@material-tailwind/react';
+import React, { useState } from 'react';
+import { Card, CardBody, CardHeader, Typography, Alert } from '@material-tailwind/react';
+import { Dropzone, FileItem } from "@dropzone-ui/react";
+import * as XLSX from 'xlsx';
 
 const FormPageTrajectory = ({ sendData }) => {
+    const [tableData, setTableData] = useState([]);
+    const [headers, setHeaders] = useState([]);
+    const [alert, setAlert] = useState(null);
+    const [files, setFiles] = useState([]);
+    const expectedHeaders = ["Kode Item", "Nama Item", "Terjual", "Harga", "Stok", "Label"];
 
-    const TABLE_HEAD = ["Name", "Job", "Employed", "Action","Date"];
+    const handleFileUpload = (file) => {
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
 
-    const TABLE_ROWS = [
-        {
-            name: "John Michael",
-            job: "Manager",
-            date: "23/04/18",
-        },
-        {
-            name: "Alexa Liras",
-            job: "Developer",
-            date: "23/04/18",
-        },
-        {
-            name: "Laurent Perrier",
-            job: "Executive",
-            date: "19/09/17",
-        },
-        {
-            name: "Michael Levi",
-            job: "Developer",
-            date: "24/12/08",
-        },
-        {
-            name: "Richard Gran",
-            job: "Manager",
-            date: "04/10/21",
-        },
-    ];
-    const [data, setData] = useState({
-        tipe_bor: '',
-        innerDiameter: '',
-        outerDiameter: '',
-        weight: '',
-        grade: '',
-        start_depth: '',
-        end_depth: '',
-    });
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
+                if (jsonData.length > 0) {
+                    const fileHeaders = jsonData[0];
+                    const isValid = expectedHeaders.every((header, index) => header === fileHeaders[index]);
 
-
-
-    // Handle input change
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-    
-        // Convert the value to integer if it's a number field
-        const newValue = name === 'innerDiameter' || name === 'outerDiameter' || name === 'weight' || name === 'grade' || name === 'start_depth' || name === 'end_depth'
-            ? parseInt(value, 10) || 0 // parseInt(value, 10) converts to integer, || '' handles empty input
-            : value;
-    
-        setData(prevState => ({
-            ...prevState,
-            [name]: newValue
-        }));
-    };
-    
-
-
-    const handleSelectChange = (value) => {
-        setData(prevState => ({
-            ...prevState,
-            tipe_bor: value
-        }));
+                    if (isValid) {
+                        setHeaders(fileHeaders);
+                        setTableData(jsonData.slice(1));
+                        setAlert(null); // Clear any previous alerts
+                    } else {
+                        setTableData([]);
+                        setHeaders([]);
+                        setAlert({
+                            type: "error",
+                            message: `Header file tidak sesuai dengan ketentuan. Harus sesuai dengan urutan: ${expectedHeaders.join(', ')}`,
+                        });
+                    }
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
     };
 
-    useEffect(() => {
+    const handleFileChange = (incomingFiles) => {
+        const file = incomingFiles[0]?.file; // Ensure we're working with a File object
+        if (file) {
+            setFiles(incomingFiles);
+            handleFileUpload(file);
+        }
+    };
 
-        sendData(data);
-
-    }, [data]);
+    const handleFileRemove = (file) => {
+        setFiles(files.filter(f => f.file !== file));
+        setTableData([]);
+        setHeaders([]);
+    };
 
     return (
-        <>
-            <div className="flex flex-col w-full">
-                <Card variant='filled' className='w-full mb-4' shadow={true}>
-                    <CardHeader floated={false} className="mb-0" shadow={false}>
-                        <div className="flex justify-between">
-                            <Typography variant='h5' color='black'>
-                                Trajectory
-                            </Typography>
-                            <input type="file" placeholder="Casing" className='ml-4' hidden />
-                        </div>
-                        <hr className="my-5 border-gray-800" />
-                        <Button color='blue' className='h-[34px] mb-4 flex justify-center items-center'>
-                            Upload File
-                        </Button>
-                    </CardHeader>
-                </Card>
-                <Card variant='filled' className='w-full' shadow={true}>
-                    <CardHeader floated={false} className="mb-0" shadow={false}>
-                        <div className="flex justify-between">
-                            <Typography variant='h5' color='black'>
-                                Casing
-                            </Typography>
-                            <Button color='blue' className='h-[34px] flex justify-center items-center' >
-                                Upload File
-                            </Button>
-                            <input type="file" placeholder="Casing" className='ml-4' hidden />
-                        </div>
-                        <hr className="my-2 border-gray-800" />
-                    </CardHeader>
-                    <CardBody className='flex-col flex gap-4'>
-                        <div className="flex flex-col">
-                            <div className="flex flex-col mb-2">
-                                <Typography color="black" className='font-bold'>
-                                    Tipe
-                                </Typography>
-                                <Select label='Select Tipe' onChange={handleSelectChange}>
-                                    <Option value="conductor">Conductor</Option>
-                                    <Option value="semi-conductor">Semi Conductor</Option>
-                                </Select>
-                            </div>
+        <div className="flex flex-col w-full">
+            <Card variant='filled' className='w-full mb-4' shadow={true}>
+                <CardHeader floated={false} className="mb-4  shadow-none">
+                    <Typography variant='h5' color='black'>
+                        Trajectory
+                    </Typography>
+                    <div className="mt-4">
+                        <Dropzone
+                            onChange={handleFileChange}
+                            value={files}
+                            maxFiles={1}
+                            accept=".csv, .xlsx, .xls"
+                            label="Drag and Drop or Choose a Local File"
+                            footer={false}
+                            style={{ border: "2px dashed #E5E7EB", padding: "20px", textAlign: "center" }}
+                        >
+                            {files.map((fileWrapper) => (
+                                <FileItem
+                                    key={fileWrapper.file.name}
+                                    file={fileWrapper.file}
+                                    onDelete={() => handleFileRemove(fileWrapper.file)}
+                                    localization="EN-en"
+                                />
+                            ))}
+                        </Dropzone>
+                    </div>
+                </CardHeader>
+            </Card>
 
-                            <div className="flex flex-col mt-2">
-                                <Typography color="black" className='font-bold'>
-                                    Inner Diameter
-                                </Typography>
-                                <Input
-                                    type="number"
-                                    name="innerDiameter"
-                                    placeholder="Inner Diameter"
-                                    className=''
-                                    min={0}
-                                    value={parseInt(data.innerDiameter)}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div className="flex flex-col mt-4">
-                                <Typography color="black" className='font-bold'>
-                                    Outer Diameter
-                                </Typography>
-                                <Input
-                                    type="number"
-                                    name="outerDiameter"
-                                    placeholder="Outer Diameter"
-                                    className=''
-                                    min={0}
-                                    value={data.outerDiameter}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div className="flex flex-col mt-2">
-                                <Typography color="black" className='font-bold mt-2'>
-                                    Weight
-                                </Typography>
-                                <Input
-                                    type="number"
-                                    name="weight"
-                                    placeholder="Weight"
-                                    className=''
-                                    min={0}
-                                    value={data.weight}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div className="flex flex-col mt-2">
-                                <Typography color="black" className='font-bold mt-2'>
-                                    Grade
-                                </Typography>
-                                <Input
-                                    type="number"
-                                    name="grade"
-                                    placeholder="Grade"
-                                    className=''
-                                    min={0}
-                                    value={data.grade}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div className="flex flex-col mt-2">
-                                <Typography color="black" className='font-bold mt-2'>
-                                    Start Depth
-                                </Typography>
-                                <Input
-                                    type="number"
-                                    name="start_depth"
-                                    placeholder="Start Depth"
-                                    className=''
-                                    min={0}
-                                    value={data.start_depth}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div className="flex flex-col mt-2">
-                                <Typography color="black" className='font-bold mt-2'>
-                                    End Depth
-                                </Typography>
-                                <Input
-                                    type="number"
-                                    name="end_depth"
-                                    placeholder="End Depth"
-                                    className=''
-                                    min={0}
-                                    value={data.end_depth}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                        </div>
-                    </CardBody>
-                    <CardFooter>
-                        <Card className="h-36 w-full overflow-y-scroll">
-                            <table className="w-full min-w-max table-auto text-left">
-                                <thead>
-                                    <tr>
-                                        {TABLE_HEAD.map((head) => (
-                                            <th key={head} className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
-                                                <Typography
-                                                    variant="small"
-                                                    color="blue-gray"
-                                                    className="font-normal leading-none opacity-70"
-                                                >
-                                                    {head}
-                                                </Typography>
-                                            </th>
+            {alert && (
+                <Alert color={alert.type} className="mb-4">
+                    {alert.message}
+                </Alert>
+            )}
+
+            {tableData.length > 0 && (
+                <Card variant='filled' className='w-full h-96 ' shadow={true}>
+                    <CardBody className='flex-col flex gap-4'>
+                        <table className="min-w-full table-auto border-collapse border border-gray-200">
+                            <thead>
+                                <tr>
+                                    {headers.map((header, index) => (
+                                        <th key={index} className="border border-gray-300 p-2 bg-gray-100 text-left">
+                                            {header}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {tableData.map((row, rowIndex) => (
+                                    <tr key={rowIndex} className="border border-gray-300">
+                                        {row.map((cell, cellIndex) => (
+                                            <td key={cellIndex} className="border border-gray-300 p-2">
+                                                {cell}
+                                            </td>
                                         ))}
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {TABLE_ROWS.map(({ name, job, date }, index) => {
-                                        const isLast = index === TABLE_ROWS.length - 1;
-                                        const classes = isLast ? "p-4" : "p-4 border-b border-blue-gray-50";
-
-                                        return (
-                                            <tr key={name}>
-                                                <td className={classes}>
-                                                    <Typography variant="small" color="blue-gray" className="font-normal">
-                                                        {name}
-                                                    </Typography>
-                                                </td>
-                                                <td className={`${classes} bg-blue-gray-50/50`}>
-                                                    <Typography variant="small" color="blue-gray" className="font-normal">
-                                                        {job}
-                                                    </Typography>
-                                                </td>
-                                                <td className={classes}>
-                                                    <Typography variant="small" color="blue-gray" className="font-normal">
-                                                        {date}
-                                                    </Typography>
-                                                </td>
-                                                <td className={`${classes} bg-blue-gray-50/50`}>
-                                                    <Typography as="a" href="#" variant="small" color="blue-gray" className="font-medium">
-                                                        Edit
-                                                    </Typography>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </Card>
-
-                    </CardFooter>
+                                ))}
+                            </tbody>
+                        </table>
+                    </CardBody>
                 </Card>
-            </div>
-        </>
+            )}
+        </div>
     );
-}
+};
 
 export default FormPageTrajectory;

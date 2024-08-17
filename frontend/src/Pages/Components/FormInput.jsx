@@ -85,7 +85,6 @@ const FormInput = () => {
                     {/* <FormHSEPlan />
                     <FormPageLainnya />
                     <FormPagePersonel />
-                    <FormPagePosisi />
                     <FormPageSchedule sendData={handleAllData} />
                     <FormPageTrajectory sendData={handleAllData} /> */}
                     

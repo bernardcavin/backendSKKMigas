@@ -1,9 +1,11 @@
 myenv
 frontend/node_modules
+test.db
 
 app/__pycache__
 
 # Ignore Python bytecode directories
 __pycache__
+
 
 

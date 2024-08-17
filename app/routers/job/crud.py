@@ -12,17 +12,19 @@ def create_drilling_job(db: Session, drilling: CreateDrillingJob, user: GetUser)
     db_well = create_well(
         db,
         drilling.planned_well,
-        DataPhase.PLAN
+        DataPhase.PLAN,
+        user,
+        drilling.field_id
     )
 
     # Create the main Drilling record
     db_drilling = Drilling(
         #job data
+        drilling_class=drilling.drilling_class,
         date_created=datetime.now(),
         kkks_id=user.kkks_id,
         field_id=drilling.field_id,
         contract_type=drilling.contract_type,
-        job_type=drilling.job_type,
         afe_number=drilling.afe_number,
         wpb_year=drilling.wpb_year,
         plan_start=drilling.plan_start,
@@ -40,12 +42,12 @@ def create_drilling_job(db: Session, drilling: CreateDrillingJob, user: GetUser)
     db.add(db_drilling)
     db.commit()
 
-    drilling_id = db_drilling.id
+    job_id = db_drilling.id
 
     # Add related Job Activities
     for activity in drilling.job_activity:
         db_activity = JobActivity(
-            drilling_id=drilling_id,
+            job_id=job_id,
             **activity.model_dump()
         )
         db.add(db_activity)
@@ -53,7 +55,7 @@ def create_drilling_job(db: Session, drilling: CreateDrillingJob, user: GetUser)
     # Add related Budgets
     for budget in drilling.budget:
         db_budget = Budget(
-            drilling_id=drilling_id,
+            job_id=job_id,
             **budget.model_dump()
         )
         db.add(db_budget)
@@ -61,7 +63,7 @@ def create_drilling_job(db: Session, drilling: CreateDrillingJob, user: GetUser)
     # Add related Work Breakdown Structures
     for wbs in drilling.work_breakdown_structure:
         db_wbs = WorkBreakdownStructure(
-            drilling_id=drilling_id,
+            job_id=job_id,
             **wbs.model_dump()
         )
         db.add(db_wbs)
@@ -69,7 +71,7 @@ def create_drilling_job(db: Session, drilling: CreateDrillingJob, user: GetUser)
     # Add related Drilling Hazards
     for hazard in drilling.drilling_hazard:
         db_hazard = DrillingHazard(
-            drilling_id=drilling_id,
+            job_id=job_id,
             **hazard.model_dump()
         )
         db.add(db_hazard)
@@ -77,7 +79,7 @@ def create_drilling_job(db: Session, drilling: CreateDrillingJob, user: GetUser)
     # Add related Job Documents
     for document in drilling.job_documents:
         db_document = JobDocument(
-            drilling_id=drilling_id,
+            job_id=job_id,
             **document.model_dump()
         )
         db.add(db_document)
@@ -91,7 +93,9 @@ def create_wows_job(db: Session, wows: CreateWOWSJob, user: GetUser):
     db_well = create_well(
         db,
         wows.well,
-        DataPhase.ACTUAL
+        DataPhase.ACTUAL,
+        user,
+        wows.field_id
     )
 
     # Create the main Drilling record
@@ -102,7 +106,6 @@ def create_wows_job(db: Session, wows: CreateWOWSJob, user: GetUser):
         kkks_id=user.kkks_id,
         field_id=wows.field_id,
         contract_type=wows.contract_type,
-        job_type=wows.job_type,
         afe_number=wows.afe_number,
         wpb_year=wows.wpb_year,
         plan_start=wows.plan_start,
@@ -141,12 +144,12 @@ def create_wows_job(db: Session, wows: CreateWOWSJob, user: GetUser):
     db.add(db_wows)
     db.commit()
 
-    wows_id = db_wows.id
+    job_id = db_wows.id
 
     # Add related Job Activities
     for activity in wows.job_activity:
         db_activity = JobActivity(
-            wows_id=wows_id,
+            job_id=job_id,
             **activity.model_dump()
         )
         db.add(db_activity)
@@ -154,7 +157,7 @@ def create_wows_job(db: Session, wows: CreateWOWSJob, user: GetUser):
     # Add related Budgets
     for budget in wows.budget:
         db_budget = Budget(
-            wows_id=wows_id,
+            job_id=job_id,
             **budget.model_dump()
         )
         db.add(db_budget)
@@ -162,7 +165,7 @@ def create_wows_job(db: Session, wows: CreateWOWSJob, user: GetUser):
     # Add related Work Breakdown Structures
     for wbs in wows.work_breakdown_structure:
         db_wbs = WorkBreakdownStructure(
-            wows_id=wows_id,
+            job_id=job_id,
             **wbs.model_dump()
         )
         db.add(db_wbs)
@@ -170,7 +173,7 @@ def create_wows_job(db: Session, wows: CreateWOWSJob, user: GetUser):
     # Add related wows Hazards
     for hazard in wows.drilling_hazard:
         db_hazard = DrillingHazard(
-            wows_id=wows_id,
+            job_id=job_id,
             **hazard.model_dump()
         )
         db.add(db_hazard)
@@ -178,7 +181,7 @@ def create_wows_job(db: Session, wows: CreateWOWSJob, user: GetUser):
     # Add related Job Documents
     for document in wows.job_documents:
         db_document = JobDocument(
-            wows_id=wows_id,
+            job_id=job_id,
             **document.model_dump()
         )
         db.add(db_document)
@@ -216,12 +219,12 @@ def create_pengajuan_wows(db: Session, pengajuan: CreatePengajuanWOWS, user: Get
     )
     db.add(db_pengajuan)
     db.commit()
-    db.refresh(db_job)
-    return db_job
-
-# def create_pengajuan(db: Session, job_id: str, job_log: CreateJobActivity)
     db.refresh(db_pengajuan)
     return db_pengajuan
+
+# def create_pengajuan(db: Session, job_id: str, job_log: CreateJobActivity)
+    # db.refresh(db_pengajuan)
+    # return db_pengajuan
 
 # def create_job_activity(db: Session, job_id: str, job_log: CreateJobActivity):
     
