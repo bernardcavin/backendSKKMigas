@@ -78,7 +78,7 @@ const FormInput = () => {
     return (
         <>
 
-            <div className="flex w-full items-center gap-4 justify-center px-4">
+            <div className="flex w-full items-center gap-4 justify-center ">
                 
                 <div className="flex flex-col w-full gap-4">
                     <CardPageSumur sendData={handleAllData} />
@@ -93,7 +93,7 @@ const FormInput = () => {
 
 
 
-                <Card variant='filled' className='w-full ' shadow={true}>
+                {/* <Card variant='filled' className='w-full ' shadow={true}>
 
                     <CardBody>
                         <div className="flex flex-col gap-4">
@@ -156,7 +156,7 @@ const FormInput = () => {
 
 
                     </CardBody>
-                </Card>
+                </Card> */}
             </div>
 
         </>
