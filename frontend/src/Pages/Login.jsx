@@ -25,11 +25,10 @@ function LoginPage() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/auth/token",
-        new URLSearchParams({
-          username: username,
-          password: password,
-        }),
+        "http://localhost:8000/auth/token", new URLSearchParams({
+            username: username,
+            password: password,
+          }),
         {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
@@ -38,6 +37,10 @@ function LoginPage() {
       );
 
       const token = response.data.access_token;
+      console.log(response);
+
+      console.log(token);
+
       localStorage.setItem("token", token);
 
       // Ambil detail pengguna
@@ -46,16 +49,28 @@ function LoginPage() {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log(userResponse);
+      // console.log(userResponse);
       const userDetails = userResponse.data;
       localStorage.setItem("user", JSON.stringify(userDetails));
 
       login(); // Update state autentikasi di context
       navigate("/dashboard"); // Redirect ke dashboard
     } catch (error) {
-      setErrorMessage("Login failed. Please try again.");
-      console.error("Login error:", error);
+      if (error.response) {
+        // Permintaan berhasil dikirim tetapi server merespons dengan status kode yang tidak dalam rentang 2xx
+        setErrorMessage(`Login failed: ${error.response.data.message || 'Please try again.'}`);
+        console.error('Login error response:', error.response.data);
+      } else if (error.request) {
+        // Permintaan dibuat tetapi tidak ada respons yang diterima
+        setErrorMessage('Login failed: No response from server.');
+        console.error('Login error request:', error.request);
+      } else {
+        // Kesalahan lain
+        setErrorMessage('Login failed: An error occurred.');
+        console.error('Login error:', error.message);
+      }
     }
+
   };
 
   return (
@@ -64,7 +79,7 @@ function LoginPage() {
         <Typography variant="h4" color="blue-gray" className="text-center">
           Sign In
         </Typography>
-        
+
         <form
           className="mt-8 mb-2 w-80 max-w-screen-lg sm:w-96"
           onSubmit={handleLogin}
