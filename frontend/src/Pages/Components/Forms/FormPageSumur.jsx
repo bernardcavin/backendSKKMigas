@@ -12,47 +12,51 @@ import RadioButton from "../ChildComponets/RadioButton";
 import axios from "axios";
 
 const CardPageSumur = ({ sendData }) => {
-
   const [typeWell, setTypeWell] = useState([]);
 
-  const getAllData = () => {
+  const getAllData = async () => {
     try {
-      axios.get('http://localhost:8000/utils/enum/all').then((response) => {
-        console.log(response.data.petroleum_system
-          );
-       
-      })
+      const response = await axios.get("http://127.0.0.1:8000/utils/enum/all");
+      setTypeWell(response.data.well_type);
+      console.log(response.data);
+      // Menyimpan data ke dalam state
     } catch (error) {
-      
+      console.error("Error fetching well types:", error);
     }
-  }
+  };
 
   useEffect(() => {
     getAllData();
-  }, [])
-  
+  }, []);
 
+  // Panggil saat file diproses
   const [formData, setFormData] = useState({
     job: {
-      name: '',
-      pekerjaan: '',
-      tipe_kontrak: '',
-      no_afe: '',
-      well_status: '',
-      profile_type: '',
-      environtment_type: '',
-      spud_date: '',
-      total_cost_afe_approve: '',
-      rencana_mulai_tajak: '',
-      rencana_selesai_operasi: '',
-      rencana_total_budget: '',
-      realisasi_mulai: '',
-      realisasi_selesai: '',
-      realisasi_total_budget: '',
+      name: "",
+      pekerjaan: "",
+      tipe_kontrak: "",
+      no_afe: "",
+      well_status: "",
+      profile_type: "",
+      environtment_type: "",
+      spud_date: "",
+      total_cost_afe_approve: "",
+      rencana_mulai_tajak: "",
+      rencana_selesai_operasi: "",
+      rencana_total_budget: "",
+      realisasi_mulai: "",
+      realisasi_selesai: "",
+      realisasi_total_budget: "",
     },
   });
 
-  const typeWellOptions = ["Wildcat", "Deliniasi", "Infill", "Produser", "Stepout"];
+  const typeWellOptions = [
+    "Wildcat",
+    "Deliniasi",
+    "Infill",
+    "Produser",
+    "Stepout",
+  ];
   const statusOptions = ["Valid", "Proses", "Ditolak"];
 
   // Handle input change for text and select inputs
@@ -67,8 +71,8 @@ const CardPageSumur = ({ sendData }) => {
     }));
   };
 
-  const handleSelectChangeTypeWell = (value)=> {
-
+  const handleSelectChangeTypeWell = (value) => {
+    console.log("Selected Type Well:", value);
     setFormData((prevState) => ({
       ...prevState,
       job: {
@@ -76,11 +80,10 @@ const CardPageSumur = ({ sendData }) => {
         type_well: value,
       },
     }));
-  }
+  };
 
   // Handle change for radio buttons
   const handleRadioChange = (name, value) => {
-
     setFormData((prevState) => ({
       ...prevState,
       job: {
@@ -91,9 +94,10 @@ const CardPageSumur = ({ sendData }) => {
   };
 
   useEffect(() => {
-    
     // Call sendData whenever formData changes
     sendData(formData);
+    console.log(formData);
+    
   }, [formData]);
 
   return (
@@ -186,18 +190,20 @@ const CardPageSumur = ({ sendData }) => {
           <Select
             label="Pilih Type Well"
             name="type_well"
-            value={formData.job.type_well}
+            value={formData.type_well}
             onChange={handleSelectChangeTypeWell}
           >
-            {typeWell.map((typeWell,index) => (
-              <Option key={index} value={typeWell}>{typeWell}</Option>
+            {typeWell.map((typeWell, index) => (
+              <Option key={index} value={typeWell}>
+                {typeWell}
+              </Option>
             ))}
           </Select>
         </div>
         <div className="flex flex-row w-full gap-4">
           <div className="flex flex-col w-full">
             <Typography color="black" className="font-bold">
-              Well Status 
+              Well Status
             </Typography>
             <Input
               type="text"
@@ -223,7 +229,7 @@ const CardPageSumur = ({ sendData }) => {
         <div className="flex flex-row w-full gap-4">
           <div className="flex flex-col w-full">
             <Typography color="black" className="font-bold">
-              Environment type 
+              Environment type
             </Typography>
             <Input
               type="text"
@@ -246,7 +252,7 @@ const CardPageSumur = ({ sendData }) => {
             />
           </div>
         </div>
-        
+
         <div className="flex flex-col mt-4">
           <Typography color="black" className="font-bold">
             Tipe Kontrak
@@ -274,7 +280,7 @@ const CardPageSumur = ({ sendData }) => {
         <div className="flex flex-row w-full gap-4">
           <div className="flex flex-col w-full">
             <Typography color="black" className="font-bold">
-              No AFE 
+              No AFE
             </Typography>
             <Input
               type="text"
@@ -306,7 +312,7 @@ const CardPageSumur = ({ sendData }) => {
         <div className="flex flex-row w-full gap-4">
           <div className="flex flex-col w-full">
             <Typography color="black" className="font-bold">
-              Total Cost AFE Approve 
+              Total Cost AFE Approve
             </Typography>
             <Input
               type="text"
@@ -418,7 +424,6 @@ const CardPageSumur = ({ sendData }) => {
             />
           </div>
         </div>
-
       </CardBody>
     </Card>
   );
