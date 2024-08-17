@@ -31,7 +31,6 @@ const FormPagePosisi = () => {
     finalTd: "",
   });
 
-  console.log(data);
   
 
   const handleInputChange = (name, value) => {
