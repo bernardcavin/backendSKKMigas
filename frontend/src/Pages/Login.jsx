@@ -41,7 +41,7 @@ function LoginPage() {
       localStorage.setItem("token", token);
 
       // Ambil detail pengguna
-      const userResponse = await axios.get("http://localhost:8000/users/me", {
+      const userResponse = await axios.get("http://localhost:8000/auth/user/me", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
