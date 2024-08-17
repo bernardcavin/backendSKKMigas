@@ -17,14 +17,19 @@ const CardPageSumur = ({ sendData }) => {
 
   const getAllData = () => {
     try {
-      axios.get('http://localhost:8000/utils/welltype').then((response) => {
-        console.log(response.data);
-        setTypeWell(response.data)
+      axios.get('http://localhost:8000/utils/enum/all').then((response) => {
+        console.log(response.data.petroleum_system
+          );
+       
       })
     } catch (error) {
       
     }
   }
+
+  useEffect(() => {
+    getAllData();
+  }, [])
   
 
   const [formData, setFormData] = useState({

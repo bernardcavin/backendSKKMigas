@@ -78,7 +78,7 @@ enum_map = {
     "porlog_uom": PORLogUOM
 }
 
-@router.get('/enum/{enum_name}')
+@router.get('/enum/get/{enum_name}')
 async def get_enum_values(enum_name: str):
 
     enum_class = enum_map.get(enum_name)
