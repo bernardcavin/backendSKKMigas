@@ -82,6 +82,7 @@ def authorize(role: list):
                 user_role = kwargs.get("user").role
                 
                 if user_role not in role:
+                    
                     raise HTTPException(status_code=403, detail="User is not authorized to access")
                 
             else:

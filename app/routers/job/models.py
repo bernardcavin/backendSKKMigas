@@ -39,7 +39,7 @@ class TahapanBase(CreateEditBase):
     
     @declared_attr
     def job_id(cls):
-        return Column(String, ForeignKey('jobs.id'))
+        return Column(String(36), ForeignKey('jobs.id'))
 
     @declared_attr
     def job(cls):
@@ -47,7 +47,7 @@ class TahapanBase(CreateEditBase):
 
     @declared_attr
     def issue_id(cls):
-        return Column(String, ForeignKey('job_issues.id'))
+        return Column(String(36), ForeignKey('job_issues.id'))
 
     @declared_attr
     def issue(cls):
@@ -69,11 +69,15 @@ class Issue(Base,CreateEditBase):
 class ValidationBase:
     @declared_attr
     def validated_by_id(cls):
-        return Column(Integer, ForeignKey('users.id'))
+        return Column(String(36), ForeignKey('users.id'))
 
     @declared_attr
     def validated_by(cls):
         return relationship("User", foreign_keys=[cls.validated_by_id])
+    
+    @declared_attr
+    def validation_date(cls):
+        return Column(DateTime)
 
 class StatusPengajuan(PyEnum):
     DIAJUKAN = 'DIAJUKAN'
@@ -106,7 +110,7 @@ class Operasi(Base,TahapanBase, ValidationBase):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     tahap_pengajuan_id =Column(String(36), ForeignKey('job_pengajuan.id'))
-    tahap_pengajuan = relationship('Job', foreign_keys=[tahap_pengajuan_id])
+    tahap_pengajuan = relationship('Pengajuan', foreign_keys=[tahap_pengajuan_id])
     
     tanggal_mulai = Column(DateTime)
     tanggal_selesai = Column(DateTime)
@@ -124,7 +128,7 @@ class PPP(Base,TahapanBase, ValidationBase):
 
     id = Column(String, primary_key=True)
     tahap_operasi_id =Column(String(36), ForeignKey('job_operasi.id'))
-    tahap_operasi = relationship('Job', foreign_keys=[tahap_operasi_id])
+    tahap_operasi = relationship('Operasi', foreign_keys=[tahap_operasi_id])
     
     tanggal_mulai = Column(DateTime)
     tanggal_selesai = Column(DateTime)
@@ -143,7 +147,7 @@ class CloseOut(Base,TahapanBase, ValidationBase):
     id = Column(String, primary_key=True)
     
     tahap_ppp_id =Column(String(36), ForeignKey('job_ppp.id'))
-    tahap_ppp = relationship('Job', foreign_keys=[tahap_ppp_id])
+    tahap_ppp = relationship('PPP', foreign_keys=[tahap_ppp_id])
     
     tanggal_mulai = Column(DateTime)
     tanggal_selesai = Column(DateTime)

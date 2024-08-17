@@ -6,7 +6,6 @@ from datetime import datetime
 from app.routers.well.models import *
 
 class CreateWellDocument(BaseModel):
-    well_id: str
     title: str
     creator_name: str
     create_date: datetime
@@ -25,7 +24,6 @@ class GetWellDocument(CreateWellDocument):
 
 
 class CreateWellLogDocument(BaseModel):
-    well_id: str
     logging_company: str
     media_type: MediaType
     log_title: str
@@ -46,7 +44,6 @@ class GetWellLogDocument(CreateWellLogDocument):
 
 
 class CreateWellSample(BaseModel):
-    well_id: str
     sample_type: str
     sample_num: str
     sample_count: int
@@ -60,9 +57,7 @@ class CreateWellSample(BaseModel):
 class GetWellSample(CreateWellSample):
     id: str
 
-
 class CreateWellCoreSample(BaseModel):
-    well_id: str
     core_type: str
     sample_num: str
     sample_count: int
@@ -80,7 +75,6 @@ class GetWellCoreSample(CreateWellCoreSample):
 
 
 class CreateWellCasing(BaseModel):
-    well_id: str
     casing_type: CasingType
     grade: str
     inside_diameter: float
@@ -95,7 +89,6 @@ class GetWellCasing(CreateWellCasing):
 
 
 class CreateWellTrajectory(BaseModel):
-    well_id: str
     measured_depth: float
     true_vertical_depth: float
     true_vertical_depth_sub_sea: float
@@ -109,7 +102,6 @@ class GetWellTrajectory(CreateWellTrajectory):
 
 
 class CreatePorePressureFractureGradient(BaseModel):
-    well_id: str
     depth_datum: DepthDatum
     depth: float
     depth_uoum: DepthUOM
@@ -120,9 +112,7 @@ class CreatePorePressureFractureGradient(BaseModel):
 class GetPorePressureFractureGradient(CreatePorePressureFractureGradient):
     id: str
 
-
 class CreateWellLog(BaseModel):
-    well_id: str
     depth_datum: DepthDatum
     depth: float
     depth_uoum: DepthUOM
@@ -141,7 +131,6 @@ class GetWellLog(CreateWellLog):
 
 
 class CreateDrillingParameter(BaseModel):
-    well_id: str
     depth_datum: DepthDatum
     depth: float
     depth_uoum: DepthUOM
@@ -159,7 +148,6 @@ class GetDrillingParameter(CreateDrillingParameter):
 
 
 class CreateWellStrat(BaseModel):
-    well_id: str
     strat_unit_id: str
     depth_datum: DepthDatum
     top_depth: float
@@ -169,8 +157,7 @@ class CreateWellStrat(BaseModel):
 class GetWellStrat(CreateWellStrat):
     id: str
 
-class CreateWell(BaseModel):
-    
+class WellBase(BaseModel):
     uwi: str
     field_id: str
         
@@ -234,17 +221,31 @@ class CreateWell(BaseModel):
     final_td_ouom: DepthUOM  # Final Total Depth ODepthUOM (PPDM: FINAL_TD_ODepthUOM)
 
     remark: str  # Remarks (PPDM: REMARK)
-    
-    documents: List[GetWellDocument]
-    well_log_documents: List[GetWellLogDocument]
-    well_samples: List[GetWellSample]
-    well_core_samples: List[GetWellCoreSample]
-    well_casing: List[GetWellCasing]
-    well_trajectory: List[GetWellTrajectory]
-    well_ppfg: List[GetPorePressureFractureGradient]
-    well_logs: List[GetWellLog]
-    well_drilling_parameters: List[GetDrillingParameter]
-    well_strat: List[GetWellStrat]
 
-class GetWell(CreateWell):
+class CreateWell(WellBase):
+       
+    documents: List[CreateWellDocument]
+    well_log_documents: List[CreateWellLogDocument]
+    well_samples: List[CreateWellSample]
+    well_core_samples: List[CreateWellCoreSample]
+    well_casing: List[CreateWellCasing]
+    well_trajectory: List[CreateWellTrajectory]
+    well_ppfg: List[CreatePorePressureFractureGradient]
+    well_logs: List[CreateWellLog]
+    well_drilling_parameters: List[CreateDrillingParameter]
+    well_strat: List[CreateWellStrat]
+
+class GetWell(WellBase):
+
     id: str
+
+    documents: List[CreateWellDocument]
+    well_log_documents: List[CreateWellLogDocument]
+    well_samples: List[CreateWellSample]
+    well_core_samples: List[CreateWellCoreSample]
+    well_casing: List[CreateWellCasing]
+    well_trajectory: List[CreateWellTrajectory]
+    well_ppfg: List[CreatePorePressureFractureGradient]
+    well_logs: List[CreateWellLog]
+    well_drilling_parameters: List[CreateDrillingParameter]
+    well_strat: List[CreateWellStrat]

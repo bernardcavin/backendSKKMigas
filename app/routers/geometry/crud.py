@@ -2,11 +2,12 @@ from sqlalchemy.orm import Session
 
 from app.routers.geometry.models import *
 from app.routers.geometry.schemas import *
+from app.routers.auth.schemas import GetUser
 
-def create_area(db: Session, wk: CreateAreaSchema):
+def create_area(db: Session, wk: CreateAreaSchema, user: GetUser):
     
     db_area = Area(
-        **wk.model_dump()
+        **wk.model_dump(), kkks_id = user.kkks_id
     )
     db.add(db_area)
     db.commit()

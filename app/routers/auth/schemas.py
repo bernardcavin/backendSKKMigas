@@ -5,10 +5,10 @@ from app.routers.auth.models import Role
 class KKKSBase(BaseModel):
     nama_kkks : str
 
-class KKKSCreate(KKKSBase):
+class CreateKKKS(KKKSBase):
     pass
 
-class KKKS(KKKSBase):
+class GetKKKS(KKKSBase):
     id : str
     class Config:
         from_attributes = True
@@ -20,11 +20,11 @@ class UserBase(BaseModel):
     kkks_id: str
     role: Role
 
-class UserCreate(UserBase):
+class CreateUser(UserBase):
     password: str
 
-class User(UserBase):
-    id: int
+class GetUser(UserBase):
+    id: str
 
     class Config:
         from_attributes = True

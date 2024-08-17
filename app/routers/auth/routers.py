@@ -19,22 +19,22 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token = utils.create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.post("/user/create", response_model=schemas.User)
-async def create_user(user: schemas.UserCreate, db: Session = Depends(utils.get_db)):
+@router.post("/user/create", response_model=schemas.GetUser)
+async def create_user(user: schemas.CreateUser, db: Session = Depends(utils.get_db)):
     return crud.create_user(db, user)
 
-@router.get('/user/me', summary='Get details of currently logged in user', response_model=schemas.User)
-async def get_me(user: schemas.User = Depends(utils.get_current_user)):
+@router.get('/user/me', summary='Get details of currently logged in user', response_model=schemas.GetUser)
+async def get_me(user: schemas.GetUser = Depends(utils.get_current_user)):
     return user
 
-@router.post("/kkks/create", response_model=schemas.KKKS)
+@router.post("/kkks/create", response_model=schemas.GetKKKS)
 @authorize(role=[models.Role.Admin])
-async def create_user(kkks: schemas.KKKSCreate, db: Session = Depends(utils.get_db), user: schemas.User = Depends(utils.get_current_user)):
+async def create_user(kkks: schemas.CreateKKKS, db: Session = Depends(utils.get_db), user: schemas.GetUser = Depends(utils.get_current_user)):
     return crud.create_kkks(db, kkks)
 
-@router.get("/kkks/{kkks_id}", response_model=schemas.KKKS)
+@router.get("/kkks/{kkks_id}", response_model=schemas.GetKKKS)
 @authorize(role=[models.Role.Admin])
-async def get_user(kkks_id: str, db: Session = Depends(utils.get_db), user: schemas.User = Depends(utils.get_current_user)):
+async def get_user(kkks_id: str, db: Session = Depends(utils.get_db), user: schemas.GetUser = Depends(utils.get_current_user)):
     kkks = crud.get_kkks(db, kkks_id)
     if kkks is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="KKKS not found")
