@@ -10,8 +10,9 @@ import { RegisterPage } from "./Pages/Register";
 import Dashboard from "./Pages/Dashboard";
 
 export default function App() {
-  const { isAuthenticated } = useAuth();
-  console.log(isAuthenticated);
+  // const { isAuthenticated } = useAuth();
+  const  isAuthenticated  = true;
+  // console.log(isAuthenticated);
   
 
   return (
