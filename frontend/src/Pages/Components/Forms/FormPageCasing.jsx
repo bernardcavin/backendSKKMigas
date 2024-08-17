@@ -38,7 +38,7 @@ const Casing = () => {
     end_depth: "",
   });
     
-    console.table(formData);
+    console.log(formData);
     
 
   // Handle input change for text and select inputs
