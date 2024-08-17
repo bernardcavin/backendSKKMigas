@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@dropzone-ui/react": "^7.0.4",
     "@heroicons/react": "^2.1.5",
     "@material-tailwind/react": "2.1.8",
     "axios": "^1.7.4",
@@ -16,7 +17,8 @@
     "react": "18.2.0",
     "react-day-picker": "^9.0.8",
     "react-dom": "18.2.0",
-    "react-router-dom": "^6.26.0"
+    "react-router-dom": "^6.26.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/react": "18.2.45",

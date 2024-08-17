@@ -11,23 +11,37 @@ import {
 import RadioButton from "../ChildComponets/RadioButton";
 
 const CardPageSumur = ({ sendData }) => {
-    const [formData, setFormData] = useState({
-        job:{
-            name: '',
-            pekerjaan: '',
-            tipe_kontrak: '',
-            no_afe: '',
-            tahun_wpnb: '',
-            tujuan: ''
-        }
-    });
+  const [formData, setFormData] = useState({
+    job: {
+      name: '',
+      pekerjaan: '',
+      tipe_kontrak: '',
+      no_afe: '',
+      well_status: '',
+      profile_type: '',
+      environtment_type: '',
+      spud_date: '',
+      total_cost_afe_approve: '',
+      rencana_mulai_tajak: '',
+      rencana_selesai_operasi: '',
+      rencana_total_budget: '',
+      realisasi_mulai: '',
+      realisasi_selesai: '',
+      realisasi_total_budget: '',
+    },
+  });
+
+  const typeWellOptions = ["Wildcat", "Deliniasi", "Infill", "Produser", "Stepout"];
+  const statusOptions = ["Valid", "Proses", "Ditolak"];
 
   // Handle input change for text and select inputs
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (value) => {
     setFormData((prevState) => ({
       ...prevState,
-      [name]: value,
+      job: {
+        ...prevState.job,
+        [name]: value,
+      },
     }));
   };
 
@@ -35,7 +49,10 @@ const CardPageSumur = ({ sendData }) => {
   const handleRadioChange = (name, value) => {
     setFormData((prevState) => ({
       ...prevState,
-      [name]: value,
+      job: {
+        ...prevState.job,
+        [name]: value,
+      },
     }));
   };
 
@@ -53,18 +70,59 @@ const CardPageSumur = ({ sendData }) => {
         <hr className="my-2 border-gray-800" />
       </CardHeader>
       <CardBody className="flex-col flex gap-4">
-        <div className="flex flex-col">
-          <Typography color="black" className="font-bold">
-            Nama Sumur
-          </Typography>
-          <Input
-            type="text"
-            name="nama_sumur"
-            value={formData.nama_sumur}
-            onChange={handleChange}
-            placeholder="Masukkan Nama Sumur"
-          />
+        <div className="flex flex-row w-full gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              UWI
+            </Typography>
+            <Input
+              type="text"
+              placeholder="UWI"
+              name="UWI"
+              value={formData.job.UWI}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Field
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Field"
+              name="field"
+              value={formData.job.field}
+              onChange={handleChange}
+            />
+          </div>
         </div>
+        <div className="flex flex-row w-full gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Nama Sumur
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan Nama Sumur"
+              name="nama_sumur"
+              value={formData.job.nama_sumur}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Nama Lengkap Sumur
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan Nama Lengkap Sumur"
+              name="nama_lengkap_sumur"
+              value={formData.job.nama_lengkap_sumur}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+
         <div className="flex flex-col">
           <Typography color="black" className="font-bold">
             Pekerjaan
@@ -75,17 +133,87 @@ const CardPageSumur = ({ sendData }) => {
               nameLabel="pekerjaan"
               title="Eksplorasi"
               onChange={() => handleRadioChange("pekerjaan", "Eksplorasi")}
-              checked={formData.pekerjaan === "Eksplorasi"}
+              checked={formData.job.pekerjaan === "Eksplorasi"}
             />
             <RadioButton
               label={"Eksploitasi"}
               nameLabel="pekerjaan"
               title="Eksploitasi"
               onChange={() => handleRadioChange("pekerjaan", "Eksploitasi")}
-              checked={formData.pekerjaan === "Eksploitasi"}
+              checked={formData.job.pekerjaan === "Eksploitasi"}
             />
           </div>
         </div>
+        <div className="flex flex-col">
+          <Typography color="black" className="font-bold">
+            Type Well
+          </Typography>
+          <Select
+            label="Pilih Type Well"
+            name="type_well"
+            value={formData.job.type_well}
+            onChange={handleChange}
+          >
+            {typeWellOptions.map((option) => (
+              <Option key={option} value={option}>
+                {option}
+              </Option>
+            ))}
+          </Select>
+        </div>
+        <div className="flex flex-row w-full gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Well Status 
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan Well Status"
+              name="well_status"
+              value={formData.job.well_status}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Profile Type
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan Profile Type"
+              name="profile_type"
+              value={formData.job.profile_type}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+        <div className="flex flex-row w-full gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Environment type 
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan Environment Type"
+              name="environment_type"
+              value={formData.job.environment_type}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Spud Date
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan Spud Date"
+              name="spud_date"
+              value={formData.job.spud_date}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+        
         <div className="flex flex-col mt-4">
           <Typography color="black" className="font-bold">
             Tipe Kontrak
@@ -96,7 +224,7 @@ const CardPageSumur = ({ sendData }) => {
               nameLabel="tipe_kontrak"
               title="Gross Split"
               onChange={() => handleRadioChange("tipe_kontrak", "Gross Split")}
-              checked={formData.tipe_kontrak === "Gross Split"}
+              checked={formData.job.tipe_kontrak === "Gross Split"}
             />
             <RadioButton
               label={"Cost Recovery"}
@@ -105,55 +233,159 @@ const CardPageSumur = ({ sendData }) => {
               onChange={() =>
                 handleRadioChange("tipe_kontrak", "Cost Recovery")
               }
-              checked={formData.tipe_kontrak === "Cost Recovery"}
+              checked={formData.job.tipe_kontrak === "Cost Recovery"}
             />
           </div>
         </div>
-        <div className="flex flex-col">
-          <Typography color="black" className="font-bold">
-            No AFE
-          </Typography>
-          <Input
-            type="text"
-            name="no_afe"
-            value={formData.no_afe}
-            onChange={handleChange}
-            variant="outlined"
-            placeholder="Masukkan No AFE"
-          />
-        </div>
-        <div className="flex flex-col">
-          <Typography color="black" className="font-bold">
-            Tahun WP&B
-          </Typography>
-          <Select
-            label="Pilih Tahun WP&B"
-            name="tahun_wpnb"
-            value={formData.tahun_wpnb}
-            onChange={handleChange}
-          >
-            {Array.from({ length: 2024 - 2010 + 1 }, (_, i) => 2010 + i).map(
-              (year) => (
-                <Option key={year} value={year.toString()}>
-                  {year}
+
+        <div className="flex flex-row w-full gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              No AFE 
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan No AFE"
+              name="no_afe"
+              value={formData.job.no_afe}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Status AFE
+            </Typography>
+            <Select
+              label="Pilih Status AFE"
+              name="status_afe"
+              value={formData.job.status_afe}
+              onChange={handleChange}
+            >
+              {statusOptions.map((option) => (
+                <Option key={option} value={option}>
+                  {option}
                 </Option>
-              )
-            )}
-          </Select>
+              ))}
+            </Select>
+          </div>
         </div>
-        <div className="flex flex-col">
-          <Typography color="black" className="font-bold">
-            Tujuan
-          </Typography>
-          <Input
-            type="text"
-            name="tujuan"
-            value={formData.tujuan}
-            onChange={handleChange}
-            variant="outlined"
-            placeholder="Masukkan Tujuan"
-          />
+
+        <div className="flex flex-row w-full gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Total Cost AFE Approve 
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan Total Cost AFE Approve"
+              name="total_cost_afe_approve"
+              value={formData.job.total_cost_afe_approve}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Re-entry
+            </Typography>
+            <div className="flex flex-row">
+              <RadioButton
+                label={"Ya"}
+                nameLabel="reEntry"
+                title="Ya"
+                onChange={() => handleRadioChange("reEntry", "Ya")}
+                checked={formData.job.reEntry === "Ya"}
+              />
+              <RadioButton
+                label={"Tidak"}
+                nameLabel="reEntry"
+                title="Tidak"
+                onChange={() => handleRadioChange("reEntry", "Tidak")}
+                checked={formData.job.reEntry === "Tidak"}
+              />
+            </div>
+          </div>
         </div>
+
+        {/* Rencana Fields */}
+        <div className="flex flex-row w-full gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Rencana Mulai Tajak
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan Rencana Mulai Tajak"
+              name="rencana_mulai_tajak"
+              value={formData.job.rencana_mulai_tajak}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Rencana Selesai Operasi
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan Rencana Selesai Operasi"
+              name="rencana_selesai_operasi"
+              value={formData.job.rencana_selesai_operasi}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Rencana Total Budget
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan Rencana Total Budget"
+              name="rencana_total_budget"
+              value={formData.job.rencana_total_budget}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+
+        {/* Realisasi Fields */}
+        <div className="flex flex-row w-full gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Realisasi Mulai
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan Realisasi Mulai"
+              name="realisasi_mulai"
+              value={formData.job.realisasi_mulai}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Realisasi Selesai
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan Realisasi Selesai"
+              name="realisasi_selesai"
+              value={formData.job.realisasi_selesai}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Realisasi Total Budget
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan Realisasi Total Budget"
+              name="realisasi_total_budget"
+              value={formData.job.realisasi_total_budget}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+
       </CardBody>
     </Card>
   );

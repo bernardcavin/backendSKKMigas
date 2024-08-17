@@ -39,14 +39,14 @@ export function Dashboard() {
     <div className="flex">
       <SidebarWithLogo onClickNavItem={handleNavClick} selectedNav={selectedNav} />
       <div className="flex-1 p-4">
-        <Navbar className="max-w-full px-6 py-3 ml-[20rem]">
-          <div className="flex items-center justify-between text-blue-gray-900 ">
+        <Navbar className="max-w-4/5 px-6 py-3 ml-[20rem]">
+          <div className="flex items-center justify-between text-blue-gray-900 w-5/6 ">
             <div className="flex">
                 <h1 className="text-lg font-bold">{selectedNav === 1 && 'Homepage'}{ selectedNav === 2 && 'Add Data'}</h1>
             </div>
           </div>
         </Navbar>
-        <div className="flex ml-[20rem] flex-col w-full mt-4">
+        <div className="flex ml-[20rem] flex-col w-4/5 mt-4">
           {selectedNav === 1 && <Homepage />}
           {selectedNav === 2 && <FormInput />}
         </div>
