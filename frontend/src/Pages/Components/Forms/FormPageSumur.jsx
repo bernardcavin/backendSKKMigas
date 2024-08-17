@@ -35,8 +35,7 @@ const CardPageSumur = ({ sendData }) => {
   const statusOptions = ["Valid", "Proses", "Ditolak"];
 
   // Handle input change for text and select inputs
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (value) => {
     setFormData((prevState) => ({
       ...prevState,
       job: {

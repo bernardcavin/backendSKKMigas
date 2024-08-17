@@ -82,10 +82,10 @@ const FormInput = () => {
                 
                 <div className="flex flex-col w-full gap-4">
                     <CardPageSumur sendData={handleAllData} />
+                    <FormPagePosisi />
                     <FormHSEPlan />
                     <FormPageLainnya />
                     <FormPagePersonel />
-                    <FormPagePosisi />
                     <FormPageSchedule sendData={handleAllData} />
                     <FormPageTrajectory sendData={handleAllData} />
                     
