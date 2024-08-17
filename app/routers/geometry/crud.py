@@ -24,10 +24,10 @@ def create_field(db: Session, field: CreateFieldSchema):
     db.refresh(db_field)
     return db_field
 
-def create_strat_unit(db: Session, field: CreateStratUnitSchema):
+def create_strat_unit(db: Session, strat_unit: CreateStratUnitSchema):
     
-    db_strat_unit = Field(
-        **field.model_dump()
+    db_strat_unit = StratUnit(
+        **strat_unit.model_dump()
     )
     db.add(db_strat_unit)
     db.commit()
