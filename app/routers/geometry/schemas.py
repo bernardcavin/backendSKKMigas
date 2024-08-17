@@ -9,7 +9,7 @@ class CreateFieldSchema(BaseModel):
     area_id: str
     geojson: str
 
-class CreateStratUnitSchema(Base):
+class CreateStratUnitSchema(BaseModel):
     
     area_id: str
     

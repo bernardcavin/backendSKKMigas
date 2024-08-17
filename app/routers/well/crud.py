@@ -3,13 +3,19 @@ from passlib.context import CryptContext
 
 from app.routers.well.models import *
 from app.routers.well.schemas import *
+from app.routers.auth.schemas import GetUser
 
 from typing import Union
+from datetime import datetime
 
 
-def create_well(db: Session, well: CreateWell, data_phase: DataPhase):
+def create_well(db: Session, well: CreateWell, data_phase: DataPhase, user: GetUser) -> Well:
     
     db_well_plan = Well(
+
+        date_created=datetime.now(),
+        created_by_id=user.id,
+
         uwi=well.uwi,
         field_id=well.field_id,
         

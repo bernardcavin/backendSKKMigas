@@ -2,7 +2,7 @@ from sqlalchemy.orm import relationship, declared_attr
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, JSON, Enum, Text, Boolean, Float
 from enum import Enum as PyEnum
 from app.database import Base
-from app.routers.job.models import DataPhase
+from app.routers.job.models import DataPhase, ValidationBase, CreateEditBase
 import uuid
 
 
@@ -100,16 +100,19 @@ class PORLogUOM(PyEnum):
     PERCENT = '%'
     DECIMAL = 'DECIMAL'
 
-class Well(Base):
+class Well(Base, ValidationBase, CreateEditBase):
     
     __tablename__ = 'wells'
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     
     uwi = Column(String)
-    field_id = Column(String, ForeignKey('fields.id'))   
+    field_id = Column(String(36), ForeignKey('fields.id')) 
     field = relationship('Field', back_populates='wells')
-    
+
+    kkks_id = Column(String(36), ForeignKey('kkks.id')) 
+    kkks = relationship('KKKS', back_populates='wells')
+
     data_phase = Column(Enum(DataPhase))
     
     # Basic Information

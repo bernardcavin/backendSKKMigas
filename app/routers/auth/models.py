@@ -16,6 +16,8 @@ class KKKS(Base):
     nama_kkks = Column(String, unique=True, index=True)
     users = relationship("User", back_populates="kkks")
     jobs = relationship("Job", back_populates="kkks")
+    area = relationship("Area", back_populates='kkks')
+    wells = relationship("Well", back_populates='kkks')
 
 class User(Base):
     __tablename__ = 'users'
@@ -24,7 +26,7 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    kkks_id = Column(Integer, ForeignKey('kkks.id'))
     role = Column(Enum(Role), nullable=False)
 
+    kkks_id = Column(String(36), ForeignKey('kkks.id'))
     kkks = relationship("KKKS", back_populates="users")

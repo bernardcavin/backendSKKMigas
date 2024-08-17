@@ -13,18 +13,12 @@ from decimal import Decimal
 
 class CreateWorkBreakdownStructure(BaseModel):
     
-    job_id: str
-    
-    data_phase: DataPhase
-    
     event: str
     start_date: datetime
     end_data: datetime
     remarks: str
 
 class CreateJobDocument(BaseModel):
-    
-    job_id: str
 
     title: str
     creator_name: str
@@ -47,10 +41,6 @@ class CreateJobDocument(BaseModel):
 
 class CreateDrillingHazard(BaseModel):
     
-    job_id: str
-    
-    data_phase: DataPhase
-    
     hazard_type: HazardType
     hazard_description: str
     severity: Severity
@@ -59,20 +49,12 @@ class CreateDrillingHazard(BaseModel):
     remark: str
 
 class CreateBudget(BaseModel):
-    
-    job_id: str
-    
-    data_phase: DataPhase
 
     tangible_cost: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
     intangible_cost: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
     total_cost: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
 
 class CreateJobActivity(BaseModel):
-
-    job_id: str
-
-    data_phase: DataPhase
 
     time: datetime
     
@@ -92,14 +74,8 @@ class CreateJobActivity(BaseModel):
     current_operations: str
     next_operations: str
 
-class CreateDrilling(BaseModel):
-    date_created: Optional[datetime]
-    last_edited: Optional[datetime]
+class JobBase(BaseModel):
 
-    kkks_id: Optional[str] = Field(None, min_length=36, max_length=36)
-    
-    field_id: Optional[str] = Field(None, min_length=36, max_length=36)
-    
     contract_type: Optional[ContractType]
     
     job_type: Optional[JobType]
@@ -109,74 +85,121 @@ class CreateDrilling(BaseModel):
     plan_start: Optional[datetime]
     plan_end: Optional[datetime]
     plan_total_budget: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
-    actual_start: Optional[datetime]
-    actual_end: Optional[datetime]
-    actual_total_budget: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
     rig_name: Optional[str]
     rig_type: Optional[RigType]
     rig_horse_power: Optional[float]
-    
-    created_by_id: Optional[str] = Field(None, min_length=36, max_length=36)
-    planned_well_id: CreateWell
-    
-    job_activity: List[CreateJobActivity]
-    budget: List[CreateBudget]
-    work_breakdown_structure: List[CreateWorkBreakdownStructure]
-    drilling_hazard: List[CreateDrillingHazard]
-    job_documents: List[CreateJobDocument]
 
-    class Config:
-        orm_mode = True
-
+# CreateWorkBreakdownStructure with id
 class GetWorkBreakdownStructure(CreateWorkBreakdownStructure):
     id: str
 
+# CreateJobDocument with id
 class GetJobDocument(CreateJobDocument):
     id: str
 
+# CreateDrillingHazard with id
 class GetDrillingHazard(CreateDrillingHazard):
     id: str
 
+# CreateBudget with id
 class GetBudget(CreateBudget):
     id: str
 
+# CreateJobActivity with id
 class GetJobActivity(CreateJobActivity):
     id: str
 
-class GetDrilling(BaseModel):
-    id: str
-    date_created: Optional[datetime]
-    last_edited: Optional[datetime]
-
-    kkks_id: Optional[str] = Field(None, min_length=36, max_length=36)
-    field_id: Optional[str] = Field(None, min_length=36, max_length=36)
-    
-    contract_type: Optional[ContractType]
-    job_type: Optional[JobType]
-    
-    afe_number: Optional[str]
-    wpb_year: Optional[int]
-    plan_start: Optional[datetime]
-    plan_end: Optional[datetime]
-    plan_total_budget: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
-    actual_start: Optional[datetime]
-    actual_end: Optional[datetime]
-    actual_total_budget: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
-    rig_name: Optional[str]
-    rig_type: Optional[RigType]
-    rig_horse_power: Optional[float]
-    
-    created_by_id: Optional[str] = Field(None, min_length=36, max_length=36)
-    planned_well_id: GetWell
-    
+class GetJobBase(JobBase):
+   
     job_activity: List[GetJobActivity]
     budget: List[GetBudget]
     work_breakdown_structure: List[GetWorkBreakdownStructure]
     drilling_hazard: List[GetDrillingHazard]
     job_documents: List[GetJobDocument]
 
-    class Config:
-        orm_mode = True
+class CreateJobBase(JobBase):
 
-class CreatePengajuan(BaseModel):
+    job_activity: List[CreateJobActivity]
+    budget: List[CreateBudget]
+    work_breakdown_structure: List[CreateWorkBreakdownStructure]
+    drilling_hazard: List[CreateDrillingHazard]
+    job_documents: List[CreateJobDocument]
+
+class DrillingBase:
+    drilling_class: DrillingClass
+
+class CreateDrillingJob(DrillingBase,CreateJobBase):
     
+    planned_well: CreateWell
+
+class GetDrillingJob(DrillingBase,CreateJobBase):
+    id: str
+    planned_well: GetWell
+    final_well: GetWell
+
+class WOWSBase:
+
+    wows_class: WOWSClass
+    job_category: WOWSJobType
+
+    field_id: str
+    
+    #current
+    current_oil: Decimal
+    current_gas: Decimal
+    current_condensate: Decimal
+    
+    current_oil_water_cut: Decimal
+    current_gas_water_cut: Decimal
+    current_condensate_water_cut: Decimal
+    
+    #target
+    target_oil: Decimal
+    target_gas: Decimal
+    target_condensate: Decimal
+    
+    target_oil_water_cut: Decimal
+    target_gas_water_cut: Decimal
+    target_condensate_water_cut: Decimal
+    
+    # #final
+    # final_oil: Decimal
+    # final_gas: Decimal
+    # final_condensate: Decimal
+    
+    # final_oil_water_cut: Decimal
+    # final_gas_water_cut: Decimal
+    # final_condensate_water_cut: Decimal
+
+class CreateWOWSJob(WOWSBase,CreateJobBase):
+    well: CreateWell
+
+class GetWOWSJob(WOWSBase,CreateJobBase):
+    id: str
+    well: GetWell
+
+class PengajuanBase(BaseModel):
+
+    tanggal_diajukan: datetime
+    tanggal_ditolak: datetime
+    tanggal_disetujui: datetime
+    
+    status: StatusPengajuan
+
+class CreatePengajuanDrilling(BaseModel):
+
+    job: CreateDrillingJob
+    
+class GetPengajuanDrilling(PengajuanBase):
+
+    id: str
+    job: GetDrillingJob
+
+class CreatePengajuanWOWS(BaseModel):
+
+    job: CreateWOWSJob
+
+class GetPengajuanWOWS(PengajuanBase):
+
+    id: str
+    job: GetWOWSJob
