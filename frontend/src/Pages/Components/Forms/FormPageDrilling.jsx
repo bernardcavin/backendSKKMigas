@@ -9,15 +9,23 @@ import {
   Option,
   Button,
 } from "@material-tailwind/react";
+import { useEffect } from "react";
+import axios from "axios";
 
 const FormHSEPlan = ({ sendData }) => {
+
+
+
   const [data, setData] = useState({
-    descPekerjaan: "",
-    potensiBahaya: "",
-    upayaPengandilan: "",
+    hazard_type: "",
+    hazard_description: "",
+    severity: "",
+    mitigation: "",
+    remark: ""
   });
 
-  
+
+  console.log(data);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,11 +34,30 @@ const FormHSEPlan = ({ sendData }) => {
       [name]: value,
     }));
   };
+  const [hazardType, setHazardType] = useState([]);
+  const [severity, setSeverity] = useState([]);
+
+  useEffect(() => {
+    axios.get("http://localhost:8000/utils/enum/all").then((response) => {
+      // console.log(response.data.hazard_type);
+      setHazardType(response.data.hazard_type);
+      setSeverity(response.data.severity);
+    })
+  }, [setHazardType])
+  useEffect(() => {
+    sendData(data);
+  }, [data]);
 
   const handleSelectChange = (value) => {
     setData((prevState) => ({
       ...prevState,
-      descPekerjaan: value,
+      hazard_type: value,
+    }));
+  };
+  const handleSelectChangeSeverity = (value) => {
+    setData((prevState) => ({
+      ...prevState,
+      severity: value,
     }));
   };
 
@@ -55,36 +82,57 @@ const FormHSEPlan = ({ sendData }) => {
         <div className="flex flex-col">
           <div className="flex flex-col mb-2">
             <Typography color="black" className="font-bold">
-              Deskripsi Pekerjaan
+              Tipe Hazard
             </Typography>
-            <Select label="Posisi" onChange={handleSelectChange}>
-              <Option value="VP Drilling/Katek Tambang">
-                VP Drilling/Katek Tambang
-              </Option>
-              <Option value="VP Padang">VP Padang</Option>
+            <Select label="Tipe Hazard" onChange={handleSelectChange}>
+              {hazardType.map((hazard, index) => (
+                <Option key={index} value={hazard}>{hazard}</Option>
+              ))}
             </Select>
           </div>
 
+          <div className="flex flex-col mb-2">
+            <Typography color="black" className="font-bold">
+              Severity
+            </Typography>
+            <Select label="Severity" onChange={handleSelectChangeSeverity}>
+              {severity.map((hazard, index) => (
+                <Option key={index} value={hazard}>{hazard}</Option>
+              ))}
+            </Select>
+          </div>
           <div className="flex flex-col mt-2">
             <Typography color="black" className="font-bold">
-              Potensi Bahaya
+              Hazard Description
             </Typography>
             <Input
               type="text"
-              placeholder="Potensi Bahaya"
-              name="potensiBahaya"
+              placeholder="Hazard Description"
+              name="hazard_description"
               value={data.potensiBahaya}
               onChange={handleChange}
             />
           </div>
           <div className="flex flex-col mt-4">
             <Typography color="black" className="font-bold">
-              Upaya Pengandilan
+              Mitigation
             </Typography>
             <Input
               type="text"
-              placeholder="Upaya Pengandilan"
-              name="upayaPengandilan"
+              placeholder="Mitigation"
+              name="mitigation"
+              value={data.upayaPengandilan}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col mt-4">
+            <Typography color="black" className="font-bold">
+              Remark
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Remark"
+              name="remark"
               value={data.upayaPengandilan}
               onChange={handleChange}
             />
