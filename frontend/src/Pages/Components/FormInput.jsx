@@ -13,6 +13,8 @@ import FormPagePosisi from './Forms/FormPagePosisi';
 import FormPageSchedule from './Forms/FormPageSchedule';
 import FormPageTrajectory from './Forms/FormPageTrajectory';
 import FormPageCasing from './Forms/FormPageCasing';
+import FormPageDepthVSDays from './Forms/FormPageDepthVSDays';
+import FormDepthVSDays from './Forms/FormPageDepthVSDays';
 
 const FormInput = () => {
     
@@ -83,13 +85,14 @@ const FormInput = () => {
             <div className="flex w-full items-center gap-4 justify-center ">
                 
                 <div className="flex flex-col w-full gap-4">
-                    <FormPageCasing sendData={handleAllData} /> 
-                    {/* <CardPageSumur sendData={handleAllData} />
-                    <FormHSEPlan />
-                    <FormPageLainnya />
-                    <FormPagePersonel />
-                    <FormPageSchedule sendData={handleAllData} />
-                    <FormPageTrajectory sendData={handleAllData} /> */}
+                    <FormDepthVSDays sendData={handleAllData} />
+                    {/* <FormPageCasing sendData={handleAllData} />  */}
+                    {/* <CardPageSumur sendData={handleAllData} /> */}
+                    {/* <FormHSEPlan /> */}
+                    {/* <FormPageLainnya /> */}
+                    {/* <FormPagePersonel /> */}
+                    {/* <FormPageSchedule sendData={handleAllData} /> */}
+                    {/* <FormPageTrajectory sendData={handleAllData} />  */}
                     
                 </div>
 
