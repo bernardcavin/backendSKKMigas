@@ -39,7 +39,8 @@ export function RegisterPage() {
           email: email,
           kkks_id: "Pemerintah",
           password: password,
-          role:"Admin"
+          role:"Admin",
+          
 
         },
         {
@@ -49,6 +50,7 @@ export function RegisterPage() {
         }
       );
       if (response.status === 200) {
+        console.log(response.data);
         setSuccessMessage(
           "Registration successful! Redirecting to login page..."
         );
