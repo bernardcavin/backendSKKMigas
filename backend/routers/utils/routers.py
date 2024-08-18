@@ -74,7 +74,8 @@ enum_map = {
     "log_type": LogType,
     "denlog_uom": DENLogUOM,
     "porlog_uom": PORLogUOM,
-    "well_status": WellStatus
+    "well_status": WellStatus,
+    'data_phase': DataPhase,
 }
 
 @router.get('/enum/get/{enum_name}')
