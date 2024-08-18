@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Boolean
 from sqlalchemy.orm import relationship
 from backend.database import Base
 from enum import Enum as PyEnum
@@ -30,3 +30,5 @@ class User(Base):
 
     kkks_id = Column(String(36), ForeignKey('kkks.id'))
     kkks = relationship("KKKS", back_populates="users")
+
+    verified_status = Column(Boolean)

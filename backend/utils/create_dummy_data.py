@@ -47,7 +47,7 @@ def random_datetime_within_year(year: int) -> datetime:
     
     return random_date
 
-def generate_dummy_data():
+def generate_dummy_data(n: int):
 
     with get_db_context() as db:
 
@@ -59,18 +59,28 @@ def generate_dummy_data():
                     email = f'skk@skk.com',
                     hashed_password = pwd_context.hash(f'skk'),
                     role = Role.Admin,
+                    verified_status = True
                 ),
                 User(
                     id = str(uuid.uuid4()),
                     username = f'kkks',
                     email = f'kkks@kkks.com',
                     hashed_password = pwd_context.hash(f'kkks'),
-                    role = Role.Admin,
+                    role = Role.KKKS,
+                    verified_status = True
+                ),
+                User(
+                    id = str(uuid.uuid4()),
+                    username = f'kkks1',
+                    email = f'kkks1@kkks.com',
+                    hashed_password = pwd_context.hash(f'kkks1'),
+                    role = Role.KKKS,
+                    verified_status = True
                 )
             ]
         )
 
-        for i in range(10):
+        for i in range(n):
 
             kkks_id = str(uuid.uuid4())
 
@@ -116,13 +126,12 @@ def generate_dummy_data():
                     hashed_password = pwd_context.hash(f'USER00{i}'),
                     role = Role.KKKS,
                     kkks_id = kkks_id,
+                    verified_status = True
                 )
 
             db.add(
                 user
             )
-
-            jobs = []
 
             for j in range(random.randint(0,5)):
 

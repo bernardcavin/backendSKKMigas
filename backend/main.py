@@ -5,6 +5,7 @@ from backend.routers.job import routers as job_routers
 from backend.routers.geometry import routers as geometry_routers
 from backend.routers.well import routers as well_routers
 from backend.routers.utils import routers as utils_routers
+from backend.routers.dashboard import routers as dashboard_routers
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 import sys
@@ -23,9 +24,10 @@ logger.addHandler(stream_handler)
 if int(os.getenv('DEMO_MODE'))==1:
     logger.info('Creating dummy data')
     from backend.utils.create_dummy_data import generate_dummy_data
-    os.remove("test.db")
+    if os.path.exists('test.db'):
+        os.remove("test.db")
     Base.metadata.create_all(bind=engine)
-    generate_dummy_data()
+    generate_dummy_data(n=50)
     logger.info('Dummy data successfully created')
 
 app.add_middleware(
@@ -41,3 +43,4 @@ app.include_router(job_routers.router)
 app.include_router(geometry_routers.router)
 app.include_router(well_routers.router)
 app.include_router(utils_routers.router)
+app.include_router(dashboard_routers.router)
