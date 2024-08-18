@@ -136,6 +136,10 @@ class CreateWell(WellBase):
     well_drilling_parameters: Optional[List[CreateWellDrillingParameter]]
     well_strat: Optional[List[CreateWellStrat]]
 
+class CreateWellDirectly(CreateWell):
+    field_id: str
+    data_phase: DataPhase
+
 class GetWell(WellBase):
 
     id: str
