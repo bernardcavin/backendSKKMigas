@@ -12,7 +12,7 @@ import {
 import { useEffect } from "react";
 import axios from "axios";
 
-const FormHSEPlan = ({ sendData }) => {
+const FormPageDrilling = ({ sendData }) => {
 
 
 
@@ -25,7 +25,7 @@ const FormHSEPlan = ({ sendData }) => {
   });
 
 
-  console.table(data);
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,9 +44,7 @@ const FormHSEPlan = ({ sendData }) => {
       setSeverity(response.data.severity);
     })
   }, [setHazardType])
-  useEffect(() => {
-    sendData(data);
-  }, [data]);
+  
 
   const handleSelectChange = (value) => {
     setData((prevState) => ({
@@ -60,6 +58,8 @@ const FormHSEPlan = ({ sendData }) => {
       severity: value,
     }));
   };
+
+  
 
   return (
     <Card variant="filled" className="w-full" shadow={true}>
@@ -142,4 +142,4 @@ const FormHSEPlan = ({ sendData }) => {
   );
 };
 
-export default FormHSEPlan;
+export default FormPageDrilling;

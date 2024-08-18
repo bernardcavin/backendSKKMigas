@@ -8,17 +8,22 @@ import {
   Select,
   Option,
   CardFooter,
-  Button
+  Button,
+  Alert
 } from "@material-tailwind/react";
 import RadioButton from "../ChildComponets/RadioButton";
 import axios from "axios";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const CardPageSumur = ({ sendData }) => {
+  const navigate = useNavigate();
   const [typeWell, setTypeWell] = useState([]);
   const [wellClass, setWellClass] = useState([]);
   const [profileType, setProfileType] = useState([]);
   const [environmentType, setEnvironmentType] = useState([]);
   const [wellStatus, setWellStatus] = useState([])
+
+  const [succesMsg, setSuccesMsg] = useState('');
 
 
 
@@ -32,7 +37,11 @@ const CardPageSumur = ({ sendData }) => {
             "Authorization": `Bearer ${localStorage.getItem("token")}`,
           },
         }
-      )
+      ).then((response) => {
+        console.log(response.status);
+        setSuccesMsg("Data Berhasil Dimasukkan");
+
+      })
     } catch (error) {
       console.error("Error fetching well types:", error.response.data);
 
@@ -61,7 +70,7 @@ const CardPageSumur = ({ sendData }) => {
 
   useEffect(() => {
     getAllData();
-  }, [setTypeWell]);
+  }, [1]);
 
   // useEffect(() => {
   //   sendData(formData);
@@ -70,8 +79,8 @@ const CardPageSumur = ({ sendData }) => {
 
   // Panggil saat file diproses
   const [formData, setFormData] = useState({
-
-
+    data_phase: "PLAN",
+    user: "string",
     uwi: "string",
     field_id: "string",
     well_name: "string",
@@ -85,10 +94,12 @@ const CardPageSumur = ({ sendData }) => {
     surface_latitude: 0,
     bottom_hole_longitude: 0,
     bottom_hole_latitude: 0,
+    maximum_inclination: 0,
+    maximum_azimuth: 0,
     line_name: "string",
-    spud_date: "2024-08-18T11:16:08.693Z",
-    final_drill_date: "2024-08-18T11:16:08.693Z",
-    completion_date: "2024-08-18T11:16:08.693Z",
+    spud_date: "2024-08-18T13:44:40.536Z",
+    final_drill_date: "2024-08-18T13:44:40.536Z",
+    completion_date: "2024-08-18T13:44:40.536Z",
     rotary_table_elev: 0,
     rotary_table_elev_ouom: "FEET",
     kb_elev: 0,
@@ -100,6 +111,8 @@ const CardPageSumur = ({ sendData }) => {
     mean_sea_level: 0,
     mean_sea_level_ouom: "RT",
     depth_datum: "RT",
+    kick_off_point: 0,
+    kick_off_point_ouom: "FEET",
     drill_td: 0,
     drill_td_ouom: "FEET",
     log_td: 0,
@@ -110,13 +123,57 @@ const CardPageSumur = ({ sendData }) => {
     projected_depth_ouom: "FEET",
     final_td: 0,
     final_td_ouom: "FEET",
-    remark: "string"
-
-
-
-
-
-
+    remark: "string",
+    well_documents: [
+      {
+        file_id: "string",
+        title: "string",
+        media_type: "EXTERNAL_HARDDISK",
+        document_type: "string",
+        remark: "string"
+      }
+    ],
+    well_casings: [
+      {
+        casing_type: "CONDUCTOR PIPE",
+        grade: "string",
+        inside_diameter: 0,
+        inside_diameter_ouom: "INCH",
+        outside_diameter: 0,
+        outside_diameter_ouom: "INCH",
+        base_depth: 0,
+        base_depth_ouom: "FEET"
+      }
+    ],
+    well_trajectories: [
+      {
+        file_id: "string"
+      }
+    ],
+    well_ppfgs: [
+      {
+        file_id: "string"
+      }
+    ],
+    well_logs: [
+      {
+        file_id: "string"
+      }
+    ],
+    well_drilling_parameters: [
+      {
+        file_id: "string"
+      }
+    ],
+    well_strat: [
+      {
+        strat_unit_id: "string",
+        depth_datum: "RT",
+        top_depth: 0,
+        bottom_depth: 0,
+        depth_uoum: "FEET"
+      }
+    ]
 
   });
 
@@ -125,7 +182,7 @@ const CardPageSumur = ({ sendData }) => {
 
 
   const statusOptions = ["Valid", "Proses", "Ditolak"];
-  
+
 
   // Handle input change for text and select inputs
   // const handleChange = (event) => {
@@ -140,6 +197,8 @@ const CardPageSumur = ({ sendData }) => {
   //     },
   //   }));
   // };
+
+
   const handleChange = (event) => {
     const { name, value, type } = event.target;
 
@@ -205,16 +264,21 @@ const CardPageSumur = ({ sendData }) => {
     // Call sendData whenever formData changes
     sendData(formData);
     console.log(formData);
-    
-    
 
-    
+
+
+
 
 
   }, [formData]);
 
   return (
+
     <Card variant="filled" className="w-full" shadow={true}>
+      {succesMsg ?
+        (
+          <Alert color="green" className="">{succesMsg}</Alert>
+        ) : null}
       <CardHeader floated={false} className="mb-0" shadow={false}>
         <Typography variant="h5" color="black">
           Sumur
@@ -366,6 +430,7 @@ const CardPageSumur = ({ sendData }) => {
             />
           </div>
         </div>
+
         <div className="flex flex-row w-full gap-4">
           <div className="flex flex-col w-full">
             <Typography color="black" className="font-bold">
@@ -401,7 +466,7 @@ const CardPageSumur = ({ sendData }) => {
               type="number"
               placeholder="Masukkan Lintang Lubang Atas "
               name="surface_hole_latitude"
-              value={formData.surface_hole_latitude}
+              value={formData.surface_latitude}
               onChange={handleChange}
             />
           </div>
@@ -413,7 +478,107 @@ const CardPageSumur = ({ sendData }) => {
               type="number"
               placeholder="Masukkan Garis Bujur Lubang Atas"
               name="surface_hole_longitude"
-              value={formData.surface_hole_longitude}
+              value={formData.surface_longitude}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Ketinggian Tanah
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Garis Bujur Lubang Atas"
+              name="surface_hole_longitude"
+              value={formData.surface_longitude}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Elevasi Kb
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Garis Bujur Lubang Atas"
+              name="surface_hole_longitude"
+              value={formData.surface_longitude}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Kick Off Point
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Garis Bujur Lubang Atas"
+              name="surface_hole_longitude"
+              value={formData.surface_longitude}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Log TD
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Garis Bujur Lubang Atas"
+              name="surface_hole_longitude"
+              value={formData.surface_longitude}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Max TVD
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Garis Bujur Lubang Atas"
+              name="surface_hole_longitude"
+              value={formData.surface_longitude}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Maximum Azimuth
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Garis Bujur Lubang Atas"
+              name="surface_hole_longitude"
+              value={formData.surface_longitude}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Mean Sea Level
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Garis Bujur Lubang Atas"
+              name="surface_hole_longitude"
+              value={formData.surface_longitude}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Project Depth
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Garis Bujur Lubang Atas"
+              name="surface_hole_longitude"
+              value={formData.surface_longitude}
               onChange={handleChange}
             />
           </div>
@@ -423,9 +588,7 @@ const CardPageSumur = ({ sendData }) => {
       </CardBody>
       <CardFooter>
 
-        <Button color="blue" onClick={handleSubmit}>
-          Submit
-        </Button>
+
       </CardFooter>
     </Card>
   );

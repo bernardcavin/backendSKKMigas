@@ -11,7 +11,7 @@ import {
 } from "@material-tailwind/react";
 import axios from "axios";
 
-const Casing = () => {
+const Casing = ({sendData}) => {
   const [depthUom, setDepthUom] = useState([]);
   const [casingType, setCasingType] = useState([]);
   const [casingUOM, setCasingUOM] = useState([]);
@@ -32,6 +32,8 @@ const Casing = () => {
     getAllData();
   }, []);
 
+  
+
   const [formData, setFormData] = useState({
     casing_type: "",
     grade: "",
@@ -42,8 +44,10 @@ const Casing = () => {
     base_depth: 0,
     base_depth_ouom: "FEET",
   });
-
-  console.table(formData);
+  useEffect(() => {
+    sendData(formData);
+  }, [formData]);
+  // console.table(formData);
   
 
   const handleChange = (event) => {

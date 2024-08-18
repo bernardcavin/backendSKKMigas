@@ -11,7 +11,7 @@ import {
 } from "@material-tailwind/react";
 import axios from "axios";
 
-const WellStrat = () => {
+const WellStrat = ({ sendData }) => {
   const [depthUom, setDepthUom] = useState([]);
   const [depthDatum, setDepthDatum] = useState([]);
   const [files, setFiles] = useState([]);  // Ini adalah state untuk file yang di-upload
@@ -28,7 +28,9 @@ const WellStrat = () => {
 
   useEffect(() => {
     getAllData();
-  }, []);
+  }, [1]);
+
+
 
   const [formData, setFormData] = useState({
     strat_unit_id: "",
@@ -37,15 +39,18 @@ const WellStrat = () => {
     bottom_depth: 0,
     depth_uoum: "FEET",
   });
+  useEffect(() => {
+    sendData(formData);
+  }, [formData]);
 
-    console.table(formData);
-    
+  // console.table(formData);
+
 
   const handleChange = (event) => {
     const { name, value, type } = event.target;
     setFormData((prevState) => ({
       ...prevState,
-      [name]: type === "number" ? parseInt(value, 10) : value,
+      [name]: type === "number" ? parseInt(value) : value,
     }));
   };
 
