@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardBody,
@@ -7,27 +7,58 @@ import {
   Input,
   Button,
   Alert,
+  Select,
+  Option,
 } from '@material-tailwind/react';
-import { Dropzone, FileItem } from "@dropzone-ui/react";
 import * as XLSX from 'xlsx';
+import axios from 'axios';
+// import flatpickr from "flatpickr";
+// import "flatpickr/dist/flatpickr.min.css";
 
 const FormDepthVSDays = () => {
-  const [formData, setFormData] = useState({
-    kegiatan: "",
-    days: "",
-    start_depth: "",
-    end_depth: "",
-  });
+  const [depthUom, setDepthUom] = useState([]);
+  const [depthDatum, setDepthDatum] = useState([]);
+  const [files, setFiles] = useState([]);  // Pastikan files diinisialisasi dengan useState
 
-  console.table(formData);
+  const getAllData = async () => {
+    try {
+      const response = await axios.get("http://127.0.0.1:8000/utils/enum/all");
+      setDepthUom(response.data.depth_uom);
+      setDepthDatum(response.data.depth_datum);
+      
+    } catch (error) {
+      console.error("Error fetching depth UOM:", error);
+    }
+  };
   
+
+  useEffect(() => {
+    getAllData();
+  }, []);
+
+
+  
+  const [formData, setFormData] = useState({
+    time: "",
+    measured_depth: 0,
+    measured_depth_uoum: "",
+    measured_depth_datum: "",
+    true_vertical_depth: 0,
+    true_vertical_depth_uoum: "",
+    true_vertical_depth_sub_sea: 0,
+    true_vertical_depth_sub_sea_uoum: "",
+    daily_cost: 0,
+    summary: "",
+    current_operations: "",
+    next_operations: "",
+  });
+  console.table(formData);
 
   const [tableData, setTableData] = useState([]);
   const [headers, setHeaders] = useState([]);
   const [alert, setAlert] = useState(null);
-  const [files, setFiles] = useState([]);
-
-  const expectedHeaders = ["Kode Item", "Nama Item", "Terjual", "Harga", "Stok", "Label"];
+  
+  const expectedHeaders = ["Time", "Measured Depth", "Measured Depth UOM", "Measured Depth Datum", "True Vertical Depth", "True Vertical Depth UOM", "True Vertical Depth Sub-Sea", "True Vertical Depth Sub-Sea UOM", "Daily Cost", "Summary", "Current Operations", "Next Operations"];
 
   const handleFileUpload = (file) => {
     if (file) {
@@ -61,125 +92,235 @@ const FormDepthVSDays = () => {
     }
   };
 
-  const handleFileChange = (incomingFiles) => {
-    const file = incomingFiles[0]?.file; // Ensure we're working with a File object
-    if (file) {
-      setFiles(incomingFiles);
-      handleFileUpload(file);
-    }
-  };
-
-  const handleFileRemove = (file) => {
-    setFiles(files.filter(f => f.file !== file));
-    setTableData([]);
-    setHeaders([]);
-  };
-
-  // Handle input change
-  const handleChange = (event) => {
-    const { name, value } = event.target;
+  const handleSelectChange = (name) => (value) => {
     setFormData((prevState) => ({
       ...prevState,
       [name]: value,
     }));
   };
 
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setFiles([file]);
+      handleFileUpload(file);
+    }
+  };
+
+  const handleFileRemove = () => {
+    setFiles([]);
+    setTableData([]);
+    setHeaders([]);
+  };
+
+  const handleChange = (event) => {
+    const { name, value, type } = event.target;
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: type === "number" ? parseInt(value, 10) : value, // Konversi ke integer jika tipe input adalah number
+    }));
+  };
+
   const handleAddSection = () => {
-    // Logic untuk menambah section baru bisa ditambahkan di sini
-    console.log("Tambah Section button clicked");
+    
   };
 
   return (
     <Card variant="filled" className="w-full">
-      <CardHeader floated={false} className="mb-4 shadow-none">
+      <CardHeader floated={false} className="mb-4 shadow-none flex justify-between items-center">
         <Typography variant="h5" color="black">
-          Depth vs Days
+          Job Activity
         </Typography>
+        <div>
+          <Button size="lg" color="black" onClick={() => document.getElementById('fileInput').click()}>
+            Upload File
+          </Button>
+          <input
+            id="fileInput"
+            type="file"
+            accept=".csv, .xlsx, .xls"
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
+        </div>
       </CardHeader>
       <CardBody className="flex-col flex gap-4">
-      <div className="flex flex-col w-full">
-              <Typography color="black" className="font-bold">
-                Upload File
-              </Typography>
-              <div className="mt-4">
-                <Dropzone
-                  onChange={handleFileChange}
-                  value={files}
-                  maxFiles={1}
-                  accept=".csv, .xlsx, .xls"
-                  label="Drag and Drop or Choose a Local File"
-                  footer={false}
-                  style={{ border: "2px dashed #E5E7EB", padding: "20px", textAlign: "center" }}
-                >
-                  {files.map((fileWrapper) => (
-                    <FileItem
-                      key={fileWrapper.file.name}
-                      file={fileWrapper.file}
-                      onDelete={() => handleFileRemove(fileWrapper.file)}
-                      localization="EN-en"
-                    />
-                  ))}
-                </Dropzone>
-              </div>
-            </div>
-        <div className="mt-4">
-          <div className="flex flex-row w-full justify-between gap-4">
-            <div className="flex flex-col w-full ">
-              <Typography color="black" className="font-bold">
-                Kegiatan
-              </Typography>
-              <Input
-                type="text"
-                placeholder="Kegiatan"
-                name="kegiatan"
-                value={formData.kegiatan}
-                onChange={handleChange}
-                className="mb-2"
-              />
-            </div>
-            <div className="flex flex-col w-full">
+          <div className="flex flex-col w-full">
             <Typography color="black" className="font-bold">
-              Days
+              Time
             </Typography>
             <Input
-              type="text"
-              placeholder="Days"
-              name="days"
-              value={formData.days}
+              type="datetime-local"
+              placeholder="Time"
+              name="time"
+              value={formData.time ? formData.time.substring(0, 16) : ""}
               onChange={handleChange}
             />
           </div>
+        <div className="flex flex-row w-full gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Measured Depth
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Measured Depth"
+              name="measured_depth"
+              value={formData.measured_depth}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Measured Depth UOUM
+            </Typography>
+            <Select
+              label="Pilih Depth UOUM"
+              name="measured_depth_uoum"
+              onChange={handleSelectChange("measured_depth_uoum")}
+            >
+              {depthUom.map((type, index) => (
+                <Option key={index} value={type}>
+                  {type}
+                </Option>
+              ))}
+            </Select>
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Measured Depth Datum
+            </Typography>
+            <Select
+              label="Pilih Depth Datum"
+              name="measured_depth_datum"
+              onChange={handleSelectChange("measured_depth_datum")}
+            >
+              {depthDatum.map((type, index) => (
+                <Option key={index} value={type}>
+                  {type}
+                </Option>
+              ))}
+            </Select>
           </div>
         </div>
+
         <div className="flex flex-row w-full gap-4">
-          
           <div className="flex flex-col w-full">
             <Typography color="black" className="font-bold">
-              Start Depth
+              True Vertical Depth
             </Typography>
             <Input
-              type="text"
-              placeholder="Start Depth"
-              name="start_depth"
-              value={formData.start_depth}
+              type="number"
+              placeholder="True Vertical Depth"
+              name="true_vertical_depth"
+              value={formData.true_vertical_depth}
               onChange={handleChange}
             />
           </div>
           <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+            True Vertical Depth UOUM
+            </Typography>
+            <Select
+              label="Pilih True Vertical Depth UOUM"
+              name="true_vertical_depth_uoum"
+              onChange={handleSelectChange("true_vertical_depth_uoum")}
+            >
+              {depthUom.map((type, index) => (
+                <Option key={index} value={type}>
+                  {type}
+                </Option>
+              ))}
+            </Select>
+          </div>
+          
+        </div>
+        <div className="flex flex-row w-full gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              True Vertical Depth Sub-Sea
+            </Typography>
+            <Input
+              type="number"
+              placeholder="True Vertical Depth Sub-Sea"
+              name="true_vertical_depth_sub_sea"
+              value={formData.true_vertical_depth_sub_sea}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+            True Vertical Depth Sub-Sea UOUM
+            </Typography>
+            <Select
+              label="Pilih True Vertical Depth Sub-Sea UOUM"
+              name="true_vertical_depth_sub_sea_uoum"
+              onChange={handleSelectChange("true_vertical_depth_sub_sea_uoum")}
+            >
+              {depthUom.map((type, index) => (
+                <Option key={index} value={type}>
+                  {type}
+                </Option>
+              ))}
+            </Select>
+          </div>
+
+        </div>
+        <div className="flex flex-row w-full gap-4">
+        
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Daily Cost
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Daily Cost"
+              name="daily_cost"
+              value={formData.daily_cost}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Summary
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Summary"
+              name="summary"
+              value={formData.summary}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col w-full">
           <Typography color="black" className="font-bold">
-            End Depth
+            Current Operations
           </Typography>
           <Input
             type="text"
-            placeholder="End Depth"
-            name="end_depth"
-            value={formData.end_depth}
+            placeholder="Current Operations"
+            name="current_operations"
+            value={formData.current_operations}
             onChange={handleChange}
           />
         </div>
+
+        <div className="flex flex-col w-full">
+          <Typography color="black" className="font-bold">
+            Next Operations
+          </Typography>
+          <Input
+            type="text"
+            placeholder="Next Operations"
+            name="next_operations"
+            value={formData.next_operations}
+            onChange={handleChange}
+          />
         </div>
-        
-        <Button color="blue" className="mt-4" onClick={handleAddSection}>
+
+        <Button color="black" className="mt-4 button" size="lg" onClick={handleAddSection}>
           Tambah Section
         </Button>
       </CardBody>
@@ -193,7 +334,7 @@ const FormDepthVSDays = () => {
       <CardBody className="flex-col flex gap-4 h-96 overflow-y-auto">
         {tableData.length > 0 ? (
           <table className="min-w-full table-auto border-collapse border border-gray-200">
-            <thead>
+            <thead className="sticky top-0 bg-white">
               <tr>
                 {headers.map((header, index) => (
                   <th key={index} className="border border-gray-300 p-2 bg-gray-100 text-left">
