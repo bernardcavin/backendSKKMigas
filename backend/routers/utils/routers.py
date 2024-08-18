@@ -1,11 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status,File,UploadFile
-import shutil
+from fastapi import APIRouter, Depends, HTTPException, File,UploadFile
 from typing import List
 from sqlalchemy.orm import Session
 from backend.routers.auth.models import *
-import json
-import os
 from backend.routers.geometry.models import *
+from backend.routers.geometry.models import Field as OilField
 from backend.routers.job.models import ContractType, DataPhase, DrillingClass, HazardType, JobType, RigType, Severity, StatusCloseOut, StatusOperasi, StatusPPP, StatusPengajuan, WOWSClass, WOWSJobType
 from backend.routers.well.models import CasingType, CasingUOM, DENLogUOM, DepthDatum, DepthUOM, EnvironmentType, LogType, MediaType, PORLogUOM, ProfileType, SizeUOM, VolumeUOM, WellType
 from backend.routers.utils.schemas import *
@@ -94,3 +92,55 @@ async def get_all_enum_values():
     for key, enum_class in enum_map.items():
         all_enum_values[key] = {item.value for item in enum_class}
     return all_enum_values
+
+obj_map = {
+    'kkks': {
+        'obj':KKKS,
+        'key':'nama_kkks',
+        'value':'id'
+    },
+    'area': {
+        'obj':Area,
+        'key':'label',
+        'value':'id'
+    },
+    'field': {
+        'obj':OilField,
+        'key':'field_name',
+        'value':'id'
+    },
+    'strat_unit': {
+        'obj':StratUnit,
+        'key':'strat_unit_name',
+        'value':'id'
+    },
+}
+
+@router.get('/db/get/{obj_name}')
+@authorize(role=[Role.Admin, Role.KKKS])
+async def get_obj(obj_name: str, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
+
+    obj_class_dict = obj_map.get(obj_name)
+
+    if obj_class_dict is None:
+        raise HTTPException(status_code=404, detail="Object not found")
+    
+    obj_class = obj_class_dict['obj']
+
+    objs = db.query(obj_class).all()
+
+    return {getattr(obj, obj_class_dict['key']) : getattr(obj, obj_class_dict['value']) for obj in objs}
+
+@router.get('/db/all')
+@authorize(role=[Role.Admin, Role.KKKS])
+async def get_obj(db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
+    all_obj_values = {}
+    for key, obj_class_dict in obj_map.items():
+
+        obj_class = obj_class_dict['obj']
+
+        objs = db.query(obj_class).all()
+
+        all_obj_values[key] = {getattr(obj, obj_class_dict['key']) : getattr(obj, obj_class_dict['value']) for obj in objs}
+
+    return all_obj_values

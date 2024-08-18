@@ -27,6 +27,14 @@ async def create_user(user: schemas.CreateUser, db: Session = Depends(utils.get_
 async def get_me(user: schemas.GetUser = Depends(utils.get_current_user)):
     return user
 
+@router.post('/user/verify/{user_id}', response_model=schemas.VerifyUser)
+@authorize(role=[models.Role.Admin])
+async def create_user(user_id: str, db: Session = Depends(utils.get_db), user: schemas.GetUser = Depends(utils.get_current_user)):
+    user = db.query(models.User).get(user_id)
+    user.verfied_status = True
+    db.commit()
+    return user
+
 @router.post("/kkks/create", response_model=schemas.GetKKKS)
 @authorize(role=[models.Role.Admin])
 async def create_user(kkks: schemas.CreateKKKS, db: Session = Depends(utils.get_db), user: schemas.GetUser = Depends(utils.get_current_user)):
