@@ -22,6 +22,7 @@ const CardPageSumur = ({ sendData }) => {
       const response = await axios.get("http://127.0.0.1:8000/utils/enum/all");
       setTypeWell(response.data.well_type);
       // console.log(response.data);
+      // console.log(response.data);
       // Menyimpan data ke dalam state
     } catch (error) {
       console.error("Error fetching well types:", error);

@@ -12,6 +12,8 @@ import FormPagePersonel from './Forms/FormPagePersonel';
 import FormPagePosisi from './Forms/FormPagePosisi';
 import FormPageSchedule from './Forms/FormPageSchedule';
 import FormPageTrajectory from './Forms/FormPageTrajectory';
+import FormPageCasing from './Forms/FormPageCasing';
+
 const FormInput = () => {
     
     const [pekerjaan, setPekerjaan] = useState('');
