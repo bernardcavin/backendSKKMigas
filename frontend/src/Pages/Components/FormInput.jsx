@@ -95,7 +95,7 @@ const FormInput = () => {
                     {/* <FormPagePersonel /> */}
                     {/* <FormPageSchedule sendData={handleAllData} /> */}
                     {/* <FormPageTrajectory sendData={handleAllData} /> */}
-                    <FormDepthVSDays sendData={handleAllData} />
+                    {/* <FormDepthVSDays sendData={handleAllData} /> */}
                     {/* <FormPageCasing sendData={handleAllData} />  */}
                     {/* <CardPageSumur sendData={handleAllData} /> */}
                     {/* <FormHSEPlan /> */}

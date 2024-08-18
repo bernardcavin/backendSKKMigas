@@ -18,7 +18,7 @@ const CardPageSumur = ({ sendData }) => {
   const [wellClass, setWellClass] = useState([]);
   const [profileType, setProfileType] = useState([]);
   const [environmentType, setEnvironmentType] = useState([]);
-
+  const [wellStatus, setWellStatus] = useState([])
 
 
 
@@ -45,6 +45,8 @@ const CardPageSumur = ({ sendData }) => {
       setWellClass(response.data.well_class);
       setEnvironmentType(response.data.environment);
       setProfileType(response.data.profile_type);
+      setWellStatus(response.data.well_status)
+
 
 
 
@@ -123,7 +125,7 @@ const CardPageSumur = ({ sendData }) => {
 
 
   const statusOptions = ["Valid", "Proses", "Ditolak"];
-  const wellStatus = ["ACTIVE", "PROSES", "DEACTIVATE"];
+  
 
   // Handle input change for text and select inputs
   // const handleChange = (event) => {
