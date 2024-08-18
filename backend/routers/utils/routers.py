@@ -5,7 +5,7 @@ from backend.routers.auth.models import *
 from backend.routers.geometry.models import *
 from backend.routers.geometry.models import Field as OilField
 from backend.routers.job.models import ContractType, DataPhase, DrillingClass, HazardType, JobType, RigType, Severity, StatusCloseOut, StatusOperasi, StatusPPP, StatusPengajuan, WOWSClass, WOWSJobType
-from backend.routers.well.models import CasingType, CasingUOM, DENLogUOM, DepthDatum, DepthUOM, EnvironmentType, LogType, MediaType, PORLogUOM, ProfileType, SizeUOM, VolumeUOM, WellType
+from backend.routers.well.models import CasingType, CasingUOM, DENLogUOM, DepthDatum, DepthUOM, EnvironmentType, LogType, MediaType, PORLogUOM, ProfileType, SizeUOM, VolumeUOM, WellType,WellClass,WellStatus
 from backend.routers.utils.schemas import *
 from backend.routers.utils.crud import *
 from backend.routers.auth.utils import authorize, get_db, get_current_user
@@ -64,7 +64,7 @@ enum_map = {
     "environment": EnvironmentType,
     "well_type": WellType,
     "profile_type": ProfileType,
-    "well_class": WOWSClass,
+    "well_class": WellClass,
     "casing_uom": CasingUOM,
     "casing_type": CasingType,
     "depth_uom": DepthUOM,
@@ -73,7 +73,9 @@ enum_map = {
     "size_uom": SizeUOM,
     "log_type": LogType,
     "denlog_uom": DENLogUOM,
-    "porlog_uom": PORLogUOM
+    "porlog_uom": PORLogUOM,
+    "well_status": WellStatus,
+    'data_phase': DataPhase,
 }
 
 @router.get('/enum/get/{enum_name}')

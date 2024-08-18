@@ -123,6 +123,8 @@ class Well(Base, ValidationBase, CreateEditBase):
     surface_latitude = Column(Float)  # Surface Latitude (PPDM: SURFACE_LATITUDE)
     bottom_hole_longitude = Column(Float)
     bottom_hole_latitude = Column(Float)
+    maximum_inclination = Column(Float) #degrees
+    maximum_azimuth = Column(Float) #degrees
         
     # Seismic Information
     line_name = Column(String)  # Line Name (PPDM: LINE_NAME)
@@ -150,6 +152,9 @@ class Well(Base, ValidationBase, CreateEditBase):
     
     # Depths
     depth_datum = Column(Enum(DepthDatum))  # Depth Datum (PPDM: DEPTH_DATUM)
+
+    kick_off_point = Column(Float)
+    kick_off_point_ouom = Column(Enum(DepthUOM))
     
     drill_td = Column(Float)  # Drill Total Depth (PPDM: DRILL_TD)
     drill_td_ouom = Column(Enum(DepthUOM))  # Drill Total Depth ODepthUOM (PPDM: DRILL_TD_ODepthUOM)
@@ -162,21 +167,21 @@ class Well(Base, ValidationBase, CreateEditBase):
     
     projected_depth = Column(Float)  # Projected Depth (PPDM: PROJECTED_DEPTH)
     projected_depth_ouom = Column(Enum(DepthUOM))  # Projected Depth ODepthUOM (PPDM: PROJECTED_DEPTH_ODepthUOM)
-    
+
     final_td = Column(Float)  # Final Total Depth (PPDM: FINAL_TD)
     final_td_ouom = Column(Enum(DepthUOM))  # Final Total Depth ODepthUOM (PPDM: FINAL_TD_ODepthUOM)
 
     remark = Column(Text)  # Remarks (PPDM: REMARK)
     
-    documents = relationship('WellDocument', back_populates='well')
-    well_log_documents = relationship('WellLogDocument', back_populates='well')
-    well_samples = relationship('WellSample', back_populates='well')
-    well_core_samples = relationship('WellCoreSample', back_populates='well')
-    well_casing = relationship('WellCasing', back_populates='well')
-    well_trajectory = relationship('WellTrajectory', back_populates='well')
-    well_ppfg = relationship('PorePressureFractureGradient', back_populates='well')
+    well_documents = relationship('WellDocument', back_populates='well')
+    # well_log_documents = relationship('WellLogDocument', back_populates='well')
+    # well_samples = relationship('WellSample', back_populates='well')
+    # well_core_samples = relationship('WellCoreSample', back_populates='well')
+    well_casings = relationship('WellCasing', back_populates='well')
+    well_trajectories = relationship('WellTrajectory', back_populates='well')
+    well_ppfgs = relationship('WellPPFG', back_populates='well')
     well_logs = relationship('WellLog', back_populates='well')
-    well_drilling_parameter = relationship('DrillingParameter', back_populates='well')
+    well_drilling_parameters = relationship('WellDrillingParameter', back_populates='well')
     well_strat = relationship('WellStrat', back_populates='well')
     
 class WellDocument(Base):
@@ -187,96 +192,78 @@ class WellDocument(Base):
     file_id = Column(String(36), ForeignKey('files.id'), nullable=True)
     file = relationship('FileDB', foreign_keys=[file_id])
 
-    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
-    well = relationship('Well', back_populates='documents')
+    well_id = Column(String(36), ForeignKey('wells.id'))
+    well = relationship('Well', back_populates='well_documents')
+    
+    title = Column(String)
+    
+    media_type = Column(Enum(MediaType))
+    document_type = Column(String)
+    
+    remark = Column(Text)
 
-    title = Column(String, nullable=True)
-    creator_name = Column(String, nullable=True)
-    create_date = Column(DateTime, nullable=True)
+class DataClass(PyEnum):
+    WELL_LOG='WELL LOG'
+    TRAJECTORY='WELL TRAJECTORY'
+    PPFG='PPFG'
+    DRILLING_PARAMETER='DRILLING PARAMETER'
 
-    media_type = Column(Enum(MediaType), nullable=True)
-    document_type = Column(String, nullable=True)
+class WellDiigitalData(Base):
 
-    item_category = Column(String, nullable=True)
-    item_sub_category = Column(String, nullable=True)
-
-    digital_format = Column(String, nullable=True)
-
-    original_file_name = Column(String, nullable=True)
-
-    digital_size = Column(Float, nullable=True)
-    digital_size_uom = Column(Enum(SizeUOM), nullable=True)
-
-    remark = Column(Text, nullable=True)
-
-
-class WellLogDocument(Base):
-    __tablename__ = 'well_log_documents'
+    __tablename__ = 'well_digital_data'
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
-    well = relationship('Well', back_populates='well_log_documents')
+
+    well_id = Column(String(36), ForeignKey('wells.id'))
 
     file_id = Column(String(36), ForeignKey('files.id'), nullable=True)
     file = relationship('FileDB', foreign_keys=[file_id])
 
-    logging_company = Column(String, nullable=True)
-    media_type = Column(Enum(MediaType), nullable=True)
-    log_title = Column(String, nullable=True)
-    digital_format = Column(String, nullable=True)
-    report_log_run = Column(String, nullable=True)
-    trip_date = Column(DateTime, nullable=True)
-    top_depth = Column(Float, nullable=True)
-    top_depth_ouom = Column(Enum(DepthUOM), nullable=True)
-    base_depth = Column(Float, nullable=True)
-    base_depth_ouom = Column(Enum(DepthUOM), nullable=True)
-    original_file_name = Column(String, nullable=True)
-    digital_size = Column(Float, nullable=True)
-    digital_size_uom = Column(Enum(SizeUOM), nullable=True)
-    remark = Column(Text, nullable=True)
+    data_class = Column(Enum(DataClass))
 
-class WellSample(Base):
-    __tablename__ = 'well_samples'
+    __mapper_args__ = {
+        'polymorphic_identity': 'well_digital_data',
+        'polymorphic_on': data_class
+    }
 
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
-    well = relationship('Well', back_populates='well_samples')
+class WellLog(WellDiigitalData):
 
-    sample_type = Column(String, nullable=True)
-    sample_num = Column(String, nullable=True)
-    sample_count = Column(Integer, nullable=True)
-    top_md = Column(Float, nullable=True)
-    top_md_ouom = Column(Enum(DepthUOM), nullable=True)
-    base_md = Column(Float, nullable=True)
-    base_md_ouom = Column(Enum(DepthUOM), nullable=True)
-    study_type = Column(String, nullable=True)
-    remark = Column(Text, nullable=True)
+    __mapper_args__ = {
+        'polymorphic_identity': DataClass.WELL_LOG,
+    }
 
-class WellCoreSample(Base):
-    __tablename__ = 'well_core_samples'
+    well = relationship('Well', back_populates='well_logs')
 
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
-    well = relationship('Well', back_populates='well_core_samples')
+class WellTrajectory(WellDiigitalData):
 
-    core_type = Column(String, nullable=True)
-    sample_num = Column(String, nullable=True)
-    sample_count = Column(Integer, nullable=True)
-    top_depth = Column(Float, nullable=True)
-    top_depth_ouom = Column(Enum(DepthUOM), nullable=True)
-    base_depth = Column(Float, nullable=True)
-    base_depth_ouom = Column(Enum(DepthUOM), nullable=True)
-    portion_volume = Column(Float, nullable=True)
-    portion_volume_ouom = Column(Enum(VolumeUOM), nullable=True)
-    study_type = Column(String, nullable=True)
-    remark = Column(Text, nullable=True)
+    __mapper_args__ = {
+        'polymorphic_identity': DataClass.TRAJECTORY,
+    }
+
+    well = relationship('Well', back_populates='well_trajectories')
+
+class WellPPFG(WellDiigitalData):
+
+    __mapper_args__ = {
+        'polymorphic_identity': DataClass.PPFG,
+    }
+
+    well = relationship('Well', back_populates='well_ppfgs')
+
+class WellDrillingParameter(WellDiigitalData):
+
+    __mapper_args__ = {
+        'polymorphic_identity': DataClass.DRILLING_PARAMETER,
+    }
+
+    well = relationship('Well', back_populates='well_drilling_parameters')
 
 class WellCasing(Base):
     __tablename__ = 'well_casings'
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
-    well = relationship('Well', back_populates='well_casing')
+    well_id = Column(String(36), ForeignKey('wells.id'))
+    well = relationship('Well', back_populates='well_casings')
 
     casing_type = Column(Enum(CasingType), nullable=True)
     grade = Column(String, nullable=True)
@@ -286,76 +273,6 @@ class WellCasing(Base):
     outside_diameter_ouom = Column(Enum(CasingUOM), nullable=True)
     base_depth = Column(Float, nullable=True)
     base_depth_ouom = Column(Enum(DepthUOM), nullable=True)
-
-class WellTrajectory(Base):
-    __tablename__ = 'well_trajectories'
-
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
-    well = relationship('Well', back_populates='well_trajectory')
-
-    measured_depth = Column(Float, nullable=True)
-    true_vertical_depth = Column(Float, nullable=True)
-    true_vertical_depth_sub_sea = Column(Float, nullable=True)
-    inclination = Column(Float, nullable=True)
-    azimuth = Column(Float, nullable=True)
-    latitude = Column(Float, nullable=True)
-    longitude = Column(Float, nullable=True)  # Longitude
-
-class PorePressureFractureGradient(Base):
-    
-    __tablename__ = 'well_ppfg'
-    
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'))
-    well = relationship('Well', back_populates='well_ppfg')
-    
-    depth_datum = Column(Enum(DepthDatum))
-    depth = Column(Float)
-    depth_uoum = Column(Enum(DepthUOM))
-    
-    overburden_stress = Column(Float)
-    pore_pressure = Column(Float)
-    fracture_pressure = Column(Float)
-
-class WellLog(Base):
-    __tablename__ = 'well_log'
-
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
-    well = relationship('Well', back_populates='well_logs')
-
-    depth_datum = Column(Enum(DepthDatum), nullable=True)
-    depth = Column(Float, nullable=True)
-    depth_uoum = Column(Enum(DepthUOM), nullable=True)
-    gamma_ray_log_name = Column(String, nullable=True)
-    gamma_ray_log = Column(Float, nullable=True)
-    gamma_ray_log_ouom = Column(Enum(GRLogUOM), nullable=True)
-    density_log_name = Column(String, nullable=True)
-    density_log = Column(Float, nullable=True)
-    density_log_ouom = Column(Enum(DENLogUOM), nullable=True)
-    porosity_log_name = Column(String, nullable=True)
-    porosity_log = Column(Float, nullable=True)
-    porosity_log_ouom = Column(Enum(PORLogUOM), nullable=True)
-
-class DrillingParameter(Base):
-    __tablename__ = 'well_drilling_parameter'
-
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
-    well = relationship('Well', back_populates='well_drilling_parameter')
-
-    depth_datum = Column(Enum(DepthDatum), nullable=True)
-    depth = Column(Float, nullable=True)
-    depth_uoum = Column(Enum(DepthUOM), nullable=True)
-    rate_of_penetration = Column(Float, nullable=True)
-    weight_on_bit = Column(Float, nullable=True)
-    hookload = Column(Float, nullable=True)
-    top_drive = Column(Float, nullable=True)
-    mud_motor = Column(Float, nullable=True)
-    total_rpm = Column(Float, nullable=True)
-    torque = Column(Float, nullable=True)
-    mud_weight = Column(Float, nullable=True)
 
 class WellStrat(Base):
     __tablename__ = 'well_strat'

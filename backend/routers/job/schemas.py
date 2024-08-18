@@ -48,11 +48,11 @@ class CreateDrillingHazard(BaseModel):
     
     remark: str
 
-class CreateBudget(BaseModel):
+# class CreateBudget(BaseModel):
 
-    tangible_cost: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
-    intangible_cost: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
-    total_cost: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
+#     tangible_cost: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
+#     intangible_cost: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
+#     total_cost: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
 
 class CreateJobActivity(BaseModel):
 
@@ -102,8 +102,8 @@ class GetDrillingHazard(CreateDrillingHazard):
     id: str
 
 # CreateBudget with id
-class GetBudget(CreateBudget):
-    id: str
+# class GetBudget(CreateBudget):
+#     id: str
 
 # CreateJobActivity with id
 class GetJobActivity(CreateJobActivity):
@@ -112,18 +112,18 @@ class GetJobActivity(CreateJobActivity):
 class GetJobBase(JobBase):
    
     job_activity: List[GetJobActivity]
-    budget: List[GetBudget]
+    # budget: List[GetBudget]
     work_breakdown_structure: List[GetWorkBreakdownStructure]
     drilling_hazard: List[GetDrillingHazard]
     job_documents: List[GetJobDocument]
 
 class CreateJobBase(JobBase):
 
-    job_activity: List[CreateJobActivity]
-    budget: List[CreateBudget]
-    work_breakdown_structure: List[CreateWorkBreakdownStructure]
-    drilling_hazard: List[CreateDrillingHazard]
-    job_documents: List[CreateJobDocument]
+    job_activity: Optional[List[CreateJobActivity]]
+    # budget: List[CreateBudget]
+    work_breakdown_structure: Optional[List[CreateWorkBreakdownStructure]]
+    drilling_hazard: Optional[List[CreateDrillingHazard]]
+    job_documents: Optional[List[CreateJobDocument]]
 
 class DrillingBase:
     drilling_class: DrillingClass

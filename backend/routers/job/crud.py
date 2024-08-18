@@ -53,12 +53,12 @@ def create_drilling_job(db: Session, drilling: CreateDrillingJob, user: GetUser)
         db.add(db_activity)
 
     # Add related Budgets
-    for budget in drilling.budget:
-        db_budget = Budget(
-            job_id=job_id,
-            **budget.model_dump()
-        )
-        db.add(db_budget)
+    # for budget in drilling.budget:
+    #     db_budget = Budget(
+    #         job_id=job_id,
+    #         **budget.model_dump()
+    #     )
+    #     db.add(db_budget)
 
     # Add related Work Breakdown Structures
     for wbs in drilling.work_breakdown_structure:
@@ -155,12 +155,12 @@ def create_wows_job(db: Session, wows: CreateWOWSJob, user: GetUser):
         db.add(db_activity)
 
     # Add related Budgets
-    for budget in wows.budget:
-        db_budget = Budget(
-            job_id=job_id,
-            **budget.model_dump()
-        )
-        db.add(db_budget)
+    # for budget in wows.budget:
+    #     db_budget = Budget(
+    #         job_id=job_id,
+    #         **budget.model_dump()
+    #     )
+    #     db.add(db_budget)
 
     # Add related Work Breakdown Structures
     for wbs in wows.work_breakdown_structure:
