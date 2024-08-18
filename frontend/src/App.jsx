@@ -8,6 +8,7 @@ import { useAuth } from "./AuthContext";
 import Login from "./Pages/Login";
 import { RegisterPage } from "./Pages/Register";
 import Dashboard from "./Pages/Dashboard";
+import Plotly from "./Pages/Plotly";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
@@ -25,6 +26,10 @@ export default function App() {
         <Route
           path="/dashboard"
           element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/plotly"
+          element={isAuthenticated ? <Plotly /> : <Navigate to="/login" />}
         />
         <Route
           path="*"
