@@ -4,6 +4,7 @@ import { Navbar } from "@material-tailwind/react";
 import FormInput from "./Components/FormInput";
 import { useAuth } from "../AuthContext";
 import { SidebarWithLogo } from "./Components/Sidebar";
+import HomeDash  from "./Components/HomeDash";
 
 const Homepage = () => {
   return (
@@ -38,16 +39,16 @@ export function Dashboard() {
   return (
     <div className="flex">
       <SidebarWithLogo onClickNavItem={handleNavClick} selectedNav={selectedNav} />
-      <div className="flex-1 p-4">
-        <Navbar className="max-w-4/5 px-6 py-3 ml-[20rem]">
+      <div className="flex-1 p-4 w-full">
+        <Navbar className="flex w-full ml-[20rem]">
           <div className="flex items-center justify-between text-blue-gray-900 w-5/6 ">
-            <div className="flex">
+            <div className="flex w-full">
                 <h1 className="text-lg font-bold">{selectedNav === 1 && 'Homepage'}{ selectedNav === 2 && 'Add Data'}</h1>
             </div>
           </div>
         </Navbar>
         <div className="flex ml-[20rem] flex-col w-4/5 mt-4">
-          {selectedNav === 1 && <Homepage />}
+          {selectedNav === 1 && <HomeDash />}
           {selectedNav === 2 && <FormInput />}
         </div>
       </div>

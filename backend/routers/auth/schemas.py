@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from backend.routers.auth.models import Role
+from typing import Optional
 
 #KKKS
 class KKKSBase(BaseModel):
@@ -17,7 +18,7 @@ class GetKKKS(KKKSBase):
 class UserBase(BaseModel):
     username: str
     email: EmailStr
-    kkks_id: str
+    kkks_id: Optional[str]
     role: Role
 
 class CreateUser(UserBase):
