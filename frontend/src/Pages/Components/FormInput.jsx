@@ -110,7 +110,7 @@ const FormInput = () => {
 
 
     const initialJobActivity = {
-        time: new Date().toISOString(),
+        time: '',
         measured_depth: 0,
         measured_depth_uoum: "FEET",
         measured_depth_datum: "RT",
@@ -123,6 +123,9 @@ const FormInput = () => {
         current_operations: "",
         next_operations: ""
     };
+
+
+    
     
     const initialWorkBreakdownStructure = {
         event: "",
@@ -142,7 +145,7 @@ const FormInput = () => {
     const [formData, setFormData] = useState({
         job: {
             field_id: "",
-            contract_type: "COST-RECOVERY",
+            contract_type: "",
             afe_number: "",
             wpb_year: new Date().getFullYear(),
             plan_start: new Date().toISOString(),

@@ -52,17 +52,20 @@ const CardPageJob = ({ sendData }) => {
 
     // Panggil saat file diproses
     const [formData, setFormData] = useState({
-        field_id: "String", // Kosongkan jika tidak ada nilai yang pasti
-        contract_type: "COST-RECOVERY",
+        field_id: "", // Kosongkan jika tidak ada nilai yang pasti
+        contract_type: "",
         afe_number: "String", // Kosongkan jika tidak ada nilai yang pasti
         wpb_year: 0,
         plan_start: "2024-08-18T14:51:19.093Z",
         plan_end: "2024-08-18T14:51:19.093Z",
         plan_total_budget: 0,
-        rig_name: "String", // Kosongkan jika tidak ada nilai yang pasti
+        rig_name: "", // Kosongkan jika tidak ada nilai yang pasti
         rig_type: "JACK-UP",
         rig_horse_power: 0
     });
+
+    // console.table(formData);
+    
 
     const statusOptions = ["Valid", "Proses", "Ditolak"];
     const wellStatus = ["ACTIVE", "PROSES", "DEACTIVATE"];
@@ -76,8 +79,6 @@ const CardPageJob = ({ sendData }) => {
 
     const handleChange = (event) => {
         const { name, value, type } = event.target;
-
-
 
         setFormData((prevState) => ({
             ...prevState,
@@ -161,7 +162,7 @@ const CardPageJob = ({ sendData }) => {
                     <Input
                         type="text"
                         placeholder="Field"
-                        name="field"
+                        name="field_id"
                         value={formData.field_id}
                         onChange={handleChange}
                     />
@@ -224,7 +225,7 @@ const CardPageJob = ({ sendData }) => {
                             <label className='font-bold text-black'>
                                 Rencana Mulai Tajak
                                 <Input
-                                    type="date"
+                                    type="datetime-local"
                                     name="plan_start"
                                     value={formData.plan_start}
                                     onChange={handleChange}
@@ -238,8 +239,8 @@ const CardPageJob = ({ sendData }) => {
                         <label className='font-bold text-black'>
                             Rencana Selesai Tajak
                             <Input
-                                type="date"
-                                name="endDate"
+                                type="datetime-local"
+                                name="plan_end"
                                 value={formData.plan_end}
                                 onChange={handleChange}
                                 min={formData.plan_start}
