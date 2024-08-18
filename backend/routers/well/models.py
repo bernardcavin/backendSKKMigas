@@ -184,147 +184,123 @@ class WellDocument(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
 
-    file_id = Column(String(36), ForeignKey('files.id'))
+    file_id = Column(String(36), ForeignKey('files.id'), nullable=True)
     file = relationship('FileDB', foreign_keys=[file_id])
 
-    well_id = Column(String(36), ForeignKey('wells.id'))
+    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
     well = relationship('Well', back_populates='documents')
-    
-    title = Column(String)
-    creator_name = Column(String)
-    create_date = Column(DateTime)
-    
-    media_type = Column(Enum(MediaType))
-    document_type = Column(String)
-    
-    item_category = Column(String)
-    item_sub_category = Column(String)
-    
-    digital_format = Column(String)
-    
-    original_file_name = Column(String)
-    
-    digital_size = Column(Float)
-    digital_size_uom = Column(Enum(SizeUOM))
-    
-    remark = Column(Text)
+
+    title = Column(String, nullable=True)
+    creator_name = Column(String, nullable=True)
+    create_date = Column(DateTime, nullable=True)
+
+    media_type = Column(Enum(MediaType), nullable=True)
+    document_type = Column(String, nullable=True)
+
+    item_category = Column(String, nullable=True)
+    item_sub_category = Column(String, nullable=True)
+
+    digital_format = Column(String, nullable=True)
+
+    original_file_name = Column(String, nullable=True)
+
+    digital_size = Column(Float, nullable=True)
+    digital_size_uom = Column(Enum(SizeUOM), nullable=True)
+
+    remark = Column(Text, nullable=True)
+
 
 class WellLogDocument(Base):
-    
     __tablename__ = 'well_log_documents'
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'))
+    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
     well = relationship('Well', back_populates='well_log_documents')
 
-    file_id = Column(String(36), ForeignKey('files.id'))
+    file_id = Column(String(36), ForeignKey('files.id'), nullable=True)
     file = relationship('FileDB', foreign_keys=[file_id])
-    
-    logging_company = Column(String)
-    media_type = Column(Enum(MediaType))
 
-    log_title = Column(String)
-    digital_format = Column(String)
-    report_log_run = Column(String)
-    
-    trip_date = Column(DateTime)
-    top_depth = Column(Float)
-    top_depth_ouom = Column(Enum(DepthUOM))
-    
-    base_depth = Column(Float)
-    base_depth_ouom = Column(Enum(DepthUOM))
-    
-    original_file_name = Column(String)
-
-    digital_size = Column(Float)
-    digital_size_uom = Column(Enum(SizeUOM))
-    
-    remark = Column(Text)
+    logging_company = Column(String, nullable=True)
+    media_type = Column(Enum(MediaType), nullable=True)
+    log_title = Column(String, nullable=True)
+    digital_format = Column(String, nullable=True)
+    report_log_run = Column(String, nullable=True)
+    trip_date = Column(DateTime, nullable=True)
+    top_depth = Column(Float, nullable=True)
+    top_depth_ouom = Column(Enum(DepthUOM), nullable=True)
+    base_depth = Column(Float, nullable=True)
+    base_depth_ouom = Column(Enum(DepthUOM), nullable=True)
+    original_file_name = Column(String, nullable=True)
+    digital_size = Column(Float, nullable=True)
+    digital_size_uom = Column(Enum(SizeUOM), nullable=True)
+    remark = Column(Text, nullable=True)
 
 class WellSample(Base):
-    
     __tablename__ = 'well_samples'
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'))
+    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
     well = relationship('Well', back_populates='well_samples')
-    
-    sample_type = Column(String)
-    sample_num = Column(String)
-    sample_count = Column(Integer)
-    
-    top_md = Column(Float)
-    top_md_ouom = Column(Enum(DepthUOM))
-    
-    base_md = Column(Float)
-    base_md_ouom = Column(Enum(DepthUOM))
-    
-    study_type = Column(String)
 
-    remark = Column(Text)
+    sample_type = Column(String, nullable=True)
+    sample_num = Column(String, nullable=True)
+    sample_count = Column(Integer, nullable=True)
+    top_md = Column(Float, nullable=True)
+    top_md_ouom = Column(Enum(DepthUOM), nullable=True)
+    base_md = Column(Float, nullable=True)
+    base_md_ouom = Column(Enum(DepthUOM), nullable=True)
+    study_type = Column(String, nullable=True)
+    remark = Column(Text, nullable=True)
 
 class WellCoreSample(Base):
-    
     __tablename__ = 'well_core_samples'
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'))
+    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
     well = relationship('Well', back_populates='well_core_samples')
-    
-    core_type = Column(String)
-    sample_num = Column(String)
-    sample_count = Column(Integer)
-    
-    top_depth = Column(Float)
-    top_depth_ouom = Column(Enum(DepthUOM))
-    
-    base_depth = Column(Float)
-    base_depth_ouom = Column(Enum(DepthUOM))
-    
-    portion_volume = Column(Float)
-    portion_volume_ouom = Column(Enum(VolumeUOM))
-    
-    study_type = Column(String)
-    
-    remark = Column(Text)
+
+    core_type = Column(String, nullable=True)
+    sample_num = Column(String, nullable=True)
+    sample_count = Column(Integer, nullable=True)
+    top_depth = Column(Float, nullable=True)
+    top_depth_ouom = Column(Enum(DepthUOM), nullable=True)
+    base_depth = Column(Float, nullable=True)
+    base_depth_ouom = Column(Enum(DepthUOM), nullable=True)
+    portion_volume = Column(Float, nullable=True)
+    portion_volume_ouom = Column(Enum(VolumeUOM), nullable=True)
+    study_type = Column(String, nullable=True)
+    remark = Column(Text, nullable=True)
 
 class WellCasing(Base):
-    
     __tablename__ = 'well_casings'
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'))
+    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
     well = relationship('Well', back_populates='well_casing')
 
-    casing_type = Column(Enum(CasingType))
-    grade = Column(String)
-    
-    inside_diameter = Column(Float)
-    inside_diameter_ouom = Column(Enum(CasingUOM))
-    
-    outside_diameter = Column(Float)
-    outside_diameter_ouom = Column(Enum(CasingUOM))
-    
-    base_depth = Column(Float)
-    base_depth_ouom = Column(Enum(DepthUOM))
+    casing_type = Column(Enum(CasingType), nullable=True)
+    grade = Column(String, nullable=True)
+    inside_diameter = Column(Float, nullable=True)
+    inside_diameter_ouom = Column(Enum(CasingUOM), nullable=True)
+    outside_diameter = Column(Float, nullable=True)
+    outside_diameter_ouom = Column(Enum(CasingUOM), nullable=True)
+    base_depth = Column(Float, nullable=True)
+    base_depth_ouom = Column(Enum(DepthUOM), nullable=True)
 
 class WellTrajectory(Base):
-    
     __tablename__ = 'well_trajectories'
-    
+
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'))
+    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
     well = relationship('Well', back_populates='well_trajectory')
 
-    measured_depth = Column(Float)  # Measured Depth
-    true_vertical_depth = Column(Float)  # True Vertical Depth
-    true_vertical_depth_sub_sea = Column(Float)  # True Vertical Depth Subsea
-    
-    inclination = Column(Float)  # Inclination
-    azimuth = Column(Float)  # Azimuth Grid
-    
-    latitude = Column(Float)  # Latitude
-    longitude = Column(Float)  # Longitude
+    measured_depth = Column(Float, nullable=True)
+    true_vertical_depth = Column(Float, nullable=True)
+    true_vertical_depth_sub_sea = Column(Float, nullable=True)
+    inclination = Column(Float, nullable=True)
+    azimuth = Column(Float, nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)  # Longitude
 
 class PorePressureFractureGradient(Base):
     
@@ -343,63 +319,55 @@ class PorePressureFractureGradient(Base):
     fracture_pressure = Column(Float)
 
 class WellLog(Base):
-    
     __tablename__ = 'well_log'
-    
+
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'))
+    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
     well = relationship('Well', back_populates='well_logs')
-    
-    depth_datum = Column(Enum(DepthDatum))
-    depth = Column(Float)
-    depth_uoum = Column(Enum(DepthUOM))
-    
-    gamma_ray_log_name = Column(String)
-    gamma_ray_log = Column(Float)
-    gamma_ray_log_ouom = Column(Enum(GRLogUOM))
-    
-    density_log_name = Column(String)
-    density_log = Column(Float)
-    density_log_ouom = Column(Enum(DENLogUOM))
-    
-    porosity_log_name = Column(String)
-    porosity_log = Column(Float)
-    porosity_log_ouom = Column(Enum(PORLogUOM))
+
+    depth_datum = Column(Enum(DepthDatum), nullable=True)
+    depth = Column(Float, nullable=True)
+    depth_uoum = Column(Enum(DepthUOM), nullable=True)
+    gamma_ray_log_name = Column(String, nullable=True)
+    gamma_ray_log = Column(Float, nullable=True)
+    gamma_ray_log_ouom = Column(Enum(GRLogUOM), nullable=True)
+    density_log_name = Column(String, nullable=True)
+    density_log = Column(Float, nullable=True)
+    density_log_ouom = Column(Enum(DENLogUOM), nullable=True)
+    porosity_log_name = Column(String, nullable=True)
+    porosity_log = Column(Float, nullable=True)
+    porosity_log_ouom = Column(Enum(PORLogUOM), nullable=True)
 
 class DrillingParameter(Base):
-    
     __tablename__ = 'well_drilling_parameter'
-    
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
 
-    well_id = Column(String(36), ForeignKey('wells.id'))
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
     well = relationship('Well', back_populates='well_drilling_parameter')
-    
-    depth_datum = Column(Enum(DepthDatum))
-    depth = Column(Float)
-    depth_uoum = Column(Enum(DepthUOM))
-    
-    rate_of_penetration = Column(Float)
-    weight_on_bit = Column(Float)
-    hookload = Column(Float)
-    top_drive = Column(Float)
-    mud_motor = Column(Float)
-    total_rpm = Column(Float)
-    torque = Column(Float)
-    mud_weight = Column(Float)
+
+    depth_datum = Column(Enum(DepthDatum), nullable=True)
+    depth = Column(Float, nullable=True)
+    depth_uoum = Column(Enum(DepthUOM), nullable=True)
+    rate_of_penetration = Column(Float, nullable=True)
+    weight_on_bit = Column(Float, nullable=True)
+    hookload = Column(Float, nullable=True)
+    top_drive = Column(Float, nullable=True)
+    mud_motor = Column(Float, nullable=True)
+    total_rpm = Column(Float, nullable=True)
+    torque = Column(Float, nullable=True)
+    mud_weight = Column(Float, nullable=True)
 
 class WellStrat(Base):
-    
     __tablename__ = 'well_strat'
-    
+
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'))
+    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
     well = relationship('Well', back_populates='well_strat')
-    
-    strat_unit_id = Column(String(36), ForeignKey('area_strat.id'))
+
+    strat_unit_id = Column(String(36), ForeignKey('area_strat.id'), nullable=True)
     strat_unit = relationship('StratUnit', back_populates='well_strat')
-    
-    depth_datum = Column(Enum(DepthDatum))
-    top_depth = Column(Float)
-    bottom_depth = Column(Float)
-    depth_uoum = Column(Enum(DepthUOM))
+
+    depth_datum = Column(Enum(DepthDatum), nullable=True)
+    top_depth = Column(Float, nullable=True)
+    bottom_depth = Column(Float, nullable=True)
+    depth_uoum = Column(Enum(DepthUOM), nullable=True)
