@@ -12,15 +12,19 @@ import {
 import axios from "axios";
 
 const Casing = () => {
-  const [casingTypes, setCasingTypes] = useState([]);
+  const [depthUom, setDepthUom] = useState([]);
+  const [casingType, setCasingType] = useState([]);
+  const [casingUOM, setCasingUOM] = useState([]);
+  const [files, setFiles] = useState([]);
 
   const getAllData = async () => {
     try {
       const response = await axios.get("http://127.0.0.1:8000/utils/enum/all");
-      setCasingTypes(response.data.casing_type);
-      console.log(response.data);
+      setDepthUom(response.data.depth_uom);
+      setCasingType(response.data.casing_type);
+      setCasingUOM(response.data.casing_uom);
     } catch (error) {
-      console.error("Error fetching casing types:", error);
+      console.error("Error fetching data:", error);
     }
   };
 
@@ -30,154 +34,187 @@ const Casing = () => {
 
   const [formData, setFormData] = useState({
     casing_type: "",
-    inner_diameter: "",
-    outer_diameter: "",
-    weight: "",
     grade: "",
-    start_depth: "",
-    end_depth: "",
+    inside_diameter: 0,
+    inside_diameter_ouom: "INCH",
+    outside_diameter: 0,
+    outside_diameter_ouom: "INCH",
+    base_depth: 0,
+    base_depth_ouom: "FEET",
   });
-    
-    console.log(formData);
-    
 
-  // Handle input change for text and select inputs
+  console.table(formData);
+  
+
   const handleChange = (event) => {
-    const { name, value } = event.target;
+    const { name, value, type } = event.target;
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: type === "number" ? parseInt(value, 10) : value,
+    }));
+  };
+
+  const handleSelectChange = (name) => (value) => {
     setFormData((prevState) => ({
       ...prevState,
       [name]: value,
     }));
   };
 
-  const handleSelectChange = (value) => {
-    console.log("Selected Casing Type:", value);
-    setFormData((prevState) => ({
-      ...prevState,
-      casing_type: value,
-    }));
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    console.log("Selected file:", file);
   };
-
-  useEffect(() => {
-    // This effect could be used to send data or any other side effect based on formData changes
-    console.log(formData);
-  }, [formData]);
 
   return (
     <Card variant="filled" className="w-full">
-      <CardHeader floated={false} className="mb-2 shadow-none">
+      <CardHeader floated={false} className="mb-2 shadow-none flex justify-between items-center">
         <Typography variant="h5" color="black">
           Casing
         </Typography>
+        <div>
+          <Button
+            size="lg"
+            color="black"
+            onClick={() => document.getElementById('fileInput').click()}
+          >
+            Upload File
+          </Button>
+          <input
+            id="fileInput"
+            type="file"
+            accept=".csv, .xlsx, .xls"
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
+        </div>
       </CardHeader>
       <CardBody className="flex-col flex gap-4">
+      <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Casing Type
+            </Typography>
+            <Select
+              label="Pilih Casing Type"
+              name="casing_type"
+              onChange={handleSelectChange("casing_type")}
+            >
+              {casingType.map((type, index) => (
+                <Option key={index} value={type}>
+                  {type}
+                </Option>
+              ))}
+            </Select>
+          </div>
+
         <div className="flex flex-col w-full">
           <Typography color="black" className="font-bold">
-            Tipe
+            Grade
           </Typography>
-          <Select
-            label="Pilih Tipe Casing"
-            name="casing_type"
-            value={formData.casing_type}
-            onChange={handleSelectChange}
-          >
-            {casingTypes.map((type, index) => (
-              <Option key={index} value={type}>
-                {type}
-              </Option>
-            ))}
-          </Select>
+          <Input
+            type="text"
+            placeholder="Grade"
+            name="grade"
+            value={formData.grade}
+            onChange={handleChange}
+          />
         </div>
-        <div className="flex flex-col w-full">
-          <Typography color="black" className="font-bold">
-            Upload File
-          </Typography>
-          <Input type="file" accept=".csv, .xlsx, .xls" className="w-full" />
-        </div>
+
         <div className="flex flex-row w-full gap-4">
           <div className="flex flex-col w-full">
             <Typography color="black" className="font-bold">
-              Inner Diameter
+              Inside Diameter
             </Typography>
             <Input
-              type="text"
-              placeholder="Inner Diameter"
-              name="inner_diameter"
-              value={formData.inner_diameter}
+              type="number"
+              min={0}
+              placeholder="Inside Diameter"
+              name="inside_diameter"
+              value={formData.inside_diameter}
               onChange={handleChange}
             />
           </div>
           <div className="flex flex-col w-full">
             <Typography color="black" className="font-bold">
-              Outer Diameter
+              Inside Diameter UOM
             </Typography>
-            <Input
-              type="text"
-              placeholder="Outer Diameter"
-              name="outer_diameter"
-              value={formData.outer_diameter}
-              onChange={handleChange}
-            />
+            <Select
+              label="Pilih Inside Diameter UOM"
+              name="inside_diameter_ouom"
+              onChange={handleSelectChange("inside_diameter_ouom")}
+            >
+              {casingUOM.map((type, index) => (
+                <Option key={index} value={type}>
+                  {type}
+                </Option>
+              ))}
+            </Select>
           </div>
         </div>
+
         <div className="flex flex-row w-full gap-4">
           <div className="flex flex-col w-full">
             <Typography color="black" className="font-bold">
-              Weight
+              Outside Diameter
             </Typography>
             <Input
-              type="text"
-              placeholder="Weight"
-              name="weight"
-              value={formData.weight}
+              type="number"
+              min={0}
+              placeholder="Outside Diameter"
+              name="outside_diameter"
+              value={formData.outside_diameter}
               onChange={handleChange}
             />
           </div>
           <div className="flex flex-col w-full">
             <Typography color="black" className="font-bold">
-              Grade
+              Outside Diameter UOM
             </Typography>
-            <Input
-              type="text"
-              placeholder="Grade"
-              name="grade"
-              value={formData.grade}
-              onChange={handleChange}
-            />
+            <Select
+              label="Pilih Outside Diameter UOM"
+              name="outside_diameter_ouom"
+              onChange={handleSelectChange("outside_diameter_ouom")}
+            >
+              {casingUOM.map((type, index) => (
+                <Option key={index} value={type}>
+                  {type}
+                </Option>
+              ))}
+            </Select>
           </div>
         </div>
+
         <div className="flex flex-row w-full gap-4">
           <div className="flex flex-col w-full">
             <Typography color="black" className="font-bold">
-              Start Depth
+              Base Depth
             </Typography>
             <Input
-              type="text"
-              placeholder="Start Depth"
-              name="start_depth"
-              value={formData.start_depth}
+              type="number"
+              min={0}
+              placeholder="Base Depth"
+              name="base_depth"
+              value={formData.base_depth}
               onChange={handleChange}
             />
           </div>
           <div className="flex flex-col w-full">
             <Typography color="black" className="font-bold">
-              End Depth
+              Base Depth UOM
             </Typography>
-            <Input
-              type="text"
-              placeholder="End Depth"
-              name="end_depth"
-              value={formData.end_depth}
-              onChange={handleChange}
-            />
+            <Select
+              label="Pilih Base Depth UOM"
+              name="base_depth_ouom"
+              onChange={handleSelectChange("base_depth_ouom")}
+            >
+              {depthUom.map((type, index) => (
+                <Option key={index} value={type}>
+                  {type}
+                </Option>
+              ))}
+            </Select>
           </div>
         </div>
-      </CardBody>
-      <CardBody className="bg-blue-100 h-16 flex items-center justify-center">
-        <Typography color="black">Table</Typography>
-      </CardBody>
-      <CardBody className="bg-lime-100 h-16 flex items-center justify-center">
-        <Typography color="black">Gambar Casing</Typography>
       </CardBody>
     </Card>
   );

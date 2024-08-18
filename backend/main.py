@@ -27,8 +27,10 @@ if int(os.getenv('DEMO_MODE'))==1:
     if os.path.exists('test.db'):
         os.remove("test.db")
     Base.metadata.create_all(bind=engine)
-    generate_dummy_data(n=50)
+    generate_dummy_data(n=1)
     logger.info('Dummy data successfully created')
+else:
+    Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,

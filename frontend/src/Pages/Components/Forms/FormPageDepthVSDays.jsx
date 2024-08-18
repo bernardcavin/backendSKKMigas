@@ -12,8 +12,6 @@ import {
 } from '@material-tailwind/react';
 import * as XLSX from 'xlsx';
 import axios from 'axios';
-// import flatpickr from "flatpickr";
-// import "flatpickr/dist/flatpickr.min.css";
 
 const FormDepthVSDays = () => {
   const [depthUom, setDepthUom] = useState([]);
