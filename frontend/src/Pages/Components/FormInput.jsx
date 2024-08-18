@@ -109,148 +109,170 @@ const FormInput = () => {
 
 
 
+    const initialJobActivity = {
+        time: new Date().toISOString(),
+        measured_depth: 0,
+        measured_depth_uoum: "FEET",
+        measured_depth_datum: "RT",
+        true_vertical_depth: 0,
+        true_vertical_depth_uoum: "FEET",
+        true_vertical_depth_sub_sea: 0,
+        true_vertical_depth_sub_sea_uoum: "FEET",
+        daily_cost: 0,
+        summary: "",
+        current_operations: "",
+        next_operations: ""
+    };
+    
+    const initialWorkBreakdownStructure = {
+        event: "",
+        start_date: new Date().toISOString(),
+        end_data: new Date().toISOString(),
+        remarks: ""
+    };
+    
+    const initialWellStrat = {
+        strat_unit_id: "",
+        depth_datum: "RT",
+        top_depth: 0,
+        bottom_depth: 0,
+        depth_uoum: "FEET"
+    };
+    
     const [formData, setFormData] = useState({
-        field_id: "string",
-        contract_type: "COST-RECOVERY",
-        afe_number: "string",
-        wpb_year: 0,
-        plan_start: "2024-08-18T18:42:52.563Z",
-        plan_end: "2024-08-18T18:42:52.563Z",
-        plan_total_budget: 0,
-        rig_name: "string",
-        rig_type: "JACK-UP",
-        rig_horse_power: 0,
-        job_activity: [
-            {
-                time: "2024-08-18T18:42:52.563Z",
-                measured_depth: 0,
-                measured_depth_uoum: "FEET",
-                measured_depth_datum: "RT",
-                true_vertical_depth: 0,
-                true_vertical_depth_uoum: "FEET",
-                true_vertical_depth_sub_sea: 0,
-                true_vertical_depth_sub_sea_uoum: "FEET",
-                daily_cost: 0,
-                summary: "string",
-                current_operations: "string",
-                next_operations: "string"
-            }
-        ],
-        work_breakdown_structure: [
-            {
-                event: "string",
-                start_date: "2024-08-18T18:42:52.563Z",
-                end_date: "2024-08-18T18:42:52.563Z",
-                remarks: "string"
-            }
-        ],
-        drilling_hazard: [
-            {
-                hazard_type: "GAS KICK",
-                hazard_description: "string",
-                severity: "LOW",
-                mitigation: "string",
-                remark: "string"
-            }
-        ],
-        job_documents: [
-            {
-                title: "string",
-                creator_name: "string",
-                create_date: "2024-08-18T18:42:52.563Z",
-                media_type: "EXTERNAL_HARDDISK",
-                document_type: "string",
-                item_category: "string",
-                item_sub_category: "string",
-                digital_format: "string",
-                original_file_name: "string",
-                digital_size: 0,
-                digital_size_uom: "BYTE",
-                remark: "string"
-            }
-        ],
-        drilling_class: "EXPLORATION",  // Pastikan nilai enum ini valid
-        planned_well: {
-            uwi: "string",
-            field_id: "string",
-            well_name: "string",
-            alias_long_name: "string",
-            well_type: "OIL",
-            well_class: "WILDCAT",
-            well_status: "Active",
-            profile_type: "DIRECTIONAL",
-            environment_type: "MARINE",
-            surface_longitude: 0,
-            surface_latitude: 0,
-            bottom_hole_longitude: 0,
-            bottom_hole_latitude: 0,
-            maximum_inclination: 0,
-            maximum_azimuth: 0,
-            line_name: "string",
-            spud_date: "2024-08-18T18:42:52.564Z",
-            final_drill_date: "2024-08-18T18:42:52.564Z",
-            completion_date: "2024-08-18T18:42:52.564Z",
-            rotary_table_elev: 0,
-            rotary_table_elev_ouom: "FEET",
-            kb_elev: 0,
-            kb_elev_ouom: "FEET",
-            derrick_floor_elev: 0,
-            derrick_floor_elev_ouom: "FEET",
-            ground_elev: 0,
-            ground_elev_ouom: "FEET",
-            mean_sea_level: 0,
-            mean_sea_level_ouom: "RT",
-            depth_datum: "RT",
-            kick_off_point: 0,
-            kick_off_point_ouom: "FEET",
-            drill_td: 0,
-            drill_td_ouom: "FEET",
-            log_td: 0,
-            log_td_ouom: "FEET",
-            max_tvd: 0,
-            max_tvd_ouom: "FEET",
-            projected_depth: 0,
-            projected_depth_ouom: "FEET",
-            final_td: 0,
-            final_td_ouom: "FEET",
-            remark: "string",
-            well_documents: [],  // Array kosong jika tidak ada dokumen
-            well_casings: [],    // Array kosong jika tidak ada casing
-            well_trajectories: [], // Array kosong jika tidak ada trajectory
-            well_ppfgs: [],       // Array kosong jika tidak ada PPFG
-            well_logs: [],        // Array kosong jika tidak ada logs
-            well_drilling_parameters: [], // Array kosong jika tidak ada drilling parameters
-            well_strat: [
+        job: {
+            field_id: "",
+            contract_type: "COST-RECOVERY",
+            afe_number: "",
+            wpb_year: new Date().getFullYear(),
+            plan_start: new Date().toISOString(),
+            plan_end: new Date().toISOString(),
+            plan_total_budget: 0,
+            rig_name: "",
+            rig_type: "JACK-UP",
+            rig_horse_power: 0,
+            job_activity: [initialJobActivity],
+            work_breakdown_structure: [initialWorkBreakdownStructure],
+            drilling_hazard: [
                 {
-                    strat_unit_id: "string",
-                    depth_datum: "RT",
-                    top_depth: 0,
-                    bottom_depth: 0,
-                    depth_uoum: "FEET"
+                    hazard_type: "GAS KICK",
+                    hazard_description: "",
+                    severity: "LOW",
+                    mitigation: "",
+                    remark: ""
                 }
-            ]
+            ],
+            job_documents: [
+                {
+                    title: "",
+                    creator_name: "",
+                    create_date: new Date().toISOString(),
+                    media_type: "EXTERNAL_HARDDISK",
+                    document_type: "",
+                    item_category: "",
+                    item_sub_category: "",
+                    digital_format: "",
+                    original_file_name: "",
+                    digital_size: 0,
+                    digital_size_uom: "BYTE",
+                    remark: ""
+                }
+            ],
+            drilling_class: "EXPLORATION",
+            planned_well: {
+                uwi: "",
+                field_id: "",
+                well_name: "",
+                alias_long_name: "",
+                well_type: "OIL",
+                well_class: "WILDCAT",
+                well_status: "Active",
+                profile_type: "DIRECTIONAL",
+                environment_type: "MARINE",
+                surface_longitude: 0,
+                surface_latitude: 0,
+                bottom_hole_longitude: 0,
+                bottom_hole_latitude: 0,
+                maximum_inclination: 0,
+                maximum_azimuth: 0,
+                line_name: "",
+                spud_date: new Date().toISOString(),
+                final_drill_date: new Date().toISOString(),
+                completion_date: new Date().toISOString(),
+                rotary_table_elev: 0,
+                rotary_table_elev_ouom: "FEET",
+                kb_elev: 0,
+                kb_elev_ouom: "FEET",
+                derrick_floor_elev: 0,
+                derrick_floor_elev_ouom: "FEET",
+                ground_elev: 0,
+                ground_elev_ouom: "FEET",
+                mean_sea_level: 0,
+                mean_sea_level_ouom: "RT",
+                depth_datum: "RT",
+                kick_off_point: 0,
+                kick_off_point_ouom: "FEET",
+                drill_td: 0,
+                drill_td_ouom: "FEET",
+                log_td: 0,
+                log_td_ouom: "FEET",
+                max_tvd: 0,
+                max_tvd_ouom: "FEET",
+                projected_depth: 0,
+                projected_depth_ouom: "FEET",
+                final_td: 0,
+                final_td_ouom: "FEET",
+                remark: "",
+                well_documents: [],
+                well_casings: [],
+                well_trajectories: [],
+                well_ppfgs: [],
+                well_logs: [],
+                well_drilling_parameters: [],
+                well_strat: [initialWellStrat]
+            }
         }
     });
-    console.log(formData);
-
-    // console.log(formData);
-
-
-
-
+    
+    const validateFormData = (data) => {
+        const { job } = data;
+        
+        // Ensure job_activity is an array and remove any extra properties
+        job.job_activity = Array.isArray(job.job_activity) 
+            ? job.job_activity.map(activity => ({...initialJobActivity, ...activity}))
+            : [initialJobActivity];
+        
+        // Ensure work_breakdown_structure is an array and remove any extra properties
+        job.work_breakdown_structure = Array.isArray(job.work_breakdown_structure)
+            ? job.work_breakdown_structure.map(wbs => ({...initialWorkBreakdownStructure, ...wbs}))
+            : [initialWorkBreakdownStructure];
+        
+        // Ensure well_strat is an array and remove any extra properties
+        job.planned_well.well_strat = Array.isArray(job.planned_well.well_strat)
+            ? job.planned_well.well_strat.map(strat => ({...initialWellStrat, ...strat}))
+            : [initialWellStrat];
+        
+        return data;
+    };
+    
     const handleSubmit = async () => {
         try {
-            const response = await axios.post('http://127.0.0.1:8000/job/create/pengajuan/drilling', JSON.stringify(formData), {
+            const validatedData = validateFormData({...formData});
+            const response = await axios.post('http://127.0.0.1:8000/job/create/pengajuan/drilling', validatedData, {
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${localStorage.getItem("token")}`
-
                 }
             });
             console.log('Data Berhasil Dimasukkan:', response.data);
             // Tambahkan logika untuk menangani respons sukses (misalnya, menampilkan pesan sukses, mereset form, dll.)
         } catch (error) {
             console.error('Error saat menambahkan sumur:', error);
+            if (error.response) {
+                console.error('Response data:', error.response.data);
+                console.error('Response status:', error.response.status);
+                console.error('Response headers:', error.response.headers);
+            }
             // Tambahkan logika untuk menangani error (misalnya, menampilkan pesan error)
         }
     };
