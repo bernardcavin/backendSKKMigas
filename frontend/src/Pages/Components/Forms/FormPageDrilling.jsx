@@ -25,7 +25,7 @@ const FormHSEPlan = ({ sendData }) => {
   });
 
 
-  console.log(data);
+  console.table(data);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -90,17 +90,6 @@ const FormHSEPlan = ({ sendData }) => {
               ))}
             </Select>
           </div>
-
-          <div className="flex flex-col mb-2">
-            <Typography color="black" className="font-bold">
-              Severity
-            </Typography>
-            <Select label="Severity" onChange={handleSelectChangeSeverity}>
-              {severity.map((hazard, index) => (
-                <Option key={index} value={hazard}>{hazard}</Option>
-              ))}
-            </Select>
-          </div>
           <div className="flex flex-col mt-2">
             <Typography color="black" className="font-bold">
               Hazard Description
@@ -112,6 +101,16 @@ const FormHSEPlan = ({ sendData }) => {
               value={data.potensiBahaya}
               onChange={handleChange}
             />
+          </div>
+          <div className="flex flex-col mb-2">
+            <Typography color="black" className="font-bold">
+              Severity
+            </Typography>
+            <Select label="Severity" onChange={handleSelectChangeSeverity}>
+              {severity.map((hazard, index) => (
+                <Option key={index} value={hazard}>{hazard}</Option>
+              ))}
+            </Select>
           </div>
           <div className="flex flex-col mt-4">
             <Typography color="black" className="font-bold">

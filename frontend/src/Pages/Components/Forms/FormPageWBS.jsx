@@ -17,8 +17,6 @@ const WorkBreakdownStructure = () => {
     remarks: "",
   });
     
-    console.log(formData);
-    
 
   const [tableData, setTableData] = useState([]);
   const [alert, setAlert] = useState(null);
