@@ -116,14 +116,22 @@ const FormDepthVSDays = ({sendData}) => {
     setHeaders([]);
   };
 
-  const handleChange = (event) => {
+  const formatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return "";
+    const date = new Date(dateTimeString);
+    return date.toISOString();
+};
+
+const handleChange = (event) => {
     const { name, value, type } = event.target;
     setFormData((prevState) => ({
-      ...prevState,
-      [name]: type === "number" ? parseInt(value) : value, // Konversi ke integer jika tipe input adalah number
+        ...prevState,
+        [name]: 
+            type === "number" ? parseFloat(value) || 0 :
+            name === "time" ? formatDateTime(value) :
+            value
     }));
-  };
-
+};
  
   
   const handleAddSection = () => {
