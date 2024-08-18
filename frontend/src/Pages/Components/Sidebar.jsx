@@ -22,6 +22,7 @@ import {
   PlusIcon,
 } from "@heroicons/react/24/outline";
 
+
 export function SidebarWithLogo({ onClickNavItem, selectedNav }) {
   const [open, setOpen] = useState(0);
 
@@ -32,10 +33,11 @@ export function SidebarWithLogo({ onClickNavItem, selectedNav }) {
   return (
 <Card className="fixed top-0 left-0 h-full w-[20rem] p-4 shadow-xl shadow-blue-gray-900/5">
       <div className="mb-2 flex items-center gap-4 p-4">
-        <img src="https://docs.material-tailwind.com/img/logo-ct-dark.png" alt="brand" className="h-8 w-8" />
-        <Typography variant="h5" color="blue-gray">
+        <img src="/logo.png" alt="Logo" className="flex center w-1/2" />
+        {/* // <img src="https://docs.material-tailwind.com/img/logo-ct-dark.png" alt="brand" className="h-8 w-8" /> */}
+        {/* <Typography variant="h5" color="blue-gray">
           SKK Migas
-        </Typography>
+        </Typography> */}
       </div>
       <List>
         <ListItem
