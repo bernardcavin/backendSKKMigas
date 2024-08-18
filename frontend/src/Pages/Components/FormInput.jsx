@@ -296,8 +296,6 @@ const FormInput = () => {
                     <Button variant="gradient" color="blue" onClick={handleSubmit} className='w-full'>
                         Submit
                     </Button>
-
-
                 </div>
 
 
