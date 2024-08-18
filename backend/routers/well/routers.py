@@ -10,4 +10,4 @@ router = APIRouter(prefix="/well", tags=["well"])
 @router.post("/create", response_model=schemas.GetWell)
 @authorize(role=[Role.Admin, Role.KKKS])
 async def create_well(well: schemas.CreateWellDirectly, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
-    return crud.create_well_directly(db, well, models.DataPhase.ACTUAL ,user)
+    return crud.create_well_directly(db, well, user)
