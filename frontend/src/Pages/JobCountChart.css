@@ -1,0 +1,63 @@
+.job-count-chart {
+    font-family: Arial, sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .main-title {
+    text-align: center;
+    color: #333;
+  }
+  
+  .summary-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  
+  .summary-box {
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    padding: 15px;
+    width: 48%;
+  }
+  
+  .summary-box h3 {
+    margin-top: 0;
+    color: #444;
+  }
+  
+  .charts-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  .chart-box {
+    width: 100%;
+    margin-bottom: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .full-width {
+    width: 100% !important;
+  }
+  
+  @media (min-width: 768px) {
+    .chart-box {
+      width: 48%;
+    }
+  }
+  
+  .loading, .error {
+    text-align: center;
+    font-size: 18px;
+    margin-top: 50px;
+  }
+  
+  .error {
+    color: red;
+  }
