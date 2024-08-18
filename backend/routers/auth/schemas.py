@@ -28,3 +28,6 @@ class GetUser(UserBase):
 
     class Config:
         from_attributes = True
+
+class VerifyUser(GetUser):
+    verfied_status: bool
