@@ -13,8 +13,7 @@ import FormPagePosisi from './Forms/FormPagePosisi';
 import FormPageSchedule from './Forms/FormPageSchedule';
 import FormPageTrajectory from './Forms/FormPageTrajectory';
 import FormPageCasing from './Forms/FormPageCasing';
-import FormPageDepthVSDays from './Forms/FormPageDepthVSDays';
-import FormDepthVSDays from './Forms/FormPageDepthVSDays';
+import CardPageJob from './Forms/FormPageJob';
 
 const FormInput = () => {
     
@@ -24,14 +23,18 @@ const FormInput = () => {
 
         const handleAllData = (data) => {
             setFormData(prevState => ({
-                ...prevState,
-                ...data // Menggabungkan data baru dengan data lama jika diperlukan
+                ...prevState,job: {
+                    ...prevState.job, ...data    
+                }
+                // Menggabungkan data baru dengan data lama jika diperlukan
             }));
             
         };
 
-    const [formData, setFormData] = useState({ });
-    console.log(formData);
+    const [formData, setFormData] = useState({
+        job:{}
+     });
+    // console.log(formData);
     
     // console.log(formData);
 
@@ -85,7 +88,8 @@ const FormInput = () => {
             <div className="flex w-full items-center gap-4 justify-center ">
                 
                 <div className="flex flex-col w-full gap-4">
-                    {/* <CardPageSumur sendData={handleAllData} /> */}
+                    {/* <CardPageJob sendData={handleAllData} /> */}
+                    <CardPageSumur sendData={handleAllData} />
                     {/* <FormHSEPlan sendData={handleAllData}/> */}
                     {/* <FormPageLainnya /> */}
                     {/* <FormPagePersonel /> */}

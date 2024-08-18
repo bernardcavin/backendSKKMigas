@@ -27,7 +27,6 @@ const FormDepthVSDays = () => {
       setDepthDatum(response.data.depth_datum);
       
     } catch (error) {
-      console.error("Error fetching depth UOM:", error);
     }
   };
   
@@ -52,7 +51,6 @@ const FormDepthVSDays = () => {
     current_operations: "",
     next_operations: "",
   });
-  console.table(formData);
 
   const [tableData, setTableData] = useState([]);
   const [headers, setHeaders] = useState([]);
