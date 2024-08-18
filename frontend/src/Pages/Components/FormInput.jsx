@@ -24,14 +24,18 @@ const FormInput = () => {
 
         const handleAllData = (data) => {
             setFormData(prevState => ({
-                ...prevState,
-                ...data // Menggabungkan data baru dengan data lama jika diperlukan
+                ...prevState,job: {
+                    ...prevState.job, ...data    
+                }
+                // Menggabungkan data baru dengan data lama jika diperlukan
             }));
             
         };
 
-    const [formData, setFormData] = useState({ });
-    console.log(formData);
+    const [formData, setFormData] = useState({
+        job:{}
+     });
+    // console.log(formData);
     
     // console.log(formData);
 

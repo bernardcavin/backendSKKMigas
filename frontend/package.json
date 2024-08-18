@@ -14,8 +14,13 @@
     "@material-tailwind/react": "2.1.8",
     "axios": "^1.7.4",
     "date-fns": "^3.6.0",
+<<<<<<< HEAD
     "flatpickr": "^4.6.13",
+=======
+    "datepicker": "^0.0.0",
+>>>>>>> c5d8b0816b457c0bd76475a66b234add84d94651
     "react": "18.2.0",
+    "react-datepicker": "^7.3.0",
     "react-day-picker": "^9.0.8",
     "react-dom": "18.2.0",
     "react-router-dom": "^6.26.0",

@@ -58,17 +58,9 @@ function LoginPage() {
     } catch (error) {
       if (error.response) {
         // Permintaan berhasil dikirim tetapi server merespons dengan status kode yang tidak dalam rentang 2xx
-        setErrorMessage(`Login failed: ${error.response.data.message || 'Please try again.'}`);
-        console.error('Login error response:', error.response.data);
-      } else if (error.request) {
-        // Permintaan dibuat tetapi tidak ada respons yang diterima
-        setErrorMessage('Login failed: No response from server.');
-        console.error('Login error request:', error.request);
-      } else {
-        // Kesalahan lain
-        setErrorMessage('Login failed: An error occurred.');
-        console.error('Login error:', error.message);
-      }
+        setErrorMessage(`Login failed: ${error.response.data.detail || 'Please try again.'}`);
+        // console.error('Login error response:', error.response.data);
+      } 
     }
 
   };
