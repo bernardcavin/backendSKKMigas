@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, extract, and_, cast, Integer
 from sqlalchemy.orm import Session
-from typing import Dict
+from typing import Dict,List
 from backend.routers.job.models import Job,Drilling,DrillingClass,JobType,WOWS,WOWSClass
 from backend.routers.auth.models import Role
 from backend.routers.auth.schemas import GetUser
@@ -22,7 +22,6 @@ async def count_jobs(db: Session = Depends(get_db), user: GetUser = Depends(get_
     current_year = current_date.year
     current_month = current_date.month
 
-    # Fungsi untuk menghitung job berdasarkan tipe, kelas, dan bulan
     def get_monthly_count(job_type, job_class, year, month):
         query = db.query(func.count(Job.id)).filter(
             extract('year', Job.plan_start) == year,
@@ -62,13 +61,47 @@ async def count_jobs(db: Session = Depends(get_db), user: GetUser = Depends(get_
         Job.job_type
     ).all()
 
-    # Mengubah hasil query menjadi format yang lebih mudah dibaca
-    monthly_data: Dict[str, Dict[str, int]] = {}
+    # Menyiapkan data untuk Plotly
+    months: List[str] = []
+    drilling_counts: List[int] = []
+    wows_counts: List[int] = []
+
     for year, month, job_type, count in monthly_breakdown:
-        key = f"{year}-{month:02d}"
-        if key not in monthly_data:
-            monthly_data[key] = {'DRILLING': 0, 'WOWS': 0}
-        monthly_data[key][job_type.name] = count
+        month_str = f"{year}-{month:02d}"
+        if month_str not in months:
+            months.append(month_str)
+            drilling_counts.append(0)
+            wows_counts.append(0)
+        
+        index = months.index(month_str)
+        if job_type == JobType.DRILLING:
+            drilling_counts[index] += count
+        elif job_type == JobType.WOWS:
+            wows_counts[index] += count
+
+    # Menyiapkan data Plotly
+    plot_data = [
+        {
+            "x": months,
+            "y": drilling_counts,
+            "type": "scatter",
+            "mode": "lines+markers",
+            "name": "Drilling"
+        },
+        {
+            "x": months,
+            "y": wows_counts,
+            "type": "scatter",
+            "mode": "lines+markers",
+            "name": "WOWS"
+        }
+    ]
+
+    plot_layout = {
+        "title": "Jumlah Pekerjaan per Bulan",
+        "xaxis": {"title": "Bulan"},
+        "yaxis": {"title": "Jumlah Pekerjaan"}
+    }
 
     return {
         'TOTAL': {
@@ -91,7 +124,10 @@ async def count_jobs(db: Session = Depends(get_db), user: GetUser = Depends(get_
                 'WELLSERVICE': current_month_well_service
             }
         },
-        'MONTHLY_BREAKDOWN': monthly_data
+        'PLOT_DATA': {
+            "data": plot_data,
+            "layout": plot_layout
+        }
     }
     
 @router.post("/count-jobs-weeks")
@@ -285,21 +321,47 @@ async def count_jobs(db: Session = Depends(get_db), user: GetUser = Depends(get_
         'DAILY_BREAKDOWN': daily_data
     }
     
+
+def gaussian_2d(x, y, x0, y0, sigma_x, sigma_y, amplitude):
+    return amplitude * np.exp(-((x - x0)**2 / (2 * sigma_x**2) + (y - y0)**2 / (2 * sigma_y**2)))
+
 @router.get("/plot3d-data")
 async def plot3d_data():
-    # Membuat data untuk plot 3D
-    x = np.linspace(-5, 5, 100)
-    y = np.linspace(-5, 5, 100)
+    # Membuat grid data
+    x = np.linspace(-10, 10, 100)
+    y = np.linspace(-10, 10, 100)
     X, Y = np.meshgrid(x, y)
-    Z = np.sin(np.sqrt(X**2 + Y**2))
 
-    # Membuat plot 3D
-    fig = go.Figure(data=[go.Surface(z=Z, x=x, y=y)])
-    fig.update_layout(title='Plot 3D Contoh', autosize=True,
-                      scene=dict(
-                          xaxis_title='X Axis',
-                          yaxis_title='Y Axis',
-                          zaxis_title='Z Axis'))
+    # Membuat bentuk gunung/kawah menggunakan fungsi Gaussian 2D
+    Z1 = gaussian_2d(X, Y, 6, 0, 7, 2, 10)  # Gunung utama
+    Z2 = gaussian_2d(X, Y, 10, -5, 1, 1, -5)  # Kawah kecil
+    Z3 = gaussian_2d(X, Y, 5, 5, 1.5, 8, 7)  # Gunung kecil tambahan
 
-    # Mengembalikan data plot sebagai dictionary
-    return fig.to_dict()
+    Z = Z1 + Z2 + Z3
+
+    # Membuat data untuk plot 3D
+    plot_data = [{
+        'type': 'surface',
+        'z': Z.tolist(),
+        'x': x.tolist(),
+        'y': y.tolist()
+    }]
+
+    # Membuat layout
+    layout = {
+        'title': 'Topografi Gunung dan Kawah',
+        'scene': {
+            'xaxis_title': 'X Axis',
+            'yaxis_title': 'Y Axis',
+            'zaxis_title': 'Ketinggian',
+            'aspectmode': 'manual',
+            'aspectratio': {'x': 1, 'y': 1, 'z': 0.5}
+        },
+        'autosize': True
+    }
+
+    # Mengembalikan data plot dan layout secara terpisah
+    return {
+        "data": plot_data,
+        "layout": layout
+    }
