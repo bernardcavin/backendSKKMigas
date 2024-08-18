@@ -13,7 +13,7 @@ import {
 import * as XLSX from 'xlsx';
 import axios from 'axios';
 
-const FormDepthVSDays = () => {
+const FormDepthVSDays = ({sendData}) => {
   const [depthUom, setDepthUom] = useState([]);
   const [depthDatum, setDepthDatum] = useState([]);
   const [files, setFiles] = useState([]);  // Pastikan files diinisialisasi dengan useState
@@ -50,6 +50,13 @@ const FormDepthVSDays = () => {
     next_operations: "",
   });
 
+  useEffect(() => {
+    sendData(formData);
+    
+     
+  }, [formData]);
+  
+  
   const [tableData, setTableData] = useState([]);
   const [headers, setHeaders] = useState([]);
   const [alert, setAlert] = useState(null);
@@ -113,10 +120,12 @@ const FormDepthVSDays = () => {
     const { name, value, type } = event.target;
     setFormData((prevState) => ({
       ...prevState,
-      [name]: type === "number" ? parseInt(value, 10) : value, // Konversi ke integer jika tipe input adalah number
+      [name]: type === "number" ? parseInt(value) : value, // Konversi ke integer jika tipe input adalah number
     }));
   };
 
+ 
+  
   const handleAddSection = () => {
     
   };

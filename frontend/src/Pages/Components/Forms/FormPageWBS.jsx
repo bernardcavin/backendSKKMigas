@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Card,
   CardBody,
@@ -9,7 +9,7 @@ import {
   Alert,
 } from '@material-tailwind/react';
 
-const WorkBreakdownStructure = () => {
+const WorkBreakdownStructure = ({ sendData}) => {
   const [formData, setFormData] = useState({
     event: "",
     start_date: "",
@@ -17,6 +17,10 @@ const WorkBreakdownStructure = () => {
     remarks: "",
   });
     
+
+  useEffect(() => {
+    sendData(formData);
+  }, [formData]);
 
   const [tableData, setTableData] = useState([]);
   const [alert, setAlert] = useState(null);

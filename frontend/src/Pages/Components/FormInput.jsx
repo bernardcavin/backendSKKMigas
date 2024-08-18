@@ -17,32 +17,100 @@ import FormPageDepthVSDays from './Forms/FormPageDepthVSDays';
 import FormPageWBS from './Forms/FormPageWBS';
 import FormDepthVSDays from './Forms/FormPageDepthVSDays';
 import FormWellStrat from './Forms/FormPageWellStrat';
+import FormPageDrilling from './Forms/FormPageDrilling';
+import CardPageJob from './Forms/FormPageJob';
 
 const FormInput = () => {
-    
+
     const [pekerjaan, setPekerjaan] = useState('');
     const [tipeKontrak, setTipeKontrak] = useState('');
 
 
-        const handleAllData = (data) => {
-            setFormData(prevState => ({
-                ...prevState,job: {
-                    ...prevState.job, ...data    
+    const handleAllData = (data) => {
+        setFormData(prevState => ({
+            ...prevState, job: {
+                ...prevState.job, ...data
+            }
+            // Menggabungkan data baru dengan data lama jika diperlukan
+        }));
+
+    };
+    const handleDataWellStrac = (data) => {
+        setFormData(prevState => ({
+            ...prevState, job: {
+                ...prevState.job,planned_well: {
+                    ...prevState.job.planned_well, well_strat:{
+                        ...prevState.job.planned_well.well_strat, ...data
+                    }
                 }
-                // Menggabungkan data baru dengan data lama jika diperlukan
-            }));
+            }
             
-        };
+        }));
+
+    };
+    const handleDataPageDepth = (data) => {
+        setFormData(prevState => ({
+            ...prevState, job: {
+                ...prevState.job,job_activity: {
+                    ...prevState.job.job_activity, ...data
+                }
+            }
+          
+        }));
+
+    };
+    const handleDataWBS = (data) => {
+        setFormData(prevState => ({
+            ...prevState, job: {
+                ...prevState.job,work_breakdown_structure: {
+                    ...prevState.job.work_breakdown_structure, ...data
+                }
+            }
+          
+        }));
+
+    };
+    const handleDataDrilling = (data) => {
+        setFormData(prevState => ({
+            ...prevState, job: {
+                ...prevState.job,drilling_hazard: {
+                    ...prevState.job.drilling_hazard, ...data
+                }
+            }
+          
+        }));
+
+    };
+    const handleDataCasing = (data) => {
+        setFormData(prevState => ({
+            ...prevState, job: {
+                ...prevState.job,planned_well: {
+                    ...prevState.job.planned_well, well_casing:{
+                        ...prevState.job.planned_well.well_casing, ...data
+                    }
+                }
+            }
+          
+        }));
+
+    };
+
+
+
 
     const [formData, setFormData] = useState({
-        job:{}
-     });
-    // console.log(formData);
-    
+        job: {
+            planned_well: {
+                
+            }
+        }
+    });
+    console.log(formData);
+
     // console.log(formData);
 
-    
-    
+
+
 
     const handleSubmit = async () => {
         try {
@@ -89,7 +157,7 @@ const FormInput = () => {
         <>
 
             <div className="flex w-full items-center gap-4 justify-center ">
-                
+
                 <div className="flex flex-col w-full gap-4">
                     {/* <FormWellStrat/> */}
                     {/* <FormPageWBS/> */}
