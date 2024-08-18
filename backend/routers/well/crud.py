@@ -35,6 +35,8 @@ def create_well(db: Session, well: CreateWell, data_phase: DataPhase, user: GetU
         surface_latitude=well.surface_latitude,
         bottom_hole_longitude=well.bottom_hole_longitude,
         bottom_hole_latitude=well.bottom_hole_latitude,
+        maximum_inclination = well.maximum_inclination,
+        maximum_azimuth = well.maximum_azimuth,
         
         # Seismic Information
         line_name=well.line_name,
@@ -63,6 +65,9 @@ def create_well(db: Session, well: CreateWell, data_phase: DataPhase, user: GetU
         # Depths
         depth_datum=well.depth_datum,
         
+        kick_off_point=well.kick_off_point,
+        kick_off_point_ouom =well.kick_off_point_ouom,
+
         drill_td=well.drill_td,
         drill_td_ouom=well.drill_td_ouom,
         
@@ -88,50 +93,29 @@ def create_well(db: Session, well: CreateWell, data_phase: DataPhase, user: GetU
 
     well_id = db_well_plan.id
 
-    for document in well.documents:
+    for document in well.well_documents:
         db_document = WellDocument(
             well_id=well_id,
             **document.model_dump()
         )
         db.add(db_document)
 
-    for well_log_document in well.well_log_documents:
-        db_well_log_document = WellLogDocument(
-            well_id=well_id,
-            **well_log_document.model_dump()
-        )
-        db.add(db_well_log_document)
-
-    for well_sample in well.well_samples:
-        db_well_sample = WellSample(
-            well_id=well_id,
-            **well_sample.model_dump()
-        )
-        db.add(db_well_sample)
-
-    for well_core_sample in well.well_core_samples:
-        db_well_core_sample = WellCoreSample(
-            well_id=well_id,
-            **well_core_sample.model_dump()
-        )
-        db.add(db_well_core_sample)
-
-    for well_casing in well.well_casing:
+    for well_casing in well.well_casings:
         db_well_casing = WellCasing(
             well_id=well_id,
             **well_casing.model_dump()
         )
         db.add(db_well_casing)
 
-    for well_trajectory in well.well_trajectory:
+    for well_trajectory in well.well_trajectories:
         db_well_trajectory = WellTrajectory(
             well_id=well_id,
             **well_trajectory.model_dump()
         )
         db.add(db_well_trajectory)
 
-    for well_ppfg in well.well_ppfg:
-        db_well_ppfg = PorePressureFractureGradient(
+    for well_ppfg in well.well_ppfgs:
+        db_well_ppfg = WellPPFG(
             well_id=well_id,
             **well_ppfg.model_dump()
         )
@@ -144,8 +128,8 @@ def create_well(db: Session, well: CreateWell, data_phase: DataPhase, user: GetU
         )
         db.add(db_well_log)
 
-    for drilling_parameter in well.well_drilling_parameter:
-        db_drilling_parameter = DrillingParameter(
+    for drilling_parameter in well.well_drilling_parameters:
+        db_drilling_parameter = WellDrillingParameter(
             well_id=well_id,
             **drilling_parameter.model_dump()
         )

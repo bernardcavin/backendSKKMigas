@@ -1,78 +1,40 @@
-from typing import Dict, Any, Union, List
+from typing import List, Optional
 
-from pydantic import BaseModel, condecimal, Json
+from pydantic import BaseModel
 from datetime import datetime
 
 from backend.routers.well.models import *
 
+class CreateWellDigitalData(BaseModel):
+
+    file_id: str
+
+class CreateWellLog(CreateWellDigitalData):
+
+    pass
+
+class CreateWellTrajectory(CreateWellDigitalData):
+
+    pass
+
+class CreateWellDrillingParameter(CreateWellDigitalData):
+
+    pass
+
+class CreateWellPPFG(CreateWellDigitalData):
+
+    pass
+
 class CreateWellDocument(BaseModel):
+
+    file_id: str
+
     title: str
-    creator_name: str
-    create_date: datetime
+    
     media_type: MediaType
     document_type: str
-    item_category: str
-    item_sub_category: str
-    digital_format: str
-    original_file_name: str
-    digital_size: float
-    digital_size_uom: SizeUOM
+    
     remark: str
-
-class GetWellDocument(CreateWellDocument):
-    id: str
-
-
-class CreateWellLogDocument(BaseModel):
-    logging_company: str
-    media_type: MediaType
-    log_title: str
-    digital_format: str
-    report_log_run: str
-    trip_date: datetime
-    top_depth: float
-    top_depth_ouom: DepthUOM
-    base_depth: float
-    base_depth_ouom: DepthUOM
-    original_file_name: str
-    digital_size: float
-    digital_size_uom: SizeUOM
-    remark: str
-
-class GetWellLogDocument(CreateWellLogDocument):
-    id: str
-
-
-class CreateWellSample(BaseModel):
-    sample_type: str
-    sample_num: str
-    sample_count: int
-    top_md: float
-    top_md_ouom: DepthUOM
-    base_md: float
-    base_md_ouom: DepthUOM
-    study_type: str
-    remark: str
-
-class GetWellSample(CreateWellSample):
-    id: str
-
-class CreateWellCoreSample(BaseModel):
-    core_type: str
-    sample_num: str
-    sample_count: int
-    top_depth: float
-    top_depth_ouom: DepthUOM
-    base_depth: float
-    base_depth_ouom: DepthUOM
-    portion_volume: float
-    portion_volume_ouom: VolumeUOM
-    study_type: str
-    remark: str
-
-class GetWellCoreSample(CreateWellCoreSample):
-    id: str
-
 
 class CreateWellCasing(BaseModel):
     casing_type: CasingType
@@ -84,69 +46,6 @@ class CreateWellCasing(BaseModel):
     base_depth: float
     base_depth_ouom: DepthUOM
 
-class GetWellCasing(CreateWellCasing):
-    id: str
-
-
-class CreateWellTrajectory(BaseModel):
-    measured_depth: float
-    true_vertical_depth: float
-    true_vertical_depth_sub_sea: float
-    inclination: float
-    azimuth: float
-    latitude: float
-    longitude: float
-
-class GetWellTrajectory(CreateWellTrajectory):
-    id: str
-
-
-class CreatePorePressureFractureGradient(BaseModel):
-    depth_datum: DepthDatum
-    depth: float
-    depth_uoum: DepthUOM
-    overburden_stress: float
-    pore_pressure: float
-    fracture_pressure: float
-
-class GetPorePressureFractureGradient(CreatePorePressureFractureGradient):
-    id: str
-
-class CreateWellLog(BaseModel):
-    depth_datum: DepthDatum
-    depth: float
-    depth_uoum: DepthUOM
-    gamma_ray_log_name: str
-    gamma_ray_log: float
-    gamma_ray_log_ouom: GRLogUOM
-    density_log_name: str
-    density_log: float
-    density_log_ouom: DENLogUOM
-    porosity_log_name: str
-    porosity_log: float
-    porosity_log_ouom: PORLogUOM
-
-class GetWellLog(CreateWellLog):
-    id: str
-
-
-class CreateDrillingParameter(BaseModel):
-    depth_datum: DepthDatum
-    depth: float
-    depth_uoum: DepthUOM
-    rate_of_penetration: float
-    weight_on_bit: float
-    hookload: float
-    top_drive: float
-    mud_motor: float
-    total_rpm: float
-    torque: float
-    mud_weight: float
-
-class GetDrillingParameter(CreateDrillingParameter):
-    id: str
-
-
 class CreateWellStrat(BaseModel):
     strat_unit_id: str
     depth_datum: DepthDatum
@@ -154,7 +53,7 @@ class CreateWellStrat(BaseModel):
     bottom_depth: float
     depth_uoum: DepthUOM
 
-class GetWellStrat(CreateWellStrat):
+class SchemaOutput(BaseModel):
     id: str
 
 class WellBase(BaseModel):
@@ -177,7 +76,9 @@ class WellBase(BaseModel):
     surface_latitude: float  # Surface Latitude (PPDM: SURFACE_LATITUDE)
     bottom_hole_longitude: float
     bottom_hole_latitude: float
-        
+    maximum_inclination: float #degrees
+    maximum_azimuth: float #degrees
+
     # Seismic Information
     line_name: str  # Line Name (PPDM: LINE_NAME)
     
@@ -205,6 +106,9 @@ class WellBase(BaseModel):
     # Depths
     depth_datum: DepthDatum  # Depth Datum (PPDM: DEPTH_DATUM)
     
+    kick_off_point: float
+    kick_off_point_ouom: DepthUOM
+
     drill_td: float  # Drill Total Depth (PPDM: DRILL_TD)
     drill_td_ouom: DepthUOM  # Drill Total Depth ODepthUOM (PPDM: DRILL_TD_ODepthUOM)
     
@@ -224,28 +128,22 @@ class WellBase(BaseModel):
 
 class CreateWell(WellBase):
        
-    documents: List[CreateWellDocument]
-    well_log_documents: List[CreateWellLogDocument]
-    well_samples: List[CreateWellSample]
-    well_core_samples: List[CreateWellCoreSample]
-    well_casing: List[CreateWellCasing]
-    well_trajectory: List[CreateWellTrajectory]
-    well_ppfg: List[CreatePorePressureFractureGradient]
-    well_logs: List[CreateWellLog]
-    well_drilling_parameter: List[CreateDrillingParameter]
-    well_strat: List[CreateWellStrat]
+    well_documents: Optional[List[CreateWellDocument]]
+    well_casings: Optional[List[CreateWellCasing]]
+    well_trajectories: Optional[List[CreateWellTrajectory]]
+    well_ppfgs: Optional[List[CreateWellPPFG]]
+    well_logs: Optional[List[CreateWellLog]]
+    well_drilling_parameters: Optional[List[CreateWellDrillingParameter]]
+    well_strat: Optional[List[CreateWellStrat]]
 
 class GetWell(WellBase):
 
     id: str
 
-    documents: List[GetWellDocument]
-    well_log_documents: List[GetWellLogDocument]
-    well_samples: List[GetWellSample]
-    well_core_samples: List[GetWellCoreSample]
-    well_casing: List[GetWellCasing]
-    well_trajectory: List[GetWellTrajectory]
-    well_ppfg: List[GetPorePressureFractureGradient]
-    well_logs: List[GetWellLog]
-    well_drilling_parameter: List[GetDrillingParameter]
-    well_strat: List[GetWellStrat]
+    well_documents: Optional[List[SchemaOutput]]
+    well_casings: Optional[List[SchemaOutput]]
+    well_trajectories: Optional[List[SchemaOutput]]
+    well_ppfgs: Optional[List[SchemaOutput]]
+    well_logs: Optional[List[SchemaOutput]]
+    well_drilling_parameters: Optional[List[SchemaOutput]]
+    well_strat: Optional[List[SchemaOutput]]

@@ -206,7 +206,7 @@ class Job(Base, CreateEditBase):
 
     #job activity
     job_activity = relationship('JobActivity', back_populates='job')
-    budget = relationship('Budget', back_populates='job')
+    # budget = relationship('Budget', back_populates='job')
     work_breakdown_structure = relationship('WorkBreakdownStructure', back_populates='job')
     drilling_hazard = relationship('DrillingHazard', back_populates='job')
     job_documents = relationship('JobDocument', back_populates='job')
@@ -239,19 +239,19 @@ class HazardType(PyEnum):
     EQUIPMENT_FAILURE = "EQUIPMENT FAILURE"
     OTHER = "OTHER"
 
-class Budget(Base):
+# class Budget(Base):
     
-    __tablename__ = 'job_budget'
+#     __tablename__ = 'job_budget'
     
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    job_id = Column(String(36), ForeignKey('jobs.id'))
-    job = relationship('Job', back_populates='budget')
+#     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+#     job_id = Column(String(36), ForeignKey('jobs.id'))
+#     job = relationship('Job', back_populates='budget')
     
-    data_phase = Column(Enum(DataPhase))
+#     data_phase = Column(Enum(DataPhase))
 
-    tangible_cost = Column(Numeric(precision=10, scale=2))
-    intangible_cost = Column(Numeric(precision=10, scale=2))
-    total_cost = Column(Numeric(precision=10, scale=2))
+#     tangible_cost = Column(Numeric(precision=10, scale=2))
+#     intangible_cost = Column(Numeric(precision=10, scale=2))
+#     total_cost = Column(Numeric(precision=10, scale=2))
 
 class DrillingHazard(Base):
     
@@ -379,10 +379,11 @@ class WOWSClass(PyEnum):
     WELLSERVICE = 'WELLSERVICE'
 
 class Drilling(Job):
+
     __mapper_args__ = {
         'polymorphic_identity': JobType.DRILLING
     }
-    
+
     drilling_class = Column(Enum(DrillingClass))
     
     planned_well_id = Column(String(36), ForeignKey('wells.id'))
@@ -392,10 +393,11 @@ class Drilling(Job):
     final_well = relationship('Well', foreign_keys=[final_well_id])
     
 class WOWS(Job):
+
     __mapper_args__ = {
         'polymorphic_identity': JobType.WOWS
     }
-    
+
     wows_class = Column(Enum(WOWSClass))
     
     well_id = Column(Integer, ForeignKey('wells.id'))
