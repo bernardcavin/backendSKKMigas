@@ -6,7 +6,7 @@ from app.routers.job.models import DataPhase, ValidationBase, CreateEditBase
 import uuid
 
 
-class Environment(PyEnum):
+class EnvironmentType(PyEnum):
     MARINE = 'MARINE'
     LAND = 'LAND'
     SWAMP = 'SWAMP'
@@ -116,7 +116,7 @@ class Well(Base, ValidationBase, CreateEditBase):
     well_class = Column(Enum(WellClass))
     well_status = Column(Enum(WellStatus))
     profile_type = Column(Enum(ProfileType))
-    environment_type = Column(Enum(Environment))  # Environment Type (PPDM: ENVIRONMENT_TYPE)
+    environment_type = Column(Enum(EnvironmentType))  # EnvironmentType Type (PPDM: ENVIRONMENT_TYPE)
     
     # Coordinates
     surface_longitude = Column(Float)  # Surface Longitude (PPDM: SURFACE_LONGITUDE)

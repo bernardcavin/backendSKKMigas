@@ -6,7 +6,27 @@ from app.routers.geometry import routers as geometry_routers
 from app.routers.well import routers as well_routers
 from app.routers.utils import routers as utils_routers
 from fastapi.middleware.cors import CORSMiddleware
+import logging
+import sys
+
+import os
+
 app = FastAPI()
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+stream_handler = logging.StreamHandler(sys.stdout)
+log_formatter = logging.Formatter("%(asctime)s [%(processName)s: %(process)d] [%(threadName)s: %(thread)d] [%(levelname)s] %(name)s: %(message)s")
+stream_handler.setFormatter(log_formatter)
+logger.addHandler(stream_handler)
+
+if int(os.getenv('DEMO_MODE'))==1:
+    logger.info('Creating dummy data')
+    from app.utils.create_dummy_data import generate_dummy_data
+    os.remove("test.db")
+    Base.metadata.create_all(bind=engine)
+    generate_dummy_data()
+    logger.info('Dummy data successfully created')
 
 app.add_middleware(
     CORSMiddleware,
@@ -15,8 +35,6 @@ app.add_middleware(
     allow_methods=["*"],  # Izinkan semua metode HTTP
     allow_headers=["*"],  # Izinkan semua header
 )
-
-Base.metadata.create_all(bind=engine)
 
 app.include_router(auth_routers.router)
 app.include_router(job_routers.router)

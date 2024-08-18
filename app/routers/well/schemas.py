@@ -170,7 +170,7 @@ class WellBase(BaseModel):
     well_class: WellClass
     well_status: WellStatus
     profile_type: ProfileType
-    environment_type: Environment  # Environment Type (PPDM: ENVIRONMENT_TYPE)
+    environment_type: EnvironmentType  # EnvironmentType Type (PPDM: ENVIRONMENT_TYPE)
     
     # Coordinates
     surface_longitude: float  # Surface Longitude (PPDM: SURFACE_LONGITUDE)

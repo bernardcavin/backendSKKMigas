@@ -7,7 +7,7 @@ import json
 import os
 from app.routers.geometry.models import *
 from app.routers.job.models import ContractType, DataPhase, DrillingClass, HazardType, JobType, RigType, Severity, StatusCloseOut, StatusOperasi, StatusPPP, StatusPengajuan, WOWSClass, WOWSJobType
-from app.routers.well.models import CasingType, CasingUOM, DENLogUOM, DepthDatum, DepthUOM, Environment, LogType, MediaType, PORLogUOM, ProfileType, SizeUOM, VolumeUOM, WellType
+from app.routers.well.models import CasingType, CasingUOM, DENLogUOM, DepthDatum, DepthUOM, EnvironmentType, LogType, MediaType, PORLogUOM, ProfileType, SizeUOM, VolumeUOM, WellType
 from app.routers.utils.schemas import *
 from app.routers.utils.crud import *
 from app.routers.auth.utils import authorize, get_db, get_current_user
@@ -63,7 +63,7 @@ enum_map = {
     "wows_job_type": WOWSJobType,
     "drilling_class": DrillingClass,
     "wows_class": WOWSClass,
-    "environment": Environment,
+    "environment": EnvironmentType,
     "well_type": WellType,
     "profile_type": ProfileType,
     "well_class": WOWSClass,
