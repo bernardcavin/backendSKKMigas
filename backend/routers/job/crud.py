@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 
-from app.routers.job.models import *
-from app.routers.job.schemas import *
-from app.routers.well.crud import *
-from app.routers.auth.schemas import GetUser
+from backend.routers.job.models import *
+from backend.routers.job.schemas import *
+from backend.routers.well.crud import *
+from backend.routers.auth.schemas import GetUser
 
 from typing import Union
 

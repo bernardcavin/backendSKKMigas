@@ -1,7 +1,7 @@
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, String, ForeignKey, JSON, Enum, Text
 from enum import Enum as PyEnum
-from app.database import Base
+from backend.database import Base
 import uuid
 
 class AreaPhase(PyEnum):

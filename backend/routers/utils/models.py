@@ -1,7 +1,7 @@
 from sqlalchemy.orm import relationship, declared_attr
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, JSON, Enum, Text, Boolean, Float, Table
 from enum import Enum as PyEnum
-from app.database import Base
+from backend.database import Base
 import uuid
 
 class FileDB(Base):

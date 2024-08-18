@@ -3,8 +3,8 @@ from typing import Dict, Any, Union, List
 from pydantic import BaseModel, condecimal, Json
 from datetime import datetime
 
-from app.routers.job.models import *
-from app.routers.well.schemas import *
+from backend.routers.job.models import *
+from backend.routers.well.schemas import *
 
 from pydantic import BaseModel, Field
 from typing import Optional

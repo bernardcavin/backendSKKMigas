@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from app.routers.auth.models import Role
+from backend.routers.auth.models import Role
 
 #KKKS
 class KKKSBase(BaseModel):

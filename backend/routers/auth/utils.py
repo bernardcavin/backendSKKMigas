@@ -1,15 +1,15 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from app.routers.auth import models
-from app.database import SessionLocal
+from backend.routers.auth import models
+from backend.database import SessionLocal
 from typing import Optional
 from jose import JWTError, jwt
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
-from app.routers.auth import crud, models
+from backend.routers.auth import crud, models
 from datetime import datetime, timezone
 
 load_dotenv()

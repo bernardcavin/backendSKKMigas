@@ -1,9 +1,9 @@
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 
-from app.routers.well.models import *
-from app.routers.well.schemas import *
-from app.routers.auth.schemas import GetUser
+from backend.routers.well.models import *
+from backend.routers.well.schemas import *
+from backend.routers.auth.schemas import GetUser
 
 from typing import Union
 from datetime import datetime

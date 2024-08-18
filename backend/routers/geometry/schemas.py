@@ -1,6 +1,6 @@
 
 from pydantic import BaseModel
-from app.routers.geometry.models import *
+from backend.routers.geometry.models import *
 from typing import List
 
 class CreateFieldSchema(BaseModel):

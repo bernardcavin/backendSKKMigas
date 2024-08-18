@@ -3,7 +3,7 @@ from typing import Dict, Any, Union, List
 from pydantic import BaseModel, condecimal, Json
 from datetime import datetime
 
-from app.routers.well.models import *
+from backend.routers.well.models import *
 
 class CreateWellDocument(BaseModel):
     title: str

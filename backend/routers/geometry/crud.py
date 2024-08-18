@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 
-from app.routers.geometry.models import *
-from app.routers.geometry.schemas import *
-from app.routers.auth.schemas import GetUser
+from backend.routers.geometry.models import *
+from backend.routers.geometry.schemas import *
+from backend.routers.auth.schemas import GetUser
 
 def create_area(db: Session, wk: CreateAreaSchema, user: GetUser):
     

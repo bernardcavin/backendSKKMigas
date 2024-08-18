@@ -1,8 +1,8 @@
 from sqlalchemy.orm import relationship, declared_attr
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, JSON, Enum, Text, Boolean, Float
 from enum import Enum as PyEnum
-from app.database import Base
-from app.routers.job.models import DataPhase, ValidationBase, CreateEditBase
+from backend.database import Base
+from backend.routers.job.models import DataPhase, ValidationBase, CreateEditBase
 import uuid
 
 

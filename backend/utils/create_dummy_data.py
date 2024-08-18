@@ -1,18 +1,18 @@
-from app.routers.auth.models import KKKS, User, Role
-from app.routers.auth.crud import pwd_context
-from app.routers.geometry.models import Area, Field
+from backend.routers.auth.models import KKKS, User, Role
+from backend.routers.auth.crud import pwd_context
+from backend.routers.geometry.models import Area, Field
 from datetime import datetime, timedelta
-from app.routers.job.crud import create_pengajuan_drilling, create_pengajuan_wows, CreatePengajuanDrilling, CreatePengajuanWOWS
-from app.routers.job.models import WOWSClass, WOWSJobType
-from app.routers.utils.routers import AreaType, AreaPosition, AreaPhase,AreaProductionStatus,AreaRegion,ContractType,RigType,GetUser, EnvironmentType
-from app.database import SessionLocal
+from backend.routers.job.crud import create_pengajuan_drilling, create_pengajuan_wows, CreatePengajuanDrilling, CreatePengajuanWOWS
+from backend.routers.job.models import WOWSClass, WOWSJobType
+from backend.routers.utils.routers import AreaType, AreaPosition, AreaPhase,AreaProductionStatus,AreaRegion,ContractType,RigType,GetUser, EnvironmentType
+from backend.database import SessionLocal
 import os
 import uuid
 import random
 
 import contextlib
 
-from app.routers.well.models import ProfileType, WellClass, WellStatus, WellType
+from backend.routers.well.models import ProfileType, WellClass, WellStatus, WellType
 
 def default(o):
     if isinstance(o, (datetime)):

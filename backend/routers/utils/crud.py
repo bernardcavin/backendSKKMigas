@@ -3,10 +3,10 @@ from fastapi import UploadFile, HTTPException
 import shutil
 import os
 from datetime import datetime
-from app.routers.utils.schemas import *
+from backend.routers.utils.schemas import *
 from sqlalchemy.orm import Session
-from app.routers.auth.schemas import GetUser
-from app.routers.utils.models import *
+from backend.routers.auth.schemas import GetUser
+from backend.routers.utils.models import *
 import pandas as pd
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
