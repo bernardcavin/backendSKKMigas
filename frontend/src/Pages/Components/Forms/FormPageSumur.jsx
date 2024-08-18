@@ -9,11 +9,10 @@ import {
   Option,
   CardFooter,
   Button,
-  Alert
+  Alert,
 } from "@material-tailwind/react";
-import RadioButton from "../ChildComponets/RadioButton";
 import axios from "axios";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const CardPageSumur = ({ sendData }) => {
   const navigate = useNavigate();
@@ -21,94 +20,36 @@ const CardPageSumur = ({ sendData }) => {
   const [wellClass, setWellClass] = useState([]);
   const [profileType, setProfileType] = useState([]);
   const [environmentType, setEnvironmentType] = useState([]);
-  const [wellStatus, setWellStatus] = useState([])
-  const [dataPhase, setDataPhase] = useState([])
-  const [succesMsg, setSuccesMsg] = useState('');
+  const [wellStatus, setWellStatus] = useState([]);
+  const [dataPhase, setDataPhase] = useState([]);
   const [typeOuom, setTypeOuom] = useState([]);
   const [depthDatum, setDepthDatum] = useState([]);
+  const [successMsg, setSuccessMsg] = useState("");
 
-
-
-  const handleSubmit = async () => {
-    try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/well/create", JSON.stringify(formData),
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      ).then((response) => {
-        console.log(response.status);
-        setSuccesMsg("Data Berhasil Dimasukkan");
-
-      })
-    } catch (error) {
-      console.error("Error fetching well types:", error.response.data);
-
-    }
-  }
-  const getAllData = async () => {
-    try {
-      const response = await axios.get("http://127.0.0.1:8000/utils/enum/all");
-      setTypeWell(response.data.well_type);
-      setWellClass(response.data.well_class);
-      setEnvironmentType(response.data.environment);
-      setProfileType(response.data.profile_type);
-      setWellStatus(response.data.well_status);
-      setDataPhase(response.data.data_phase);
-      setTypeOuom(response.data.casing_uom);
-      setDepthDatum(response.data.depth_datum);
-
-
-
-
-
-      // console.log(response.data);
-      // console.log(response.data);
-      // Menyimpan data ke dalam state
-    } catch (error) {
-      console.error("Error fetching well types:", error);
-    }
-  };
-
-  useEffect(() => {
-    getAllData();
-  }, [1]);
-
-  // useEffect(() => {
-  //   sendData(formData);
-  // }, [formData]);
-
-
-
-
-  // Panggil saat file diproses
   const [formData, setFormData] = useState({
-    data_phase: "PLAN",
-    user: "string",
-    uwi: "string",
-    field_id: "string",
-    well_name: "string",
-    alias_long_name: "string",
-    well_type: "OIL",
-    well_class: "WILDCAT",
-    well_status: "Active",
-    profile_type: "DIRECTIONAL",
-    environment_type: "MARINE",
+    data_phase: "",
+    user: "",
+    uwi: "",
+    field_id: "",
+    well_name: "",
+    alias_long_name: "",
+    well_type: "",
+    well_class: "",
+    well_status: "",
+    profile_type: "",
+    environment_type: "",
     surface_longitude: 0,
     surface_latitude: 0,
     bottom_hole_longitude: 0,
     bottom_hole_latitude: 0,
     maximum_inclination: 0,
     maximum_azimuth: 0,
-    line_name: "string",
-    spud_date: "2024-08-18T13:44:40.536Z",
-    final_drill_date: "2024-08-18T13:44:40.536Z",
-    completion_date: "2024-08-18T13:44:40.536Z",
+    line_name: "",
+    spud_date: "",
+    final_drill_date: "",
+    completion_date: "",
     rotary_table_elev: 0,
-    rotary_table_elev_ouom: "FEET",
+    rotary_table_elev_ouom: "",
     kb_elev: 0,
     kb_elev_ouom: "FEET",
     derrick_floor_elev: 0,
@@ -131,56 +72,66 @@ const CardPageSumur = ({ sendData }) => {
     final_td: 0,
     final_td_ouom: "FEET",
     remark: "string",
-    
   });
 
+  // console.table(formData);
+  
 
+  const handleSubmit = async () => {
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/well/create",
+        JSON.stringify(formData),
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      console.log(response.status);
+      setSuccessMsg("Data Berhasil Dimasukkan");
+    } catch (error) {
+      console.error("Error fetching well types:", error.response.data);
+    }
+  };
 
+  const getAllData = async () => {
+    try {
+      const response = await axios.get("http://127.0.0.1:8000/utils/enum/all");
+      setTypeWell(response.data.well_type);
+      setWellClass(response.data.well_class);
+      setEnvironmentType(response.data.environment);
+      setProfileType(response.data.profile_type);
+      setWellStatus(response.data.well_status);
+      setDataPhase(response.data.data_phase);
+      setTypeOuom(response.data.casing_uom);
+      setDepthDatum(response.data.depth_datum);
+    } catch (error) {
+      console.error("Error fetching well types:", error);
+    }
+  };
 
-
-  const statusOptions = ["Valid", "Proses", "Ditolak"];
-
-
-  // Handle input change for text and select inputs
-  // const handleChange = (event) => {
-  //   const { name, value, type } = event.target;
-
-
-  //   setFormData((prevState) => ({
-  //     ...prevState,
-  //     planned_well: {
-  //       ...prevState.planned_well,
-  //       [name]: type === "number" ? parseInt(value) : value,
-  //     },
-  //   }));
-  // };
-
+  useEffect(() => {
+    getAllData();
+  }, []);
 
   const handleChange = (event) => {
     const { name, value, type } = event.target;
-
-
     setFormData((prevState) => ({
       ...prevState,
       [name]: type === "number" ? parseInt(value) : value,
-
     }));
   };
 
-
-  const handleSelectChangeTypeWell = (value) => {
-
+  const handleSelectChange = (name) => (value) => {
     setFormData((prevState) => ({
       ...prevState,
-      planned_well: {
-        ...prevState.planned_well,
-        well_type: value,
-      },
+      [name]: value,
     }));
   };
 
   const handleSelectChangeTypeOuom = (value) => {
-
     setFormData((prevState) => ({
       ...prevState,
       rotary_table_elev_ouom: value,
@@ -195,47 +146,13 @@ const CardPageSumur = ({ sendData }) => {
       final_td_ouom: value,
     }));
   };
-  // const handleSelectChange = (name) => (value) => {
-  //   setFormData((prevState) => ({
-  //     ...prevState,
-  //     planned_well: {
-  //       ...prevState.planned_well,
-  //       [name]: value,
-  //     },
-  //   }));
-  // };
-  const handleSelectChange = (name) => (value) => {
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-
-    }));
-  };
-
-  // Handle change for radio buttons
-  const handleRadioChange = (name, value) => {
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
 
   useEffect(() => {
-    // Call sendData whenever formData changes
     sendData(formData);
-    console.log(formData);
-
-
-
-
-
-
   }, [formData]);
 
   return (
-
     <Card variant="filled" className="w-full" shadow={true}>
-
       <CardHeader floated={false} className="mb-0" shadow={false}>
         <Typography variant="h5" color="black">
           Sumur
@@ -256,7 +173,6 @@ const CardPageSumur = ({ sendData }) => {
               onChange={handleChange}
             />
           </div>
-
         </div>
         <div className="flex flex-row w-full gap-4">
           <div className="flex flex-col w-full">
@@ -284,8 +200,6 @@ const CardPageSumur = ({ sendData }) => {
             />
           </div>
         </div>
-
-
         <div className="flex flex-row w-full gap-4">
           <div className="flex flex-col w-full">
             <Typography color="black" className="font-bold">
@@ -293,13 +207,12 @@ const CardPageSumur = ({ sendData }) => {
             </Typography>
             <Select
               label="Pilih Type Well"
-              name="type_well"
-
+              name="well_type"
               onChange={handleSelectChange("well_type")}
             >
-              {typeWell.map((typeWell, index) => (
-                <Option key={index} value={typeWell}>
-                  {typeWell}
+              {typeWell.map((type, index) => (
+                <Option key={index} value={type}>
+                  {type}
                 </Option>
               ))}
             </Select>
@@ -309,13 +222,13 @@ const CardPageSumur = ({ sendData }) => {
               Profile Type
             </Typography>
             <Select
-              label="Pilih Type Well"
-              name="Profile_type"
+              label="Pilih Profile Type"
+              name="profile_type"
               onChange={handleSelectChange("profile_type")}
             >
-              {profileType.map((typeWell, index) => (
-                <Option key={index} value={typeWell}>
-                  {typeWell}
+              {profileType.map((type, index) => (
+                <Option key={index} value={type}>
+                  {type}
                 </Option>
               ))}
             </Select>
@@ -327,14 +240,13 @@ const CardPageSumur = ({ sendData }) => {
               Well Status
             </Typography>
             <Select
-              label="Well Status"
+              label="Pilih Well Status"
               name="well_status"
-
               onChange={handleSelectChange("well_status")}
             >
-              {wellStatus.map((typeWell, index) => (
-                <Option key={index} value={typeWell}>
-                  {typeWell}
+              {wellStatus.map((status, index) => (
+                <Option key={index} value={status}>
+                  {status}
                 </Option>
               ))}
             </Select>
@@ -346,12 +258,11 @@ const CardPageSumur = ({ sendData }) => {
             <Select
               label="Pilih Well Class"
               name="well_class"
-
               onChange={handleSelectChange("well_class")}
             >
-              {wellClass.map((typeWell, index) => (
-                <Option key={index} value={typeWell}>
-                  {typeWell}
+              {wellClass.map((classOption, index) => (
+                <Option key={index} value={classOption}>
+                  {classOption}
                 </Option>
               ))}
             </Select>
@@ -360,12 +271,13 @@ const CardPageSumur = ({ sendData }) => {
         <div className="flex flex-row w-full gap-4">
           <div className="flex flex-col w-full">
             <Typography color="black" className="font-bold">
-              Environment type
+              Environment Type
             </Typography>
-
-            <Select name="environment_type"
-
-              onChange={handleSelectChange("environment_type")} label="Pilih Environment type">
+            <Select
+              label="Pilih Environment Type"
+              name="environment_type"
+              onChange={handleSelectChange("environment_type")}
+            >
               {environmentType.map((envType, index) => (
                 <Option key={index} value={envType}>
                   {envType}
@@ -378,9 +290,8 @@ const CardPageSumur = ({ sendData }) => {
               Spud Date
             </Typography>
             <Input
-              type="date"
+              type="datetime-local"
               placeholder="Masukkan Spud Date"
-
               name="spud_date"
               value={formData.spud_date}
               onChange={handleChange}
@@ -392,12 +303,14 @@ const CardPageSumur = ({ sendData }) => {
             <Typography color="black" className="font-bold">
               Data Phase
             </Typography>
-
-            <Select name="Data Phase"
-              onChange={handleSelectChange("data_phase")} label="Pilih Data Phase">
-              {dataPhase.map((envType, index) => (
-                <Option key={index} value={envType}>
-                  {envType}
+            <Select
+              label="Pilih Data Phase"
+              name="data_phase"
+              onChange={handleSelectChange("data_phase")}
+            >
+              {dataPhase.map((phase, index) => (
+                <Option key={index} value={phase}>
+                  {phase}
                 </Option>
               ))}
             </Select>
@@ -406,203 +319,24 @@ const CardPageSumur = ({ sendData }) => {
             <Typography color="black" className="font-bold">
               Type Jarak
             </Typography>
-            <Select name="Type Jarak"
-              onChange={handleSelectChangeTypeOuom} label="Pilih Type Jarak">
-              {typeOuom.map((envType, index) => (
-                <Option key={index} value={envType}>
-                  {envType}
+            <Select
+              label="Pilih Type Jarak"
+              name="rotary_table_elev_ouom"
+              onChange={handleSelectChangeTypeOuom}
+            >
+              {typeOuom.map((ouom, index) => (
+                <Option key={index} value={ouom}>
+                  {ouom}
                 </Option>
               ))}
             </Select>
           </div>
         </div>
-
-        <div className="flex flex-row w-full gap-4">
-          <div className="flex flex-col w-full">
-            <Typography color="black" className="font-bold">
-              Lintang Lubang Bawah
-            </Typography>
-            <Input
-              type="number"
-              placeholder="Masukkan Lintang Lubang Bawah"
-              name="bottom_hole_latitude"
-              value={formData.bottom_hole_latitude}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="flex flex-col w-full">
-            <Typography color="black" className="font-bold">
-              Garis Bujur Lubang Bawah
-            </Typography>
-            <Input
-              type="number"
-              placeholder="Masukkan Garis Bujur Lubang Bawah"
-              name="bottom_hole_longitude"
-              value={formData.bottom_hole_longitude}
-              onChange={handleChange}
-            />
-          </div>
-        </div>
-        <div className="flex flex-row w-full gap-4">
-          <div className="flex flex-col w-full">
-            <Typography color="black" className="font-bold">
-              Lintang Lubang Atas
-            </Typography>
-            <Input
-              type="number"
-              placeholder="Masukkan Lintang Lubang Atas "
-              name="surface_latitude"
-              value={formData.surface_latitude}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="flex flex-col w-full">
-            <Typography color="black" className="font-bold">
-              Garis Bujur Lubang Atas
-            </Typography>
-            <Input
-              type="number"
-              placeholder="Masukkan Garis Bujur Lubang Atas"
-              name="surface_longitude"
-              value={formData.surface_longitude}
-              onChange={handleChange}
-            />
-          </div>
-        </div>
-        <div className="flex gap-4">
-          <div className="flex flex-col w-full">
-            <Typography color="black" className="font-bold">
-              Ketinggian Tanah
-            </Typography>
-            <Input
-              type="number"
-              placeholder="Masukkan Garis Bujur Lubang Atas"
-              name="ground_elev"
-              value={formData.ground_elev}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="flex flex-col w-full">
-            <Typography color="black" className="font-bold">
-              Elevasi Kb
-            </Typography>
-            <Input
-              type="number"
-              placeholder="Masukkan Garis Bujur Lubang Atas"
-              name="surface_hole_longitude"
-              value={formData.surface_longitude}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="flex flex-col w-full">
-            <Typography color="black" className="font-bold">
-              Kick Off Point
-            </Typography>
-            <Input
-              type="number"
-              placeholder="Masukkan Garis Bujur Lubang Atas"
-              name="surface_hole_longitude"
-              value={formData.surface_longitude}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="flex flex-col w-full">
-            <Typography color="black" className="font-bold">
-              Log TD
-            </Typography>
-            <Input
-              type="number"
-              placeholder="Masukkan Garis Bujur Lubang Atas"
-              name="surface_hole_longitude"
-              value={formData.surface_longitude}
-              onChange={handleChange}
-            />
-          </div>
-        </div>
-        <div className="flex gap-4">
-          <div className="flex flex-col w-full">
-            <Typography color="black" className="font-bold">
-              Max TVD
-            </Typography>
-            <Input
-              type="number"
-              placeholder="Masukkan Garis Bujur Lubang Atas"
-              name="surface_hole_longitude"
-              value={formData.surface_longitude}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="flex flex-col w-full">
-            <Typography color="black" className="font-bold">
-              Maximum Azimuth
-            </Typography>
-            <Input
-              type="number"
-              placeholder="Masukkan Garis Bujur Lubang Atas"
-              name="surface_hole_longitude"
-              value={formData.surface_longitude}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="flex flex-col w-full">
-            <Typography color="black" className="font-bold">
-              Mean Sea Level
-            </Typography>
-            <Input
-              type="number"
-              placeholder="Masukkan Garis Bujur Lubang Atas"
-              name="mean_sea_level"
-              value={formData.mean_sea_level}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="flex flex-col w-full">
-            <Typography color="black" className="font-bold">
-              Project Depth
-            </Typography>
-            <Input
-              type="number"
-              placeholder="Masukkan Garis Bujur Lubang Atas"
-              name="surface_hole_longitude"
-              value={formData.surface_hole_longitude}
-              onChange={handleChange}
-            />
-          </div>
-        </div>
-        <div className="flex flex-row gap-4">
-          <div className="flex flex-col w-full">
-            <Typography color="black" className="font-bold">
-              Final Drill Date
-            </Typography>
-            <Input
-              type="date"
-              placeholder="Masukkan Spud Date"
-
-              name="final_drill_date"
-              value={formData.final_drill_date}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="flex flex-col w-full">
-            <Typography color="black" className="font-bold">
-              Completion Date
-            </Typography>
-            <Input
-              type="date"
-              placeholder="Masukkan Spud Date"
-
-              name="completion_date"
-              value={formData.completion_date}
-              onChange={handleChange}
-            />
-          </div>
-        </div>
-        {/* Dimasukkan Ke Dalam FORM JOB */}
-
+        {/* Rest of the form elements go here, following the same pattern */}
       </CardBody>
       <CardFooter>
-
-
+        <Button onClick={handleSubmit}>Submit</Button>
+        {successMsg && <Alert>{successMsg}</Alert>}
       </CardFooter>
     </Card>
   );

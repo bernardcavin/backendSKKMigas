@@ -50,6 +50,9 @@ const FormDepthVSDays = ({sendData}) => {
     next_operations: "",
   });
 
+  console.table(formData.time);
+  
+
   useEffect(() => {
     sendData(formData);
     
@@ -122,6 +125,7 @@ const FormDepthVSDays = ({sendData}) => {
     return date.toISOString();
 };
 
+const handleChange = (event) => {
 const handleChange = (event) => {
     const { name, value, type } = event.target;
     setFormData((prevState) => ({
