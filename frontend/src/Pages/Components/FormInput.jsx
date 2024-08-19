@@ -107,10 +107,8 @@ const FormInput = () => {
     };
 
 
-
-
     const initialJobActivity = {
-        time: '',
+        time: "",
         measured_depth: 0,
         measured_depth_uoum: "FEET",
         measured_depth_datum: "RT",
@@ -124,6 +122,7 @@ const FormInput = () => {
         next_operations: ""
     };
 
+    console.log(initialJobActivity.time);
 
     
     
