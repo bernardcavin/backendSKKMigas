@@ -24,7 +24,7 @@ const FormInput = () => {
 
     const [pekerjaan, setPekerjaan] = useState('');
     const [tipeKontrak, setTipeKontrak] = useState('');
-    const [ handleJobActivity ,setHandleJobActivity] =  useState({})
+    
 
     const handleAllData = (data) => {
         setFormData(prevState => ({
@@ -49,12 +49,13 @@ const FormInput = () => {
 
     };
     const handleDataPageDepth = (data) => {
-        setHandleJobActivity(prevState => ({
-            ...prevState,
-            ...data // Assuming sendData contains job_activity
-        }));
-
-    };
+        setFormData(prevState => ({
+            ...prevState, job: {
+                ...prevState.job,
+                job_activity: [data] // Update job_activity dengan data baru
+            }
+        }));
+    };
     const handleDataWBS = (data) => {
         setFormData(prevState => ({
             ...prevState, job: {
@@ -103,8 +104,10 @@ const FormInput = () => {
     };
 
 
+
+
     const initialJobActivity = {
-        time: '',
+        time: new Date().toISOString(),
         measured_depth: 0,
         measured_depth_uoum: "FEET",
         measured_depth_datum: "RT",
@@ -118,7 +121,8 @@ const FormInput = () => {
         next_operations: ""
     };
 
-    console.log(initialJobActivity.time);
+    const [handleJobActivity, setHandleJobActivity] = useState(initialJobActivity);
+
 
     
     
@@ -149,7 +153,7 @@ const FormInput = () => {
             rig_name: "",
             rig_type: "JACK-UP",
             rig_horse_power: 0,
-            job_activity: [initialJobActivity],
+
             work_breakdown_structure: [initialWorkBreakdownStructure],
             drilling_hazard: [
                 {
