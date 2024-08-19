@@ -24,7 +24,7 @@ const FormInput = () => {
 
     const [pekerjaan, setPekerjaan] = useState('');
     const [tipeKontrak, setTipeKontrak] = useState('');
-    
+    const [ handleJobActivity ,setHandleJobActivity] =  useState({})
 
     const handleAllData = (data) => {
         setFormData(prevState => ({
