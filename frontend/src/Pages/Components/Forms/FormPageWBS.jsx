@@ -17,13 +17,15 @@ const WorkBreakdownStructure = ({ sendData}) => {
     remarks: "",
   });
     
-
-  useEffect(() => {
-    sendData(formData);
-  }, [formData]);
+  
 
   const [tableData, setTableData] = useState([]);
   const [alert, setAlert] = useState(null);
+
+  useEffect(() => {
+    sendData(tableData);
+  }, [tableData]);
+  
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -50,6 +52,8 @@ const WorkBreakdownStructure = ({ sendData}) => {
   const handleAddEvent = () => {
     if (formData.event && formData.start_date && formData.end_date) {
       setTableData([...tableData, formData]);
+      console.log(tableData);
+      
       setFormData({ event: "", start_date: "", end_date: "", remarks: "" });
       setAlert(null);
     } else {

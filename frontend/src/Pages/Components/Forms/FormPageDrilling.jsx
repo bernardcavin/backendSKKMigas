@@ -11,10 +11,60 @@ import {
 } from "@material-tailwind/react";
 import { useEffect } from "react";
 import axios from "axios";
+import * as XLSX from 'xlsx';
+import { useRef } from "react";
+
 
 const FormPageDrilling = ({ sendData }) => {
 
+  const [tableData, setTableData] = useState([]);
+  const [headers, setHeaders] = useState([]);
+  const [file, setFile] = useState(null);
+  const fileUseReff = useRef(null);
 
+
+  
+  const handleFileUpload = (file) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        console.log(jsonData);
+
+        if (jsonData.length > 0) {
+          const fileHeaders = jsonData[0];
+          // const isValid = expectedHeaders.every((header, index) => header === fileHeaders[index]);
+
+          // if (isValid) {
+          setHeaders(fileHeaders);
+          setTableData(jsonData.slice(1));
+          setAlert(null); // Clear any previous alerts
+          // } else {
+          //   setTableData([]);
+          //   setHeaders([]);
+          //   setAlert({
+          //     type: "error",
+          //     message: `Header file tidak sesuai dengan ketentuan. Harus sesuai dengan urutan: ${expectedHeaders.join(', ')}`,
+          //   });
+          // }
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setFile([file]);
+      handleFileUpload(file);
+    }
+  };
+  console.log(file);
 
   const [data, setData] = useState({
     hazard_type: "",
@@ -25,7 +75,7 @@ const FormPageDrilling = ({ sendData }) => {
   });
 
 
-  
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,7 +94,7 @@ const FormPageDrilling = ({ sendData }) => {
       setSeverity(response.data.severity);
     })
   }, [setHazardType])
-  
+
 
   const handleSelectChange = (value) => {
     setData((prevState) => ({
@@ -59,7 +109,7 @@ const FormPageDrilling = ({ sendData }) => {
     }));
   };
 
-  
+
 
   return (
     <Card variant="filled" className="w-full" shadow={true}>
@@ -71,10 +121,21 @@ const FormPageDrilling = ({ sendData }) => {
           <Button
             color="blue"
             className="h-[34px] flex justify-center items-center"
+            onClick={() => document.getElementById('fileInput').click()}
+
+
           >
             Upload File
           </Button>
-          <input type="file" placeholder="Casing" className="ml-4" hidden />
+          <input
+            id="fileInput"
+            type="file"
+            accept=".csv, .xlsx, .xls"
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
+
+          
         </div>
         <hr className="my-2 border-gray-800" />
       </CardHeader>
@@ -137,6 +198,36 @@ const FormPageDrilling = ({ sendData }) => {
             />
           </div>
         </div>
+      </CardBody>
+      <CardBody className="flex-col flex gap-4 h-96 overflow-y-auto">
+        {tableData.length > 0 ? (
+          <table className="min-w-full table-auto border-collapse border border-gray-200">
+            <thead className="sticky top-0 bg-white">
+              <tr>
+                {headers.map((header, index) => (
+                  <th key={index} className="border border-gray-300 p-2 bg-gray-100 text-left">
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {tableData.map((row, rowIndex) => (
+                <tr key={rowIndex} className="border border-gray-300">
+                  {row.map((cell, cellIndex) => (
+                    <td key={cellIndex} className="border border-gray-300 p-2">
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <Typography color="black" className="text-center">
+            No data available. Please upload a file.
+          </Typography>
+        )}
       </CardBody>
     </Card>
   );
