@@ -75,7 +75,7 @@ const CardPageSumur = ({ sendData }) => {
   });
 
   // console.table(formData);
-  
+
 
   const handleSubmit = async () => {
     try {
@@ -173,6 +173,18 @@ const CardPageSumur = ({ sendData }) => {
               onChange={handleChange}
             />
           </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Field
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan Field"
+              name="field_id"
+              value={formData.field_id}
+              onChange={handleChange}
+            />
+          </div>
         </div>
         <div className="flex flex-row w-full gap-4">
           <div className="flex flex-col w-full">
@@ -196,6 +208,258 @@ const CardPageSumur = ({ sendData }) => {
               placeholder="Masukkan Nama Lengkap Sumur"
               name="alias_long_name"
               value={formData.alias_long_name}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+        <div className="flex flex-row w-full gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Surface Longitude
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Surface Longitude"
+              name="surface_longitude"
+              value={formData.surface_longitude}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Surface Latitude
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Surface Latitude"
+              name="surface_latitude"
+              value={formData.surface_latitude}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Bottom Hole Longtitude
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Bottom Hole Longtitude"
+              name="bottom_hole_longitude"
+              value={formData.bottom_hole_longitude}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Bottom Hole Latitude
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Bottom Hole Latitude"
+              name="bottom_hole_latitude"
+              value={formData.bottom_hole_latitude}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+        <div className="flex flex-row w-full gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Maximum Inclination
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Maximum Inclination"
+              name="maximum_inclination"
+              value={formData.maximum_inclination}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Maximum Azimuth
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Maximum Azimuth"
+              name="maximum_azimuth"
+              value={formData.maximum_azimuth}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              KB Elevation
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan KB Elevation"
+              name="kb_elev"
+              value={formData.kb_elev}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Derrick Floor Elev
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Derrick Floor Elev"
+              name="derrick_floor_elev"
+              value={formData.derrick_floor_elev}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+        <div className="flex flex-row w-full gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Ground Elev
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Ground Elev"
+              name="ground_elev"
+              value={formData.ground_elev}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Mean Sea Level
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Mean Sea Level"
+              name="mean_sea_level"
+              value={formData.mean_sea_level}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Kick Of Point
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Kick Of Point "
+              name="kick_off_point"
+              value={formData.kick_off_point}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Drill TD
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Drill TD"
+              name="drill_td"
+              value={formData.drill_td}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+        <div className="flex flex-row w-full gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Log TD
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Log TD"
+              name="log_td"
+              value={formData.log_td}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Max TVD
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Max TVD"
+              name="max_tvd"
+              value={formData.max_tvd}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Project Depth
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Project Depth "
+              name="projected_depth"
+              value={formData.projected_depth}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Final TD
+            </Typography>
+            <Input
+              type="number"
+              placeholder="Masukkan Final TD"
+              name="final_td"
+              value={formData.final_td}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+        <div className="flex flex-row w-full gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Completion Date
+            </Typography>
+            <Input
+              type="datetime-local"
+              placeholder="Masukkan Completion Date"
+              name="completion_date"
+              value={formData.completion_date}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Remark
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan Remark"
+              name="remark"
+              value={formData.remark}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+        <div className="flex flex-row w-full gap-4">
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Final Drill Date
+            </Typography>
+            <Input
+              type="datetime-local"
+              placeholder="Masukkan Final Drill Date"
+              name="final_drill_date"
+              value={formData.final_drill_date}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Line Name
+            </Typography>
+            <Input
+              type="text"
+              placeholder="Masukkan Line Name"
+              name="line_name"
+              value={formData.line_name}
               onChange={handleChange}
             />
           </div>
@@ -332,12 +596,31 @@ const CardPageSumur = ({ sendData }) => {
             </Select>
           </div>
         </div>
+        <div className="flex flex-row w-full gap-4">
+          
+          <div className="flex flex-col w-full">
+            <Typography color="black" className="font-bold">
+              Mean Sea Level Ouom
+            </Typography>
+            <Select
+              label="Pilih Mean Sea Level Ouom"
+              name="mean_sea_level_ouom"
+              onChange={handleSelectChange("mean_sea_level_ouom")}
+            >
+              {depthDatum.map((ouom, index) => (
+                <Option key={index} value={ouom}>
+                  {ouom}
+                </Option>
+              ))}
+            </Select>
+          </div>
+        </div>
         {/* Rest of the form elements go here, following the same pattern */}
       </CardBody>
-      <CardFooter>
+      {/* <CardFooter>
         <Button onClick={handleSubmit}>Submit</Button>
         {successMsg && <Alert>{successMsg}</Alert>}
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   );
 };

@@ -24,7 +24,7 @@ const FormInput = () => {
 
     const [pekerjaan, setPekerjaan] = useState('');
     const [tipeKontrak, setTipeKontrak] = useState('');
-
+    
 
     const handleAllData = (data) => {
         setFormData(prevState => ({
@@ -49,13 +49,9 @@ const FormInput = () => {
 
     };
     const handleDataPageDepth = (data) => {
-        setFormData(prevState => ({
-            ...prevState, job: {
-                ...prevState.job, job_activity: {
-                    ...prevState.job.job_activity, ...data
-                }
-            }
-
+        setHandleJobActivity(prevState => ({
+            ...prevState,
+            ...data // Assuming sendData contains job_activity
         }));
 
     };
@@ -108,7 +104,7 @@ const FormInput = () => {
 
 
     const initialJobActivity = {
-        time: "",
+        time: '',
         measured_depth: 0,
         measured_depth_uoum: "FEET",
         measured_depth_datum: "RT",
@@ -235,6 +231,8 @@ const FormInput = () => {
             }
         }
     });
+    console.log(formData);
+    
     
     const validateFormData = (data) => {
         const { job } = data;
@@ -320,8 +318,6 @@ const FormInput = () => {
                     <Button variant="gradient" color="blue" onClick={handleSubmit} className='w-full'>
                         Submit
                     </Button>
-
-
                 </div>
 
 

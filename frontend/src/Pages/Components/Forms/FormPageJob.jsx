@@ -116,18 +116,18 @@ const CardPageJob = ({ sendData }) => {
                     </Typography>
                     <div className="flex flex-row">
                         <RadioButton
-                            label={"EKSPLORASI"}
+                            label={"EXPLORATION"}
                             nameLabel="drilling_class"
-                            title="EKSPLORASI"
-                            onChange={() => handleRadioChange("drilling_class", "EKSPLORASI")}
-                            checked={formData.drilling_class === "EKSPLORASI"}
+                            title="EXPLORATION"
+                            onChange={() => handleRadioChange("drilling_class", "EXPLORATION")}
+                            checked={formData.drilling_class === "EXPLORATION"}
                         />
                         <RadioButton
-                            label={"EKSPLOTASI"}
+                            label={"DEVELOPMENT"}
                             nameLabel="drilling_class"
-                            title="EKSPLOTASI"
-                            onChange={() => handleRadioChange("drilling_class", "EKSPLOTASI")}
-                            checked={formData.drilling_class === "EKSPLOTASI"}
+                            title="DEVELOPMENT"
+                            onChange={() => handleRadioChange("drilling_class", "DEVELOPMENT")}
+                            checked={formData.drilling_class === "DEVELOPMENT"}
                         />
                     </div>
                 </div>
