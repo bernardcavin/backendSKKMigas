@@ -125,6 +125,7 @@ const FormDepthVSDays = ({sendData}) => {
     return date.toISOString();
 };
 
+
 const handleChange = (event) => {
     const { name, value, type } = event.target;
     setFormData((prevState) => ({
@@ -133,7 +134,7 @@ const handleChange = (event) => {
             type === "number" ? parseFloat(value) || 0 :
             name === "time" ? formatDateTime(value) :
             value
-    }));
+    }));
 };
  
   

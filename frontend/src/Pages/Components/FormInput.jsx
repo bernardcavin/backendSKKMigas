@@ -103,10 +103,8 @@ const FormInput = () => {
     };
 
 
-
-
     const initialJobActivity = {
-        time: new Date().toISOString(),
+        time: '',
         measured_depth: 0,
         measured_depth_uoum: "FEET",
         measured_depth_datum: "RT",
@@ -120,8 +118,7 @@ const FormInput = () => {
         next_operations: ""
     };
 
-    const [handleJobActivity, setHandleJobActivity] = useState(initialJobActivity);
-
+    console.log(initialJobActivity.time);
 
     
     
