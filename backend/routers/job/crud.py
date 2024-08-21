@@ -31,8 +31,6 @@ def validate_exploration_plan(id: str, db: Session, validation: CreateExploratio
     db_plan.status = PlanningStatus.APPROVED
     db_plan.validated_by_id = user.id
     db_plan.validation_date = datetime.now().date()
-    db_plan.
-    
     db.commit()
     
     return {
