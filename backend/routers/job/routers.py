@@ -1,18 +1,55 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from backend.routers.auth.models import Role
 from backend.routers.auth.schemas import GetUser
 from backend.routers.auth.utils import authorize, get_db, get_current_user
-from backend.routers.job import crud, schemas, models
+from backend.routers.job import crud, schemas
+from backend.utils.schema_operations import OutputSchema
 
 router = APIRouter(prefix="/job", tags=["job"])
 
-@router.post("/create/pengajuan/drilling", response_model=schemas.GetPengajuanDrilling)
-@authorize(role=[Role.Admin, Role.KKKS])
-async def create_pengajuan_drilling(job: schemas.CreatePengajuanDrilling, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
-    return crud.create_pengajuan_drilling(db, job, user)
+@router.post("/planning/create/exploration", response_model=OutputSchema)
+@authorize(role=[Role.KKKS])
+async def create_planning_exploration(plan: schemas.CreateExplorationPlanning, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
+    
+    job_id = crud.create_job_plan(db,plan,user)
+    
+    return OutputSchema(
+        id=job_id
+    )
 
-@router.post("/create/pengajuan/wows", response_model=schemas.GetPengajuanWOWS)
-@authorize(role=[Role.Admin, Role.KKKS])
-async def create_pengajuan_drilling(job: schemas.CreatePengajuanWOWS, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
-    return crud.create_pengajuan_wows(db, job, user)
+@router.post("/planning/create/development", response_model=OutputSchema)
+@authorize(role=[Role.KKKS])
+async def create_planning_development(plan: schemas.CreateDevelopmentPlanning, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
+    
+    job_id = crud.create_job_plan(db,plan,user)
+    
+    return OutputSchema(
+        id=job_id
+    )
+
+@router.post("/planning/create/workover", response_model=OutputSchema)
+@authorize(role=[Role.KKKS])
+async def create_planning_workover(plan: schemas.CreateWorkoverPlanning, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
+    
+    job_id = crud.create_job_plan(db,plan,user)
+    
+    return OutputSchema(
+        id=job_id
+    )
+
+@router.post("/planning/create/wellservice", response_model=OutputSchema)
+@authorize(role=[Role.KKKS])
+async def create_planning_wellservice(plan: schemas.CreateWellServicePlanning, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
+    
+    job_id = crud.create_job_plan(db,plan,user)
+    
+    return OutputSchema(
+        id=job_id
+    )
+
+@router.patch('/planning/validate/exploration/{id}')
+@authorize(role=[Role.Admin])
+async def validate_planning_exploration(validation: schemas.CreateExploration, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
+    return crud.validate_exploration_plan(db,validation,user)
+

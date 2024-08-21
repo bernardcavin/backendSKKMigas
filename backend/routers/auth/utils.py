@@ -78,18 +78,32 @@ def authorize(role: list):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             if kwargs.get("user") is not None:
+                
+                user_role = kwargs.get("user").role
+
+                if user_role not in role:
+                    
+                    raise HTTPException(status_code=403, detail="User is not authorized to access")
+
+            else:
+                
+                raise HTTPException(status_code=401, detail="Unauthorized")
+            
+            return await func(*args, **kwargs)
+        
+        return wrapper
+    
+    return decorator
+
+def verification_required():
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            if kwargs.get("user") is not None:
 
                 user_is_verified = kwargs.get("user").verified_status
 
-                if user_is_verified:
-
-                    user_role = kwargs.get("user").role
-
-                    if user_role not in role:
-                        
-                        raise HTTPException(status_code=403, detail="User is not authorized to access")
-
-                else:
+                if not user_is_verified:
 
                     raise HTTPException(status_code=403, detail="User is not verified")
                 

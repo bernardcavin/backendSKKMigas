@@ -59,9 +59,6 @@ class Area(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
 
-    kkks_id = Column(String(36), ForeignKey('kkks.id'))
-    kkks = relationship("KKKS", back_populates="area")
-
     label = Column(String, unique=True)
     area_name = Column(String, unique=True, index=True)
     area_phase = Column(Enum(AreaPhase))
@@ -69,8 +66,14 @@ class Area(Base):
     area_position = Column(Enum(AreaPosition))
     area_production_status = Column(Enum(AreaProductionStatus))
     area_region = Column(Enum(AreaRegion))
+    
+    kkks_id = Column(String(36), ForeignKey('kkks.id'))
+    kkks = relationship("KKKS", back_populates='area')
+    
     fields = relationship("Field", back_populates="area")
+    jobs = relationship("Job", back_populates='area')
     strat_units = relationship("StratUnit", back_populates="area")
+    
     geojson = Column(JSON)
 
 class Field(Base):   
@@ -100,5 +103,3 @@ class StratUnit(Base):
     strat_petroleum_system = Column(Enum(PetroleumSystem))
     
     remark = Column(Text)
-    well_strat = relationship('WellStrat', back_populates='strat_unit')
-    

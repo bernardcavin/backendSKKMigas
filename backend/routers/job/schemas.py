@@ -8,189 +8,168 @@ from backend.routers.well.schemas import *
 
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date
 from decimal import Decimal
-
-class CreateWorkBreakdownStructure(BaseModel):
-    
-    event: str
-    start_date: datetime
-    end_data: datetime
-    remarks: str
-
-class CreateJobDocument(BaseModel):
-
-    title: str
-    creator_name: str
-    create_date: datetime
-    
-    media_type: MediaType
-    document_type: str
-    
-    item_category: str
-    item_sub_category: str
-    
-    digital_format: str
-    
-    original_file_name: str
-    
-    digital_size: float
-    digital_size_uom: SizeUOM
-    
-    remark: str
-
-class CreateDrillingHazard(BaseModel):
-    
-    hazard_type: HazardType
-    hazard_description: str
-    severity: Severity
-    mitigation: str
-    
-    remark: str
-
-# class CreateBudget(BaseModel):
-
-#     tangible_cost: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
-#     intangible_cost: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
-#     total_cost: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
-
-class CreateJobActivity(BaseModel):
-
-    time: datetime
-    
-    measured_depth: float
-    measured_depth_uoum: DepthUOM
-    measured_depth_datum: DepthDatum
-    
-    true_vertical_depth: float
-    true_vertical_depth_uoum: DepthUOM
-    
-    true_vertical_depth_sub_sea: float
-    true_vertical_depth_sub_sea_uoum: DepthUOM
-    
-    daily_cost: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
-    
-    summary: str
-    current_operations: str
-    next_operations: str
 
 class JobBase(BaseModel):
 
-    field_id: str
-
-    contract_type: Optional[ContractType]
+    # KKKS information
+    kkks_id: Optional[str]
+    area_id: Optional[str]
+    field_id: Optional[str]
     
+    # Contract information
+    contract_type: Optional[ContractType]
     afe_number: Optional[str]
     wpb_year: Optional[int]
-    plan_start: Optional[datetime]
-    plan_end: Optional[datetime]
-    plan_total_budget: Optional[Decimal] = Field(None, max_digits=10, decimal_places=2)
+    
+    start_date: Optional[date]
+    end_date: Optional[date]
+    total_budget: Optional[Decimal] = Field(default=None, max_digits=10, decimal_places=2)
+    
+    # Rig information
     rig_name: Optional[str]
     rig_type: Optional[RigType]
     rig_horse_power: Optional[float]
 
-# CreateWorkBreakdownStructure with id
-class GetWorkBreakdownStructure(CreateWorkBreakdownStructure):
-    id: str
-
-# CreateJobDocument with id
-class GetJobDocument(CreateJobDocument):
-    id: str
-
-# CreateDrillingHazard with id
-class GetDrillingHazard(CreateDrillingHazard):
-    id: str
-
-# CreateBudget with id
-# class GetBudget(CreateBudget):
-#     id: str
-
-# CreateJobActivity with id
-class GetJobActivity(CreateJobActivity):
-    id: str
-
-class GetJobBase(JobBase):
-   
-    job_activity: List[GetJobActivity]
-    # budget: List[GetBudget]
-    work_breakdown_structure: List[GetWorkBreakdownStructure]
-    drilling_hazard: List[GetDrillingHazard]
-    job_documents: List[GetJobDocument]
-
-class CreateJobBase(JobBase):
-
-    job_activity: Optional[List[CreateJobActivity]]
-    # budget: List[CreateBudget]
-    work_breakdown_structure: Optional[List[CreateWorkBreakdownStructure]]
-    drilling_hazard: Optional[List[CreateDrillingHazard]]
-    job_documents: Optional[List[CreateJobDocument]]
-
-class DrillingBase:
-    drilling_class: DrillingClass
-
-class CreateDrillingJob(DrillingBase,CreateJobBase):
-
-    planned_well: CreateWell
-
-class GetDrillingJob(DrillingBase,CreateJobBase):
-    id: str
-    planned_well: GetWell
-
-class WOWSBase:
-
-    wows_class: WOWSClass
-    job_category: WOWSJobType
-
-    field_id: str
+class WorkBreakdownStructureBase(BaseModel):
     
-    #current
-    current_oil: Decimal
-    current_gas: Decimal
-    current_condensate: Decimal
+    event: str
+    start_date: date
+    end_data: date
+    remarks: str
     
-    current_oil_water_cut: Decimal
-    current_gas_water_cut: Decimal
-    current_condensate_water_cut: Decimal
-    
-    #target
-    target_oil: Decimal
-    target_gas: Decimal
-    target_condensate: Decimal
-    
-    target_oil_water_cut: Decimal
-    target_gas_water_cut: Decimal
-    target_condensate_water_cut: Decimal
-    
-    # #final
-    # final_oil: Decimal
-    # final_gas: Decimal
-    # final_condensate: Decimal
-    
-    # final_oil_water_cut: Decimal
-    # final_gas_water_cut: Decimal
-    # final_condensate_water_cut: Decimal
+    class Meta:
+        orm_model = WorkBreakdownStructure
 
-class CreateWOWSJob(WOWSBase,CreateJobBase):
+class JobHazardBase(BaseModel):
+
+    hazard_type: Optional[HazardType]
+    hazard_description: Optional[str]
+    severity: Optional[Severity]
+    mitigation: Optional[str]
+    remark: Optional[str]
+    
+    class Meta:
+        orm_model = JobHazard
+
+class JobDocumentBase(BaseModel):
+    
+    file_id: Optional[str]
+    
+    title: Optional[str]
+    creator_name: Optional[str]
+    create_date: Optional[datetime]
+    
+    media_type: Optional[MediaType]
+    document_type: Optional[str]
+    
+    item_category: Optional[str]
+    item_sub_category: Optional[str]
+    
+    digital_format: Optional[str]
+    original_file_name: Optional[str]
+    
+    digital_size: Optional[float]
+    digital_size_uom: Optional[SizeUOM]
+    
+    remark: Optional[str]
+    
+    class Meta:
+        orm_model = JobDocument
+
+class JobOperationDayBase(BaseModel):
+
+    phase: Optional[str]
+    depth_datum: Optional[DepthDatum]
+    
+    depth_in: Optional[float]
+    depth_out: Optional[float]
+    depth_uoum: Optional[DepthUOM]
+    
+    operation_days: Optional[float]
+    
+    class Meta:
+        orm_model = JobOperationDay
+
+class CreateJob(JobBase):
+    
+    job_instance_type: JobInstanceType = JobInstanceType.INITIAL_PROPOSAL
+    
+    job_operation_days: List[JobOperationDayBase]
+    work_breakdown_structure: List[WorkBreakdownStructureBase]
+    job_hazards: List[JobHazardBase]
+    job_documents: List[JobDocumentBase]
+
+class CreateExploration(CreateJob):
+    
     well: CreateWell
 
-class GetWOWSJob(WOWSBase,CreateJobBase):
-    id: str
-    well: GetWell
+    class Meta:
+        orm_model = Exploration
 
-class CreatePengajuanDrilling(BaseModel):
-
-    job: CreateDrillingJob
+class CreateDevelopment(CreateJob):
     
-class GetPengajuanDrilling(BaseModel):
+    well: CreateWell
+    
+    class Meta:
+        orm_model = Development
+        
+class CreateWorkover(CreateJob):
+    
+    well: CreateWell
+    job_category: Optional[WOWSJobType]
+    
+    onstream_oil: Optional[float]
+    onstream_gas:  Optional[float]
+    water_cut:  Optional[float]
 
-    id: str
-    job: GetDrillingJob
+    class Meta:
+        orm_model = Workover
 
-class CreatePengajuanWOWS(BaseModel):
+class CreateWellservice(CreateJob):
+    
+    well: CreateWell
+    job_category: Optional[WOWSJobType]
+    
+    onstream_oil: Optional[float]
+    onstream_gas:  Optional[float]
+    water_cut:  Optional[float]
 
-    job: CreateWOWSJob
+    class Meta:
+        orm_model = WellService
 
-class GetPengajuanWOWS(BaseModel):
+class CreatePlanningBase(BaseModel):
+    
+    date_proposed: date = datetime.now().date()
+    status: PlanningStatus = PlanningStatus.PROPOSED
+    
+class CreateExplorationPlanning(CreatePlanningBase):
+    
+    proposed_job: CreateExploration
+    
+    class Meta:
+        orm_model = Planning
 
-    id: str
-    job: GetWOWSJob
+class CreateDevelopmentPlanning(CreatePlanningBase):
+    
+    proposed_job: CreateDevelopment
+    
+    class Meta:
+        orm_model = Planning
+
+class CreateWorkoverPlanning(CreatePlanningBase):
+    
+    proposed_job: CreateDevelopment
+    
+    class Meta:
+        orm_model = Planning
+
+class CreateWellServicePlanning(CreatePlanningBase):
+    
+    proposed_job: CreateWellservice
+    
+    class Meta:
+        orm_model = Planning
+
+

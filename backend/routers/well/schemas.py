@@ -1,153 +1,150 @@
-from typing import List, Optional
-
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, UUID4
+from typing import Optional, List
 from datetime import datetime
+from uuid import uuid4
 
 from backend.routers.well.models import *
 
-class CreateWellDigitalData(BaseModel):
-
-    file_id: str
-
-class CreateWellLog(CreateWellDigitalData):
-
-    pass
-
-class CreateWellTrajectory(CreateWellDigitalData):
-
-    pass
-
-class CreateWellDrillingParameter(CreateWellDigitalData):
-
-    pass
-
-class CreateWellPPFG(CreateWellDigitalData):
-
-    pass
-
-class CreateWellDocument(BaseModel):
-
-    file_id: str
-
-    title: str
-    
-    media_type: MediaType
-    document_type: str
-    
-    remark: str
-
-class CreateWellCasing(BaseModel):
-    casing_type: CasingType
-    grade: str
-    inside_diameter: float
-    inside_diameter_ouom: CasingUOM
-    outside_diameter: float
-    outside_diameter_ouom: CasingUOM
-    base_depth: float
-    base_depth_ouom: DepthUOM
-
-class CreateWellStrat(BaseModel):
-    strat_unit_id: str
-    depth_datum: DepthDatum
-    top_depth: float
-    bottom_depth: float
-    depth_uoum: DepthUOM
-
-class SchemaOutput(BaseModel):
-    id: str
-
 class WellBase(BaseModel):
-    uwi: str
-    field_id: str
-        
-    # Basic Information
-    well_name: str
-    alias_long_name: str
-        
-    # Well Status and Classification
-    well_type: WellType
-    well_class: WellClass
-    well_status: WellStatus
-    profile_type: ProfileType
-    environment_type: EnvironmentType  # EnvironmentType Type (PPDM: ENVIRONMENT_TYPE)
     
-    # Coordinates
-    surface_longitude: float  # Surface Longitude (PPDM: SURFACE_LONGITUDE)
-    surface_latitude: float  # Surface Latitude (PPDM: SURFACE_LATITUDE)
-    bottom_hole_longitude: float
-    bottom_hole_latitude: float
-    maximum_inclination: float #degrees
-    maximum_azimuth: float #degrees
+    uwi: Optional[str]
+    field_id: Optional[str]
+    kkks_id: Optional[str]
+    data_phase: Optional[DataPhase]
 
-    # Seismic Information
-    line_name: str  # Line Name (PPDM: LINE_NAME)
-    
-    # Key Dates
-    spud_date: datetime  # Spud Date (PPDM: SPUD_DATE)
-    final_drill_date: datetime  # Final Drill Date (PPDM: FINAL_DRILL_DATE)
-    completion_date: datetime  # Completion Date (PPDM: COMPLETION_DATE)
-    
-    # Elevations
-    rotary_table_elev: float  # Rotary Table Elevation (PPDM: ROTARY_TABLE_ELEV)
-    rotary_table_elev_ouom: DepthUOM  # Rotary Table Elevation ODepthUOM (PPDM: ROTARY_TABLE_ELEV_ODepthUOM)
-    
-    kb_elev: float  # Kelly Bushing Elevation (PPDM: KB_ELEV)
-    kb_elev_ouom: DepthUOM  # Kelly Bushing Elevation ODepthUOM (PPDM: KB_ELEV_ODepthUOM)
-    
-    derrick_floor_elev: float  # Derrick Floor Elevation (PPDM: DERRICK_FLOOR_ELEV)
-    derrick_floor_elev_ouom: DepthUOM  # Derrick Floor Elevation ODepthUOM (PPDM: DERRICK_FLOOR_ELEV_ODepthUOM)
-    
-    ground_elev: float  # Ground Elevation (PPDM: GROUND_ELEV)
-    ground_elev_ouom: DepthUOM # Ground Elevation ODepthUOM (PPDM: GROUND_ELEV_ODepthUOM)
-    
-    mean_sea_level: float
-    mean_sea_level_ouom: DepthDatum
-    
-    # Depths
-    depth_datum: DepthDatum  # Depth Datum (PPDM: DEPTH_DATUM)
-    
-    kick_off_point: float
-    kick_off_point_ouom: DepthUOM
+    well_name: Optional[str]
+    alias_long_name: Optional[str]
 
-    drill_td: float  # Drill Total Depth (PPDM: DRILL_TD)
-    drill_td_ouom: DepthUOM  # Drill Total Depth ODepthUOM (PPDM: DRILL_TD_ODepthUOM)
-    
-    log_td: float  # Log Total Depth (PPDM: LOG_TD)
-    log_td_ouom: DepthUOM  # Log Total Depth ODepthUOM (PPDM: LOG_TD_ODepthUOM)
-    
-    max_tvd: float  # Maximum True Vertical Depth (PPDM: MAX_TVD)
-    max_tvd_ouom: DepthUOM  # Maximum True Vertical Depth ODepthUOM (PPDM: MAX_TVD_ODepthUOM)
-    
-    projected_depth: float  # Projected Depth (PPDM: PROJECTED_DEPTH)
-    projected_depth_ouom: DepthUOM  # Projected Depth ODepthUOM (PPDM: PROJECTED_DEPTH_ODepthUOM)
-    
-    final_td: float  # Final Total Depth (PPDM: FINAL_TD)
-    final_td_ouom: DepthUOM  # Final Total Depth ODepthUOM (PPDM: FINAL_TD_ODepthUOM)
+    well_type: Optional[WellType]
+    well_status: Optional[WellStatus]
+    well_profile_type: Optional[WellProfileType]
+    hydrocarbon_target: Optional[HydrocarbonTarget]
+    environment_type: Optional[EnvironmentType]
 
-    remark: str  # Remarks (PPDM: REMARK)
+    surface_longitude: Optional[float]
+    surface_latitude: Optional[float]
+    bottom_hole_longitude: Optional[float]
+    bottom_hole_latitude: Optional[float]
+    maximum_inclination: Optional[float]
+    azimuth: Optional[float]
+
+    line_name: Optional[str]
+
+    spud_date: Optional[datetime]
+    final_drill_date: Optional[datetime]
+    completion_date: Optional[datetime]
+
+    rotary_table_elev: Optional[float]
+    rotary_table_elev_uom: Optional[DepthUOM]
+
+    kb_elev: Optional[float]
+    kb_elev_uom: Optional[DepthUOM]
+
+    derrick_floor_elev: Optional[float]
+    derrick_floor_elev_uom: Optional[DepthUOM]
+
+    ground_elev: Optional[float]
+    ground_elev_uom: Optional[DepthUOM]
+
+    mean_sea_level: Optional[float]
+    mean_sea_level_uom: Optional[DepthUOM]
+
+    depth_datum: Optional[DepthDatum]
+    kick_off_point: Optional[float]
+    kick_off_point_uom: Optional[DepthUOM]
+
+    maximum_tvd: Optional[float]
+    maximum_tvd_uom: Optional[DepthUOM]
+
+    final_md: Optional[float]
+    final_md_uom: Optional[DepthUOM]
+
+    remark: Optional[str]
+
+class WellDocumentBase(BaseModel):
+    
+    file_id: Optional[str]
+    
+    title: Optional[str]
+    media_type: Optional[MediaType]
+    document_type: Optional[str]
+    remark: Optional[str]
+    
+    class Meta:
+        orm_model = WellDocument
+
+class WellDigitalDataBase(BaseModel):
+    
+    file_id: Optional[str]
+    data_format: Optional[DataFormat]
+    data_class: Optional[DataClass]
+
+class WellLogBase(WellDigitalDataBase):
+    data_class: DataClass = DataClass.WELL_LOG
+    class Meta:
+        orm_model = WellLog
+
+class WellTrajectoryBase(WellDigitalDataBase):
+    data_class: DataClass = DataClass.TRAJECTORY
+    class Meta:
+        orm_model = WellTrajectory
+
+class WellPPFGBase(WellDigitalDataBase):
+    data_class: DataClass = DataClass.PPFG
+    class Meta:
+        orm_model = WellPPFG
+
+class WellDrillingParameterBase(WellDigitalDataBase):
+    data_class: DataClass = DataClass.DRILLING_PARAMETER
+    class Meta:
+        orm_model = WellDrillingParameter
+
+class WellSummaryBase(BaseModel):
+    
+    stratigraphy_id: Optional[str]
+    depth_datum: Optional[DepthDatum]
+    depth: Optional[float]
+    depth_uom: Optional[DepthUOM]
+    hole_diameter: Optional[float]
+    hole_diameter_uom: Optional[DiameterUOM]
+    bit: Optional[str]
+    casing_diameter: Optional[float]
+    casing_diameter_uom: Optional[DiameterUOM]
+    casing_grade: Optional[str]
+    casing_weight: Optional[float]
+    casing_weight_uom: Optional[WeightUOM]
+    logging: Optional[str]
+    mud_program: Optional[str]
+    cementing_program: Optional[str]
+    bottom_hole_temperature: Optional[float]
+    bottom_hole_temperature_uom: Optional[TemperatureUOM]
+    rate_of_penetration: Optional[float]
+    remarks: Optional[str]
+    
+    class Meta:
+        orm_model = WellSummary
+
+class WellTestBase(BaseModel):
+    
+    depth_datum: Optional[DepthDatum]
+    zone_name: Optional[str]
+    zone_top_depth: Optional[float]
+    zone_bottom_depth: Optional[float]
+    depth_uom: Optional[DepthUOM]
+    stratigraphy_id: Optional[str]
+    
+    class Meta:
+        orm_model = WellTest
 
 class CreateWell(WellBase):
-       
-    well_documents: Optional[List[CreateWellDocument]]
-    well_casings: Optional[List[CreateWellCasing]]
-    well_trajectories: Optional[List[CreateWellTrajectory]]
-    well_ppfgs: Optional[List[CreateWellPPFG]]
-    well_logs: Optional[List[CreateWellLog]]
-    well_drilling_parameters: Optional[List[CreateWellDrillingParameter]]
-    well_strat: Optional[List[CreateWellStrat]]
-
-class CreateWellDirectly(CreateWell):
-    field_id: str
-    data_phase: DataPhase
-
-class GetWell(WellBase):
-
-    id: str
-
-    well_documents: Optional[List[SchemaOutput]]
-    well_casings: Optional[List[SchemaOutput]]
-    well_trajectories: Optional[List[SchemaOutput]]
-    well_ppfgs: Optional[List[SchemaOutput]]
-    well_logs: Optional[List[SchemaOutput]]
-    well_drilling_parameters: Optional[List[SchemaOutput]]
-    well_strat: Optional[List[SchemaOutput]]
+    
+    well_documents: List[WellDocumentBase]
+    well_summary: List[WellSummaryBase]
+    well_test: List[WellTestBase]
+    well_trajectories: List[WellTrajectoryBase]
+    well_ppfgs: List[WellPPFGBase]
+    well_logs: List[WellLogBase]
+    well_drilling_parameters: List[WellDrillingParameterBase]
+    
+    class Meta:
+        orm_model = Well

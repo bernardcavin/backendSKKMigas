@@ -262,8 +262,10 @@ def generate_dummy_data(n: int):
                                 "inside_diameter_ouom": "INCH",
                                 "outside_diameter": 0,
                                 "outside_diameter_ouom": "INCH",
-                                "base_depth": 0,
-                                "base_depth_ouom": "FEET"
+                                "depth_datum": 'KB',
+                                "top_depth": 0,
+                                "bottom_depth": 0,
+                                "depth_uoum": 'FEET',
                                 }
                             ],
                             "well_trajectories": [
@@ -278,7 +280,7 @@ def generate_dummy_data(n: int):
                             ],
                             "well_logs": [
                                 {
-                                "file_id": "string"
+                                "file_id": "d4336cd0-313b-4114-b27e-4894bb9c2197"
                                 }
                             ],
                             "well_drilling_parameters": [
@@ -448,8 +450,10 @@ def generate_dummy_data(n: int):
                                 "inside_diameter_ouom": "INCH",
                                 "outside_diameter": 0,
                                 "outside_diameter_ouom": "INCH",
-                                "base_depth": 0,
-                                "base_depth_ouom": "FEET"
+                                "depth_datum": 'KB',
+                                "top_depth": 0,
+                                "bottom_depth": 0,
+                                "depth_uoum": 'FEET',
                                 }
                             ],
                             "well_trajectories": [
@@ -464,7 +468,7 @@ def generate_dummy_data(n: int):
                             ],
                             "well_logs": [
                                 {
-                                "file_id": "string"
+                                "file_id": "d4336cd0-313b-4114-b27e-4894bb9c2197"
                                 }
                             ],
                             "well_drilling_parameters": [
