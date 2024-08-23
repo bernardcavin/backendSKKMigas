@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from backend.routers.auth.models import Role
 from backend.routers.auth.schemas import GetUser
 from backend.routers.auth.utils import authorize, get_db, get_current_user
-from backend.routers.geometry import crud, schemas, models
+from backend.routers.spatial import crud, schemas, models
 
-router = APIRouter(prefix="/geometry", tags=["geometry"])
+router = APIRouter(prefix="/spatial", tags=["spatial"])
 
 @router.post("/area/create", response_model=schemas.GetAreaSchema)
 @authorize(role=[Role.KKKS])

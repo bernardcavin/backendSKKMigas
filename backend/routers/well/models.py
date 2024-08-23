@@ -271,8 +271,6 @@ class WellSummary(Base):
     well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
     well = relationship('Well', back_populates='well_summary')
 
-    stratigraphy_id = Column(String(36), ForeignKey('area_strat.id'))
-
     depth_datum = Column(Enum(DepthDatum))
 
     depth = Column(Float)
@@ -283,12 +281,8 @@ class WellSummary(Base):
     
     bit = Column(String)
     
-    casing_diameter = Column(Float)
-    casing_diameter_uom = Column(Enum(DiameterUOM))
-    
-    casing_grade = Column(String)
-    casing_weight = Column(Float)
-    casing_weight_uom = Column(Enum(WeightUOM))
+    casing_outer_diameter = Column(Float)
+    casing_outer_diameter_uom = Column(Enum(DiameterUOM))
     
     logging = Column(String)
     mud_program = Column(String)

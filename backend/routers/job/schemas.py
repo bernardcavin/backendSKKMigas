@@ -127,7 +127,7 @@ class CreateWorkover(CreateJob):
     class Meta:
         orm_model = Workover
 
-class CreateWellservice(CreateJob):
+class CreateWellService(CreateJob):
     
     well: CreateWell
     job_category: Optional[WOWSJobType]
@@ -141,8 +141,7 @@ class CreateWellservice(CreateJob):
 
 class CreatePlanningBase(BaseModel):
     
-    date_proposed: date = datetime.now().date()
-    status: PlanningStatus = PlanningStatus.PROPOSED
+    pass
     
 class CreateExplorationPlanning(CreatePlanningBase):
     
@@ -167,7 +166,7 @@ class CreateWorkoverPlanning(CreatePlanningBase):
 
 class CreateWellServicePlanning(CreatePlanningBase):
     
-    proposed_job: CreateWellservice
+    proposed_job: CreateWellService
     
     class Meta:
         orm_model = Planning

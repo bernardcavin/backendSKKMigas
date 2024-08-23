@@ -51,5 +51,20 @@ async def create_planning_wellservice(plan: schemas.CreateWellServicePlanning, d
 @router.patch('/planning/validate/exploration/{id}')
 @authorize(role=[Role.Admin])
 async def validate_planning_exploration(validation: schemas.CreateExploration, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
-    return crud.validate_exploration_plan(db,validation,user)
+    return crud.validate_job_plan(db,validation,user)
 
+@router.patch('/planning/validate/development/{id}')
+@authorize(role=[Role.Admin])
+async def validate_planning_exploration(validation: schemas.CreateDevelopment, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
+    return crud.validate_job_plan(db,validation,user)
+
+
+@router.patch('/planning/validate/workover/{id}')
+@authorize(role=[Role.Admin])
+async def validate_planning_exploration(validation: schemas.CreateWorkover, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
+    return crud.validate_job_plan(db,validation,user)
+
+@router.patch('/planning/validate/wellservice/{id}')
+@authorize(role=[Role.Admin])
+async def validate_planning_exploration(validation: schemas.CreateWellService, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
+    return crud.validate_job_plan(db,validation,user)
