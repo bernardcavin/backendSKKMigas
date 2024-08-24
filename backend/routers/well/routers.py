@@ -14,4 +14,4 @@ async def create_well(well: schemas.CreateWell, db: Session = Depends(get_db), u
     
     well_id = crud.create_well(db, well, user)
     
-    return OutputSchema(id = well_id )
+    return OutputSchema(id = well_id)

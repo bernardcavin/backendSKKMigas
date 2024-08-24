@@ -107,7 +107,7 @@ class CreateBase:
 
 class EditBase:
     
-    last_edited = Column(DateTime, onupdate=func.utc_timestamp())
+    last_edited = Column(DateTime, onupdate=func.utcnow())
     
     @declared_attr
     def last_edited_by_id(cls):
