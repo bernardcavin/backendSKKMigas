@@ -192,6 +192,8 @@ class Well(Base):
     well_ppfgs = relationship('WellPPFG', back_populates='well')
     well_logs = relationship('WellLog', back_populates='well')
     well_drilling_parameters = relationship('WellDrillingParameter', back_populates='well')
+    well_casing = relationship('WellCasing', back_populates='well')
+    well_stratigraphy = relationship('WellStratigraphy', back_populates='well')
     
 class WellDocument(Base):
     __tablename__ = 'well_documents'
@@ -287,6 +289,7 @@ class WellSummary(Base):
     logging = Column(String)
     mud_program = Column(String)
     cementing_program = Column(String)
+    
     bottom_hole_temperature = Column(Float)
     bottom_hole_temperature_uom = Column(Enum(TemperatureUOM))
     
@@ -308,5 +311,53 @@ class WellTest(Base):
     zone_top_depth = Column(Float)
     zone_bottom_depth = Column(Float)
     depth_uom = Column(Enum(DepthUOM))
+
+class WellCasing(Base):
+    
+    __tablename__ = 'well_casing'
+    
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
+    well = relationship('Well', back_populates='well_casing')
+    
+    depth_datum = Column(Enum(DepthDatum))
+    
+    depth = Column(Float)
+    depth_uom = Column(Enum(DepthUOM))
+    
+    length = Column(Float)
+    length_uom = Column(Enum(DepthUOM))
+    
+    hole_diameter = Column(Float)
+    hole_diameter_uom = Column(Enum(DiameterUOM))
+    
+    casing_outer_diameter = Column(Float)
+    casing_outer_diameter_uom = Column(Enum(DiameterUOM))
+    
+    casing_inner_diameter = Column(Float)
+    casing_inner_diameter_uom = Column(Enum(DiameterUOM))
+    
+    casing_grade = Column(String)
+    
+    casing_weight = Column(Float)
+    casing_weight_uom = Column(Enum(WeightUOM))
+    
+    connection = Column(String)
+    
+    description = Column(Text)
+    
+class WellStratigraphy(Base):
+    
+    __tablename__ = 'well_stratigraphy'
+    
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
+    well = relationship('Well', back_populates='well_stratigraphy')
+    
+    depth_datum = Column(Enum(DepthDatum))
+    
+    depth = Column(Float)
+    depth_uom = Column(Enum(DepthUOM))
     
     stratigraphy_id = Column(String(36), ForeignKey('area_strat.id'))
+    stratigraphy = relationship('StratUnit', foreign_keys=[stratigraphy_id])

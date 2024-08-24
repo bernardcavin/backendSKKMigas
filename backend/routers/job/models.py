@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship, declared_attr
 from backend.database import Base
 from enum import Enum as PyEnum
 import uuid
-from backend.utils.enum_operations import extend_flag
+from backend.utils.enum_operations import extend_enum
 
 class Severity(PyEnum):
     LOW = "LOW"
@@ -343,9 +343,6 @@ class Planning(Base, CreateBase, EditBase, ValidationBase):
     
     proposed_job_id = Column(String(36), ForeignKey('jobs.id'))
     proposed_job = relationship('Job', foreign_keys=[proposed_job_id])
-
-    approved_job_id = Column(String(36), ForeignKey('jobs.id'))
-    approved_job = relationship('Job', foreign_keys=[approved_job_id])
     
     date_proposed = Column(Date)
     date_returned = Column(Date)
@@ -567,8 +564,8 @@ class WorkoverOperation(PyEnum):
     MOBILIZATION = "(o) Mobilization"
     OTHER = "(p) Other"
 
-@extend_flag([DrillingOperation,CompletionOperation, WorkoverOperation], Enum)
-class OperationCode(Enum):
+@extend_enum([DrillingOperation,CompletionOperation, WorkoverOperation])
+class OperationCode(PyEnum):
    pass
 
 class TimeBreakdown(Base):
@@ -623,7 +620,7 @@ class BottomHoleAssembly(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     
-    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_report.id'))
+    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
     daily_operations_report = relationship('DailyOperationsReport', back_populates='bottom_hole_assemblies')
     
     bha_number = Column(String)
@@ -679,7 +676,7 @@ class BHAComponent(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     
-    bottom_hole_assembly_id = Column(String(36), ForeignKey('job_bottom_hole_assembly.id'))
+    bottom_hole_assembly_id = Column(String(36), ForeignKey('job_bottom_hole_assemblies.id'))
     bottom_hole_assembly = relationship('BottomHoleAssembly', back_populates='components')
     
     component = Column(Enum(BHAComponentType))
@@ -697,7 +694,7 @@ class DrillingFluid(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
      
-    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_report.id'))
+    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
     daily_operations_report = relationship('DailyOperationsReport', back_populates='drilling_fluids')
     
     mud_type = Column(Enum(MudType))
@@ -735,7 +732,7 @@ class MudAdditive(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     
-    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_report.id'))
+    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
     daily_operations_report = relationship('DailyOperationsReport', back_populates='mud_additives')
     
     mud_additive_type = Column(String)
@@ -747,7 +744,7 @@ class BulkMaterial(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     
-    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_report.id'))
+    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
     daily_operations_report = relationship('DailyOperationsReport', back_populates='bulk_materials')
     
     material_type = Column(String)
@@ -765,7 +762,7 @@ class Incident(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
 
-    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_report.id'))
+    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
     daily_operations_report = relationship('DailyOperationsReport', back_populates='hse_incidents')
     
     incidents_time = Column(DateTime)
@@ -779,7 +776,7 @@ class DirectionalSurvey(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     
-    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_report.id'))
+    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
     daily_operations_report = relationship('DailyOperationsReport', back_populates='directional_surveys')
     
     measured_depth = Column(Float)
@@ -792,7 +789,7 @@ class Personnel(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     
-    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_report.id'))
+    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
     daily_operations_report = relationship('DailyOperationsReport', back_populates='personnel')
     
     company = Column(String)
@@ -804,7 +801,7 @@ class Pumps(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     
-    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_report.id'))
+    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
     daily_operations_report = relationship('DailyOperationsReport', back_populates='pumps')
     
     slow_speed = Column(Enum(YesNo))
@@ -820,7 +817,7 @@ class Weather(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     
-    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_report.id'))
+    daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
     daily_operations_report = relationship('DailyOperationsReport', back_populates='weather')
     
     temperature_high = Column(Float)

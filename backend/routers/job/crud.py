@@ -22,13 +22,9 @@ def create_job_plan(db: Session, plan: object, user: GetUser):
 
     return db_plan.id
 
-def validate_job_plan(id: str, db: Session, validation: object, user: GetUser):
+def validate_job_plan(id: str, db: Session, user: GetUser):
 
     db_plan = db.query(Planning).filter_by(id=id).one()
-    
-    db_plan.approved_job = validation.Meta.orm_model(
-        **parse_schema(validation)
-    )
     
     db_plan.date_approved = datetime.now().date()
     db_plan.status = PlanningStatus.APPROVED

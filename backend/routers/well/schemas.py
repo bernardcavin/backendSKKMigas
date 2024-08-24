@@ -136,15 +136,60 @@ class WellTestBase(BaseModel):
     class Meta:
         orm_model = WellTest
 
+class WellCasingBase(BaseModel):
+    
+    depth_datum: Optional[DepthDatum]
+    
+    depth: Optional[float]
+    depth_uom: Optional[DepthUOM]
+    
+    length: Optional[float]
+    length_uom: Optional[DepthUOM]
+    
+    hole_diameter: Optional[float]
+    hole_diameter_uom: Optional[DiameterUOM]
+    
+    casing_outer_diameter: Optional[float]
+    casing_outer_diameter_uom: Optional[DiameterUOM]
+    
+    casing_inner_diameter: Optional[float]
+    casing_inner_diameter_uom: Optional[DiameterUOM]
+    
+    casing_grade: Optional[str]
+    
+    casing_weight: Optional[float]
+    casing_weight_uom: Optional[WeightUOM]
+    
+    connection: Optional[str]
+    
+    description: Optional[str]
+    
+    class Meta:
+        orm_model = WellCasing
+
+class WellStratigraphyBase(BaseModel):
+    
+    depth_datum: Optional[DepthDatum]
+    
+    depth: Optional[float]
+    depth_uom: Optional[DepthUOM]
+    
+    stratigraphy_id: str
+    
+    class Meta:
+        orm_model = WellStratigraphy
+
 class CreateWell(WellBase):
     
-    well_documents: List[WellDocumentBase]
-    well_summary: List[WellSummaryBase]
-    well_test: List[WellTestBase]
-    well_trajectories: List[WellTrajectoryBase]
-    well_ppfgs: List[WellPPFGBase]
-    well_logs: List[WellLogBase]
-    well_drilling_parameters: List[WellDrillingParameterBase]
+    well_documents: Optional[List[WellDocumentBase]]
+    well_summary: Optional[List[WellSummaryBase]]
+    well_test: Optional[List[WellTestBase]]
+    well_trajectories: Optional[List[WellTrajectoryBase]]
+    well_ppfgs: Optional[List[WellPPFGBase]]
+    well_logs: Optional[List[WellLogBase]]
+    well_drilling_parameters: Optional[List[WellDrillingParameterBase]]
+    well_casing: Optional[List[WellCasingBase]]
+    well_stratigraphy: Optional[List[WellStratigraphyBase]]
     
     class Meta:
         orm_model = Well
