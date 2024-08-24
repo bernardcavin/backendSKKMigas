@@ -25,13 +25,15 @@ logger.addHandler(stream_handler)
 if int(os.getenv('DEMO_MODE'))==1:
     logger.info('Creating dummy data')
     from backend.utils.create_dummy_data import generate_dummy_data
-    if os.path.exists('test.db'):
-        os.remove("test.db")
     Base.metadata.create_all(bind=engine)
     generate_dummy_data(n=10)
     logger.info('Dummy data successfully created')
 else:
+    if os.path.exists('test.db'):
+        os.remove("test.db")
+    from backend.utils.create_dummy_data import generate_dummy_user
     Base.metadata.create_all(bind=engine)
+    generate_dummy_user()
 
 app.add_middleware(
     CORSMiddleware,

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, UUID4
+from pydantic import BaseModel, UUID4, JsonValue
 
 class OutputSchema(BaseModel):
     
@@ -35,3 +35,7 @@ def parse_schema(schema):
                 f"Found nested Pydantic model in {schema.__class__} but Meta.orm_model was not specified."
             )
     return parsed_schema
+
+class PlotlyJSONSchema(BaseModel):
+    data: JsonValue
+    layout: JsonValue

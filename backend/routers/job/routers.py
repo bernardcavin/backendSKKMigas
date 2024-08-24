@@ -9,7 +9,7 @@ from backend.utils.schema_operations import OutputSchema
 router = APIRouter(prefix="/job", tags=["job"])
 
 @router.post("/planning/create/exploration", response_model=OutputSchema)
-@authorize(role=[Role.KKKS])
+@authorize(role=[Role.Admin,Role.KKKS])
 async def create_planning_exploration(plan: schemas.CreateExplorationPlanning, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
     
     job_id = crud.create_job_plan(db,plan,user)
@@ -19,7 +19,7 @@ async def create_planning_exploration(plan: schemas.CreateExplorationPlanning, d
     )
 
 @router.post("/planning/create/development", response_model=OutputSchema)
-@authorize(role=[Role.KKKS])
+@authorize(role=[Role.Admin,Role.KKKS])
 async def create_planning_development(plan: schemas.CreateDevelopmentPlanning, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
     
     job_id = crud.create_job_plan(db,plan,user)
@@ -29,7 +29,7 @@ async def create_planning_development(plan: schemas.CreateDevelopmentPlanning, d
     )
 
 @router.post("/planning/create/workover", response_model=OutputSchema)
-@authorize(role=[Role.KKKS])
+@authorize(role=[Role.Admin,Role.KKKS])
 async def create_planning_workover(plan: schemas.CreateWorkoverPlanning, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
     
     job_id = crud.create_job_plan(db,plan,user)
@@ -39,7 +39,7 @@ async def create_planning_workover(plan: schemas.CreateWorkoverPlanning, db: Ses
     )
 
 @router.post("/planning/create/wellservice", response_model=OutputSchema)
-@authorize(role=[Role.KKKS])
+@authorize(role=[Role.Admin,Role.KKKS])
 async def create_planning_wellservice(plan: schemas.CreateWellServicePlanning, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
     
     job_id = crud.create_job_plan(db,plan,user)
@@ -52,3 +52,8 @@ async def create_planning_wellservice(plan: schemas.CreateWellServicePlanning, d
 @authorize(role=[Role.Admin])
 async def validate_planning_exploration(plan_id: str, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
     return crud.validate_job_plan(plan_id, db, user)
+
+@router.get('/planning/view/{plan_id}')
+@authorize(role=[Role.Admin])
+async def view_plan(plan_id: str, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
+    return crud.get_plan(plan_id, db)

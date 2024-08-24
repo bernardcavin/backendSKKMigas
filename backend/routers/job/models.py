@@ -171,7 +171,7 @@ class WorkBreakdownStructure(Base):
     
     event = Column(String)
     start_date = Column(Date)
-    end_data = Column(Date)
+    end_date = Column(Date)
     remarks = Column(Text)
 
 class JobHazard(Base):

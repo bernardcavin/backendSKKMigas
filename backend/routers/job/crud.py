@@ -7,6 +7,8 @@ from backend.routers.well.crud import *
 from backend.routers.auth.schemas import GetUser
 
 from backend.utils.schema_operations import parse_schema
+from backend.utils.db_operations import model_to_dict
+from backend.routers.job.utils import create_gantt_chart
 
 def create_job_plan(db: Session, plan: object, user: GetUser):
 
@@ -45,16 +47,42 @@ def validate_job_plan(id: str, db: Session, user: GetUser):
         'status': 'success',
     }
     
-def _get_job_from_plan(job) -> Well:
+def _get_well_from_job(job: Union[Exploration, Development]) -> Well:
     
     return job.well
+
+def _get_job_from_plan(plan: Planning) -> Union[Exploration, Development]:
+    
+    return plan.proposed_job
+
     
 def get_plan(id: str, db: Session) -> Planning:
     
-    db_plan = db.query(Planning).filter_by(id=id).one()
+    db_plan = db.query(Planning).get(id)
     
-    view_plan = db_plan.__dict__
+    db_job = _get_job_from_plan(db_plan)
+    db_well = _get_well_from_job(db_job)
     
-    return db_plan
+    view_plan = model_to_dict(db_plan)
+    view_plan['operational'] = model_to_dict(db_job)
+    
+    #work breakdown structure
+    job_wbs = db_job.work_breakdown_structure
+    
+    events = [wbs.event for wbs in job_wbs]
+    plan_start_dates = [wbs.start_date for wbs in job_wbs]
+    plan_end_dates = [wbs.end_date for wbs in job_wbs]
+    
+    wbs = create_gantt_chart(
+        events,
+        plan_start_dates,
+        plan_end_dates
+    )
+    
+    view_plan['work_breakdown_structure'] = wbs
+    
+    view_plan['technical'] = model_to_dict(db_well)
+    
+    return view_plan
     
     

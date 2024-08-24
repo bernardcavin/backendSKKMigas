@@ -36,7 +36,7 @@ class WorkBreakdownStructureBase(BaseModel):
     
     event: str
     start_date: date
-    end_data: date
+    end_date: date
     remarks: str
     
     class Meta:
