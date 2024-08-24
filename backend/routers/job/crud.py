@@ -45,4 +45,17 @@ def validate_job_plan(id: str, db: Session, user: GetUser):
         'status': 'success',
     }
     
+# def _get_job_from_plan(job: )
+    
+# def _get_well_from_job(plan: Planning) -> :
+    
+
+def get_plan(id: str, db: Session) -> Planning:
+    
+    db_plan = db.query(Planning).filter_by(id=id).one()
+    
+    view_plan = db_plan.__dict__
+    
+    return db_plan
+    
     
