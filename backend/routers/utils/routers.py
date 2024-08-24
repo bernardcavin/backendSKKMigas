@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, File,UploadFile
 from typing import List
 from sqlalchemy.orm import Session
 from backend.routers.auth.models import *
-from backend.routers.geometry.models import *
-from backend.routers.geometry.models import Field as OilField
-from backend.routers.job.models import ContractType, DataPhase, DrillingClass, HazardType, JobType, RigType, Severity, StatusCloseOut, StatusOperasi, StatusPPP, StatusPengajuan, WOWSClass, WOWSJobType
-from backend.routers.well.models import CasingType, CasingUOM, DENLogUOM, DepthDatum, DepthUOM, EnvironmentType, LogType, MediaType, PORLogUOM, ProfileType, SizeUOM, VolumeUOM, WellType,WellClass,WellStatus
+from backend.routers.spatial.models import *
+from backend.routers.spatial.models import Field as OilField
+from backend.routers.job.models import ContractType, HazardType, RigType, Severity, WOWSJobType
+from backend.routers.well.models import CasingType, DENLogUOM, DepthDatum, DepthUOM, EnvironmentType, LogType, MediaType, PORLogUOM, SizeUOM, VolumeUOM, WellType, WellStatus, WellProfileType, DiameterUOM
 from backend.routers.utils.schemas import *
 from backend.routers.utils.crud import *
 from backend.routers.auth.utils import authorize, get_db, get_current_user
@@ -48,24 +48,15 @@ enum_map = {
     "strat_type": StratType,
     "strat_unit_type": StratUnitType,
     "petroleum_system": PetroleumSystem,
-    "data_phase": DataPhase,
     "severity": Severity,
-    "status_pengajuan": StatusPengajuan,
-    "status_operasi": StatusOperasi,
-    "status_ppp": StatusPPP,
-    "status_closeout": StatusCloseOut,
-    "job_type": JobType,
     "contract_type": ContractType,
     "rig_type": RigType,
     "hazard_type": HazardType,
     "wows_job_type": WOWSJobType,
-    "drilling_class": DrillingClass,
-    "wows_class": WOWSClass,
     "environment": EnvironmentType,
     "well_type": WellType,
-    "profile_type": ProfileType,
-    "well_class": WellClass,
-    "casing_uom": CasingUOM,
+    "profile_type": WellProfileType,
+    "casing_uom": DiameterUOM,
     "casing_type": CasingType,
     "depth_uom": DepthUOM,
     "volume_uom": VolumeUOM,
@@ -75,7 +66,6 @@ enum_map = {
     "denlog_uom": DENLogUOM,
     "porlog_uom": PORLogUOM,
     "well_status": WellStatus,
-    'data_phase': DataPhase,
 }
 
 @router.get('/enum/get/{enum_name}')
