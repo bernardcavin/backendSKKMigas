@@ -9,6 +9,7 @@ class WellBase(BaseModel):
     
     uwi: Optional[str]
     field_id: Optional[str]
+    area_id: Optional[str]
     kkks_id: Optional[str]
     data_phase: Optional[DataPhase]
 
@@ -101,18 +102,14 @@ class WellDrillingParameterBase(WellDigitalDataBase):
 
 class WellSummaryBase(BaseModel):
     
-    stratigraphy_id: Optional[str]
     depth_datum: Optional[DepthDatum]
     depth: Optional[float]
     depth_uom: Optional[DepthUOM]
     hole_diameter: Optional[float]
     hole_diameter_uom: Optional[DiameterUOM]
     bit: Optional[str]
-    casing_diameter: Optional[float]
-    casing_diameter_uom: Optional[DiameterUOM]
-    casing_grade: Optional[str]
-    casing_weight: Optional[float]
-    casing_weight_uom: Optional[WeightUOM]
+    casing_outer_diameter: Optional[float]
+    casing_outer_diameter_uom: Optional[DiameterUOM]
     logging: Optional[str]
     mud_program: Optional[str]
     cementing_program: Optional[str]
@@ -131,7 +128,6 @@ class WellTestBase(BaseModel):
     zone_top_depth: Optional[float]
     zone_bottom_depth: Optional[float]
     depth_uom: Optional[DepthUOM]
-    stratigraphy_id: Optional[str]
     
     class Meta:
         orm_model = WellTest

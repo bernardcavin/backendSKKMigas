@@ -120,6 +120,10 @@ class Well(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     
     uwi = Column(String)
+    
+    area_id = Column(String(36), ForeignKey('area.id'))
+    area = relationship('Area', back_populates='wells')
+    
     field_id = Column(String(36), ForeignKey('fields.id')) 
     field = relationship('Field', back_populates='wells')
 

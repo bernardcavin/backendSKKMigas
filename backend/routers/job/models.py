@@ -626,7 +626,7 @@ class BottomHoleAssembly(Base):
     bha_number = Column(String)
     bha_run = Column(Integer)
     
-    components = relationship('BHAComponents', back_populates='bottom_hole_assembly')
+    components = relationship('BHAComponent', back_populates='bottom_hole_assembly')
 
 class BHAComponentType(PyEnum):
     BUMPER_SUB = "Bumper Sub"

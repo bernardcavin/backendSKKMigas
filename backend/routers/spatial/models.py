@@ -72,6 +72,7 @@ class Area(Base):
     
     fields = relationship("Field", back_populates="area")
     jobs = relationship("Job", back_populates='area')
+    wells = relationship("Well", back_populates='area')
     strat_units = relationship("StratUnit", back_populates="area")
     
     geojson = Column(JSON)
