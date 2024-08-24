@@ -231,7 +231,7 @@ class JobOperationDay(Base):
     
     depth_in = Column(Float)
     depth_out = Column(Float)
-    depth_uoum = Column(Enum(DepthUOM))
+    depth_uom = Column(Enum(DepthUOM))
     
     operation_days = Column(Float)
     
@@ -284,7 +284,7 @@ class Workover(Job):
     
     id = Column(String(36), ForeignKey('jobs.id'), primary_key=True)
     
-    well_id = Column(Integer, ForeignKey('wells.id'))
+    well_id = Column(String(36), ForeignKey('wells.id'))
     well = relationship('Well', foreign_keys=[well_id])
     
     job_category = Column(Enum(WOWSJobType))
@@ -304,7 +304,7 @@ class WellService(Job):
     
     id = Column(String(36), ForeignKey('jobs.id'), primary_key=True)
     
-    well_id = Column(Integer, ForeignKey('wells.id'))
+    well_id = Column(String(36), ForeignKey('wells.id'))
     well = relationship('Well', foreign_keys=[well_id])
     
     job_category = Column(Enum(WOWSJobType))

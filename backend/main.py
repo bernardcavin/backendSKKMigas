@@ -24,6 +24,8 @@ logger.addHandler(stream_handler)
 
 if int(os.getenv('DEMO_MODE'))==1:
     logger.info('Creating dummy data')
+    if os.path.exists('test.db'):
+        os.remove("test.db")
     from backend.utils.create_dummy_data import generate_dummy_data
     Base.metadata.create_all(bind=engine)
     generate_dummy_data(n=10)

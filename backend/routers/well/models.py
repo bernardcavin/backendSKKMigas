@@ -6,7 +6,8 @@ import uuid
 
 class DataPhase(PyEnum):
     PROPOSED = 'PROPOSED'
-    RECOMMENDED = 'RECOMMENDED'
+    APPROVED = 'APPROVED'
+    ACTUAL = 'ACTUAL'
 
 class EnvironmentType(PyEnum):
     MARINE = 'MARINE'

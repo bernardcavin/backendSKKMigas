@@ -19,11 +19,15 @@ def create_job_plan(db: Session, plan: object, user: GetUser):
     db_plan.date_proposed = datetime.now().date()
     db_plan.status = PlanningStatus.PROPOSED
     
+    db_plan.proposed_job.job_instance_type = JobInstanceType.INITIAL_PROPOSAL
+    
     db_plan.proposed_job.well.kkks_id = user.kkks_id
     db_plan.proposed_job.kkks_id = user.kkks_id
     
     db_plan.proposed_job.well.area_id = db_plan.proposed_job.area_id
     db_plan.proposed_job.well.field_id = db_plan.proposed_job.field_id
+    
+    db_plan.proposed_job.well.data_phase = DataPhase.PROPOSED
     
     db_plan.created_by_id = user.id
     db_plan.time_created = datetime.now()

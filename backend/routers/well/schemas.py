@@ -11,7 +11,6 @@ class WellBase(BaseModel):
     field_id: Optional[str]
     area_id: Optional[str]
     kkks_id: Optional[str]
-    data_phase: Optional[DataPhase]
 
     well_name: Optional[str]
     alias_long_name: Optional[str]

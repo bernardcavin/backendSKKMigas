@@ -85,7 +85,7 @@ class JobOperationDayBase(BaseModel):
     
     depth_in: Optional[float]
     depth_out: Optional[float]
-    depth_uoum: Optional[DepthUOM]
+    depth_uom: Optional[DepthUOM]
     
     operation_days: Optional[float]
     
@@ -93,9 +93,7 @@ class JobOperationDayBase(BaseModel):
         orm_model = JobOperationDay
 
 class CreateJob(JobBase):
-    
-    job_instance_type: JobInstanceType = JobInstanceType.INITIAL_PROPOSAL
-    
+
     job_operation_days: List[JobOperationDayBase]
     work_breakdown_structure: List[WorkBreakdownStructureBase]
     job_hazards: List[JobHazardBase]
