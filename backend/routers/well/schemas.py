@@ -77,25 +77,20 @@ class WellDigitalDataBase(BaseModel):
     
     file_id: Optional[str]
     data_format: Optional[DataFormat]
-    data_class: Optional[DataClass]
 
 class WellLogBase(WellDigitalDataBase):
-    data_class: DataClass = DataClass.WELL_LOG
     class Meta:
         orm_model = WellLog
 
 class WellTrajectoryBase(WellDigitalDataBase):
-    data_class: DataClass = DataClass.TRAJECTORY
     class Meta:
         orm_model = WellTrajectory
 
 class WellPPFGBase(WellDigitalDataBase):
-    data_class: DataClass = DataClass.PPFG
     class Meta:
         orm_model = WellPPFG
 
 class WellDrillingParameterBase(WellDigitalDataBase):
-    data_class: DataClass = DataClass.DRILLING_PARAMETER
     class Meta:
         orm_model = WellDrillingParameter
 
@@ -179,10 +174,10 @@ class CreateWell(WellBase):
     well_documents: Optional[List[WellDocumentBase]]
     well_summary: Optional[List[WellSummaryBase]]
     well_test: Optional[List[WellTestBase]]
-    well_trajectories: Optional[List[WellTrajectoryBase]]
-    well_ppfgs: Optional[List[WellPPFGBase]]
+    well_trajectory: Optional[WellTrajectoryBase]
+    well_ppfg: Optional[WellPPFGBase]
     well_logs: Optional[List[WellLogBase]]
-    well_drilling_parameters: Optional[List[WellDrillingParameterBase]]
+    well_drilling_parameter: Optional[WellDrillingParameterBase]
     well_casing: Optional[List[WellCasingBase]]
     well_stratigraphy: Optional[List[WellStratigraphyBase]]
     

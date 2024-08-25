@@ -193,10 +193,10 @@ class Well(Base):
     well_documents = relationship('WellDocument', back_populates='well')
     well_summary = relationship('WellSummary', back_populates='well')
     well_test = relationship('WellTest', back_populates='well')
-    well_trajectories = relationship('WellTrajectory', back_populates='well')
-    well_ppfgs = relationship('WellPPFG', back_populates='well')
+    well_trajectory = relationship('WellTrajectory', back_populates='well', uselist=False)
+    well_ppfg = relationship('WellPPFG', back_populates='well', uselist=False)
     well_logs = relationship('WellLog', back_populates='well')
-    well_drilling_parameters = relationship('WellDrillingParameter', back_populates='well')
+    well_drilling_parameter = relationship('WellDrillingParameter', back_populates='well', uselist=False)
     well_casing = relationship('WellCasing', back_populates='well')
     well_stratigraphy = relationship('WellStratigraphy', back_populates='well')
     
@@ -252,7 +252,7 @@ class WellTrajectory(WellDigitalData):
         'polymorphic_identity': DataClass.TRAJECTORY,
     }
 
-    well = relationship('Well', back_populates='well_trajectories')
+    well = relationship('Well', back_populates='well_trajectory', single_parent=True)
 
 class WellPPFG(WellDigitalData):
 
@@ -260,7 +260,7 @@ class WellPPFG(WellDigitalData):
         'polymorphic_identity': DataClass.PPFG,
     }
 
-    well = relationship('Well', back_populates='well_ppfgs')
+    well = relationship('Well', back_populates='well_ppfg', single_parent=True)
 
 class WellDrillingParameter(WellDigitalData):
 
@@ -268,7 +268,7 @@ class WellDrillingParameter(WellDigitalData):
         'polymorphic_identity': DataClass.DRILLING_PARAMETER,
     }
 
-    well = relationship('Well', back_populates='well_drilling_parameters')
+    well = relationship('Well', back_populates='well_drilling_parameter', single_parent=True)
 
 class WellSummary(Base):
     

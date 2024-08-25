@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from backend.routers.job import crud as job_crud
 from backend.routers.job import models as job_models
 from backend.routers.utils.routers import *
+from backend.routers.utils import models as utils_models
 from backend.database import SessionLocal
 import os
 import uuid
@@ -132,6 +133,33 @@ def generate_dummy_data(n: int):
             }
         )
     
+    casing = pd.read_excel('backend/utils/dummy_data/casing.xlsx')
+        
+    plan_casing = []
+    
+    for i, row in casing.iterrows():
+        plan_casing.append(
+            {
+                "depth_datum": "RT",
+                "depth": row["End Depth"],
+                "depth_uom": "FEET",
+                "length": row["End Depth"] - row["Start Depth"],
+                "length_uom": "FEET",
+                "hole_diameter": 0,
+                "hole_diameter_uom": "INCH",
+                "casing_outer_diameter": row["Outer Diameter"],
+                "casing_outer_diameter_uom": "INCH",
+                "casing_inner_diameter": row["Inner Diameter"],
+                "casing_inner_diameter_uom": "INCH",
+                "casing_grade": '-',
+                "casing_weight": row['Weight'],
+                "casing_weight_uom": "PPF",
+                "connection": "string",
+                "description": row['Casing Type']
+            }
+        )
+    
+    
     with get_db_context() as db:
         
         db.add_all(
@@ -200,6 +228,19 @@ def generate_dummy_data(n: int):
                 )
             )
 
+            db.add_all(
+                [
+                    spatial_models.StratUnit(
+                        area_id = area_id,
+                        strat_unit_name = f'STRAT00{j}',
+                        strat_type = random_enum_value(StratType),
+                        strat_unit_type = random_enum_value(StratUnitType),
+                        strat_petroleum_system =random_enum_value(PetroleumSystem),
+                        remark = '-',
+                    ) for j in range(5)
+                ]
+            )
+
             user_id = str(uuid.uuid4())
 
             user = User(
@@ -215,6 +256,23 @@ def generate_dummy_data(n: int):
             db.add(
                 user
             )
+            
+            drilling_trajectory_file_id = str(uuid.uuid4())
+            
+            db.add_all(
+                [
+                    utils_models.FileDB(
+                        id =  drilling_trajectory_file_id,
+                        filename = 'drilling_trajectory.xlsx',
+                        size  = 10000,
+                        content_type = 'xlsx',
+                        upload_time = datetime.now(),
+                        file_location = '/workspaces/Backend/uploads/drilling_trajectory.xlsx',
+                        uploaded_by_id = user_id,
+                    ),
+                ]
+            )
+            
 
             for j in range(random.randint(0,5)):
 
@@ -341,54 +399,31 @@ def generate_dummy_data(n: int):
                                 "depth_uom": "FEET"
                                 }
                             ],
-                            "well_trajectories": [
+                            "well_trajectory": 
+                                {
+                                "file_id": drilling_trajectory_file_id,
+                                "data_format": DataFormat.PLAIN_TEXT,
+                                }
+                            ,
+                            "well_ppfg": 
                                 {
                                 "file_id": "string",
                                 "data_format": "IMAGE",
-                                "data_class": "WELL TRAJECTORY"
                                 }
-                            ],
-                            "well_ppfgs": [
-                                {
-                                "file_id": "string",
-                                "data_format": "IMAGE",
-                                "data_class": "PPFG"
-                                }
-                            ],
+                            ,
                             "well_logs": [
                                 {
                                 "file_id": "string",
                                 "data_format": "IMAGE",
-                                "data_class": "WELL LOG"
                                 }
                             ],
-                            "well_drilling_parameters": [
+                            "well_drilling_parameter": 
                                 {
                                 "file_id": "string",
                                 "data_format": "IMAGE",
-                                "data_class": "DRILLING PARAMETER"
                                 }
-                            ],
-                            "well_casing": [
-                                {
-                                "depth_datum": "RT",
-                                "depth": 0,
-                                "depth_uom": "FEET",
-                                "length": 0,
-                                "length_uom": "FEET",
-                                "hole_diameter": 0,
-                                "hole_diameter_uom": "INCH",
-                                "casing_outer_diameter": 0,
-                                "casing_outer_diameter_uom": "INCH",
-                                "casing_inner_diameter": 0,
-                                "casing_inner_diameter_uom": "INCH",
-                                "casing_grade": "string",
-                                "casing_weight": 0,
-                                "casing_weight_uom": "PPF",
-                                "connection": "string",
-                                "description": "string"
-                                }
-                            ],
+                            ,
+                            "well_casing": plan_casing,
                             "well_stratigraphy": [
                                 {
                                 "depth_datum": "RT",
