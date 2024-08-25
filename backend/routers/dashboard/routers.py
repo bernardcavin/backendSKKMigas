@@ -19,6 +19,16 @@ from backend.routers.job import crud, schemas, models
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 
+
+@router.get("/job-counts", response_model=Dict[str, int])
+async def get_job_counts(db: Session = Depends(get_db)):
+    try:
+        counts = count_job_data(db)
+        return counts
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+    
+
 @router.get("/job-well-data", response_model=CombinedData)
 async def read_job_and_well_data(db: Session = Depends(get_db)):
     try:
