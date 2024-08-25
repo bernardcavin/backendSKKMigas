@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, UUID4
 from typing import Optional, List
 from datetime import datetime
 from uuid import uuid4
+from datetime import date
 
 from backend.routers.well.models import *
 
@@ -60,6 +61,12 @@ class WellBase(BaseModel):
     final_md_uom: Optional[DepthUOM]
 
     remark: Optional[str]
+
+class WellNameResponse(BaseModel):
+    well_name: str | None
+
+    class Config:
+        orm_mode = True
 
 class WellDocumentBase(BaseModel):
     
@@ -183,3 +190,4 @@ class CreateWell(WellBase):
     
     class Meta:
         orm_model = Well
+

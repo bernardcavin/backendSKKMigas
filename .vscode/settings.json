@@ -1,4 +1,8 @@
 {
     "python.analysis.typeCheckingMode": "off",
-    "python.analysis.autoImportCompletions": true
+    "python.analysis.autoImportCompletions": true,
+    "editor.fontFamily": "Fira Code",
+    "editor.fontWeight": "bold",
+    "editor.fontLigatures": true
+
 }
