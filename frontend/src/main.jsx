@@ -1,17 +1,17 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App";
-import "./index.css";
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import App from './App.jsx'
+import './index.css'
+import { ChakraProvider } from '@chakra-ui/react'
+import { AuthProvider } from './Auth/AuthContext.jsx'
 
-import { ThemeProvider } from "@material-tailwind/react";
-import { AuthProvider } from "./AuthContext"; // Pastikan import ini benar sesuai dengan lokasi AuthContext
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <ThemeProvider>
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <ChakraProvider>
       <AuthProvider>
         <App />
       </AuthProvider>
-    </ThemeProvider>
-  </React.StrictMode>
-);
+    </ChakraProvider>
+  </StrictMode>,
+)

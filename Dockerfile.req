@@ -1,0 +1,23 @@
+# Use an official Python runtime as a parent image
+FROM python:3.12.3
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy requirements.txt into the container
+COPY requirements.txt .
+
+# Install any needed packages specified in requirements.txt
+RUN pip install -r requirements.txt
+
+# Copy the backend directory contents into the container
+COPY ./backendSKKMigas /app/backendSKKMigas
+
+# Set the working directory to where run.py is located
+WORKDIR /app/backendSKKMigas
+
+# Make port 8000 available to the world outside this container
+EXPOSE 8000
+
+# Run the application using run.py
+CMD ["python", "run.py"]

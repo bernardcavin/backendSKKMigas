@@ -1,0 +1,31 @@
+# Use an official Python runtime as a parent image
+FROM python:3.12.3
+
+# Set the working directory in the container
+WORKDIR /backendSKKMigas
+
+# Copy the backend directory contents into the container at /app/backend
+COPY ./backend /backendSKKMigas/backend
+
+# Copy run.py into the container at /app
+COPY run.py /backendSKKMigas/
+
+# Install any needed packages specified in requirements.txt
+# Assuming requirements.txt is in the backend folder
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+RUN pip install --upgrade pydantic fastapi
+
+ENV SQLALCHEMY_DATABASE_URL="sqlite:///./test.db"
+
+
+
+# Make port 8000 available to the world outside this container
+EXPOSE 8000
+
+# Set the working directory to where run.py is located
+WORKDIR /backendSKKMigas
+
+# Run the application using run.py
+CMD ["python", "run.py"]

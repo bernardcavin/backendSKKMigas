@@ -2,7 +2,7 @@
     "python.analysis.typeCheckingMode": "off",
     "python.analysis.autoImportCompletions": true,
     "editor.fontFamily": "Fira Code",
-    "editor.fontWeight": "bold",
+    "editor.fontWeight": 500,
     "editor.fontLigatures": true
 
 }

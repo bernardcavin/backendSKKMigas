@@ -1,0 +1,15 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./requirements.txt:/app/requirements.txt
+      - ./backendSKKMigas:/app/backendSKKMigas
+    environment:
+      - PYTHONUNBUFFERED=1
+      - SQLALCHEMY_DATABASE_URL=sqlite:///./test.db
+    env_file:
+      - .env
