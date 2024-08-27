@@ -1,6 +1,13 @@
 myenv
 frontend/node_modules
 test.db
+frontend
+backendSKKMigas
+docker-compose.yml
+Dockerfile.backend
+Dockerfile.frontend
+Dockerfile.req
+.dockerignore
 
 app/__pycache__
 

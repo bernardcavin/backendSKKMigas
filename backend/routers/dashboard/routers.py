@@ -39,6 +39,10 @@ async def read_job_and_well_data(db: Session = Depends(get_db)):
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+
+@router.get("/combined-data")
+def read_combined_data(db: Session = Depends(get_db)):
+    return get_all_data(db)
     
 
 
