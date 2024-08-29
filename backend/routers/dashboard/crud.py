@@ -445,6 +445,7 @@ def get_job_and_well_status_summary(db: Session) -> Dict:
     return summary
 
 # DATA PALING BAWAH TABLE REALISASI KEGIATAN SETIAP KKKS
+
 def calculate_exploration_realization(db: Session) -> List[ExplorationRealizationItem]:
     """
     Calculate the realization percentage of exploration activities for each KKKS.
@@ -456,14 +457,13 @@ def calculate_exploration_realization(db: Session) -> List[ExplorationRealizatio
         db.query(
             KKKS.id.label('kkks_id'),
             KKKS.nama_kkks.label('kkks_name'),
-            func.count(Planning.id).label('approved_plans'),
-            func.count(Operation.id).label('completed_operations')
+            func.count(case((Planning.status == PlanningStatus.APPROVED, Planning.id))).label('approved_plans'),
+            func.count(case((Operation.status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]), Operation.id))).label('completed_operations')
         )
         .join(Job, KKKS.id == Job.kkks_id)
         .join(Exploration, Job.id == Exploration.id)
-        .outerjoin(Planning, (Job.id == Planning.proposed_job_id) & (Planning.status == PlanningStatus.APPROVED))
-        .outerjoin(Operation, (Job.id == Operation.post_operation_job_id) & 
-                   (Operation.status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])))
+        .outerjoin(Planning, Job.id == Planning.proposed_job_id)
+        .outerjoin(Operation, Job.id == Operation.post_operation_job_id)
         .group_by(KKKS.id, KKKS.nama_kkks)
         .all()
     )
@@ -478,6 +478,8 @@ def calculate_exploration_realization(db: Session) -> List[ExplorationRealizatio
             completed_operations=result.completed_operations,
             realization_percentage=round(realization_percentage, 2)
         ))
+    print(realization_data)
 
     return realization_data
+
 

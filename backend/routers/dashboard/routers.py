@@ -105,7 +105,7 @@ async def read_budget_summary_charts(db: Session = Depends(get_db)):
             layout={
                 "title": f"{job_type.capitalize()} Budget",
                 "xaxis": {"title": "Budget (million US$)"},
-                "height": 300,
+                "height": 400,
                 "width": 500,
                 "margin": {"l": 100}  # Increase left margin for labels
             }
