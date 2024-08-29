@@ -1,21 +1,28 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, HTTPException
 from backend.routers.auth.models import *
 from backend.routers.job.models import *
 from backend.routers.job.schemas import *
 from backend.routers.well.crud import *
 from backend.routers.well.schemas import *
+from backend.routers.spatial.models import Area,Lapangan
+from backend.routers.spatial.schemas import *
 from backend.routers.dashboard.schemas import *
 from backend.routers.auth.schemas import GetUser
 from backend.routers.well.models import *
 from typing import List, Dict
 from datetime import date
-from sqlalchemy import and_,case,extract
+from sqlalchemy import and_,case,extract,select,text,or_
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+import json
 from datetime import date, timedelta
 import itertools
-
 from typing import Union
+import logging
+
 
 def count_job_data(db: Session) -> Dict[str, int]:
     operations_count = db.query(func.count(Operation.id)).scalar()
@@ -482,64 +489,326 @@ def calculate_exploration_realization(db: Session) -> List[ExplorationRealizatio
 
     return realization_data
 
+
+
 def get_kkks_job_counts(db: Session, kkks_id: str):
-    return db.query(
-        func.count(Job.id).label('total_jobs'),
-        func.sum(case((Planning.status == PlanningStatus.APPROVED, 1), else_=0)).label('approved_jobs'),
-        func.sum(case((Operation.status == OperationStatus.OPERATING, 1), else_=0)).label('operating_jobs'),
-        func.sum(case((Operation.status == OperationStatus.FINISHED, 1), else_=0)).label('finished_jobs')
-    ).join(Job, KKKS.id == Job.kkks_id
-    ).outerjoin(Planning, Job.id == Planning.proposed_job_id
-    ).outerjoin(Operation, Job.id == Operation.post_operation_job_id
-    ).filter(KKKS.id == kkks_id).first()
+    query = (
+        select(
+            func.count(Job.id).label('total_jobs'),
+            func.sum(case((Planning.status == PlanningStatus.APPROVED, 1), else_=0)).label('approved_jobs'),
+            func.sum(case((Operation.status == OperationStatus.OPERATING, 1), else_=0)).label('operating_jobs'),
+            func.sum(case((Operation.status == OperationStatus.FINISHED, 1), else_=0)).label('finished_jobs')
+        )
+        .select_from(KKKS)
+        .join(Job, KKKS.id == Job.kkks_id)
+        .outerjoin(Planning, Job.id == Planning.proposed_job_id)
+        .outerjoin(Operation, Job.id == Operation.post_operation_job_id)
+        .filter(KKKS.id == kkks_id)
+    )
+    return db.execute(query).first()
 
 def get_kkks_monthly_data(db: Session, kkks_id: str):
-    current_date = datetime.now()
-    start_date = current_date - timedelta(days=365)  # Last 12 months
+    current_year = datetime.now().year
     
-    monthly_data = db.query(
-        func.date_trunc('month', Job.start_date).label('month'),
-        func.count(Planning.id).label('planned_count'),
-        func.count(Operation.id).label('realized_count')
-    ).join(Job, KKKS.id == Job.kkks_id
-    ).outerjoin(Planning, (Job.id == Planning.proposed_job_id) & (Planning.status == PlanningStatus.APPROVED)
-    ).outerjoin(Operation, (Job.id == Operation.post_operation_job_id) & 
-                (Operation.status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]))
-    ).filter(
-        KKKS.id == kkks_id,
-        Job.start_date >= start_date,
-        Job.start_date <= current_date
-    ).group_by(func.date_trunc('month', Job.start_date)
-    ).order_by(func.date_trunc('month', Job.start_date)).all()
+    query = (
+        select(
+            func.strftime('%Y-%m', Job.start_date).label('month'),
+            func.count(Planning.id).label('planned_count'),
+            func.count(Operation.id).label('realized_count')
+        )
+        .select_from(KKKS)
+        .join(Job, KKKS.id == Job.kkks_id)
+        .outerjoin(Planning, (Job.id == Planning.proposed_job_id) & (Planning.status == PlanningStatus.APPROVED))
+        .outerjoin(Operation, (Job.id == Operation.post_operation_job_id) & 
+                   (Operation.status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])))
+        .filter(KKKS.id == kkks_id, func.strftime('%Y', Job.start_date) == str(current_year))
+        .group_by(func.strftime('%Y-%m', Job.start_date))
+    )
     
-    return [TimeSeriesData(
-        time_period=row.month.strftime("%Y-%m"),
-        planned=row.planned_count,
-        realized=row.realized_count
-    ) for row in monthly_data]
+    results = {row.month: {'planned': row.planned_count, 'realized': row.realized_count} for row in db.execute(query)}
+    
+    all_months = [f"{current_year}-{month:02d}" for month in range(1, 13)]
+    return [
+        TimeSeriesData(
+            time_period=month,
+            planned=results.get(month, {}).get('planned', 0),
+            realized=results.get(month, {}).get('realized', 0)
+        ) for month in all_months
+    ]
 
 def get_kkks_weekly_data(db: Session, kkks_id: str):
-    current_date = datetime.now()
-    start_date = current_date - timedelta(weeks=12)  # Last 12 weeks
+    current_year = datetime.now().year
     
-    weekly_data = db.query(
-        func.date_trunc('week', Job.start_date).label('week'),
-        func.count(Planning.id).label('planned_count'),
-        func.count(Operation.id).label('realized_count')
-    ).join(Job, KKKS.id == Job.kkks_id
-    ).outerjoin(Planning, (Job.id == Planning.proposed_job_id) & (Planning.status == PlanningStatus.APPROVED)
-    ).outerjoin(Operation, (Job.id == Operation.post_operation_job_id) & 
-                (Operation.status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]))
-    ).filter(
-        KKKS.id == kkks_id,
-        Job.start_date >= start_date,
-        Job.start_date <= current_date
-    ).group_by(func.date_trunc('week', Job.start_date)
-    ).order_by(func.date_trunc('week', Job.start_date)).all()
+    query = (
+        select(
+            func.strftime('%Y-%W', Job.start_date).label('week'),
+            func.count(Planning.id).label('planned_count'),
+            func.count(Operation.id).label('realized_count')
+        )
+        .select_from(KKKS)
+        .join(Job, KKKS.id == Job.kkks_id)
+        .outerjoin(Planning, (Job.id == Planning.proposed_job_id) & (Planning.status == PlanningStatus.APPROVED))
+        .outerjoin(Operation, (Job.id == Operation.post_operation_job_id) & 
+                   (Operation.status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])))
+        .filter(KKKS.id == kkks_id, func.strftime('%Y', Job.start_date) == str(current_year))
+        .group_by(func.strftime('%Y-%W', Job.start_date))
+    )
     
-    return [TimeSeriesData(
-        time_period=row.week.strftime("%Y-%m-%d"),
-        planned=row.planned_count,
-        realized=row.realized_count
-    ) for row in weekly_data]
+    results = {row.week: {'planned': row.planned_count, 'realized': row.realized_count} for row in db.execute(query)}
+    
+    all_weeks = [f"{current_year}-{week:02d}" for week in range(1, 54)]  # Up to 53 weeks
+    return [
+        TimeSeriesData(
+            time_period=week,
+            planned=results.get(week, {}).get('planned', 0),
+            realized=results.get(week, {}).get('realized', 0)
+        ) for week in all_weeks
+    ]
 
+def create_charts(monthly_data: List[TimeSeriesData], weekly_data: List[TimeSeriesData], kkks_name: str):
+    chart_data = {
+        "data": [
+            {
+                "type": "bar",
+                "name": "Monthly Planned",
+                "x": [item.time_period for item in monthly_data],
+                "y": [item.planned for item in monthly_data],
+                "marker": {"color": "blue"},
+            },
+            {
+                "type": "bar",
+                "name": "Monthly Realized",
+                "x": [item.time_period for item in monthly_data],
+                "y": [item.realized for item in monthly_data],
+                "marker": {"color": "red"},
+            },
+            {
+                "type": "bar",
+                "name": "Weekly Planned",
+                "x": [item.time_period for item in weekly_data],
+                "y": [item.planned for item in weekly_data],
+                "marker": {"color": "blue"},
+                "xaxis": "x2",
+                "yaxis": "y2",
+            },
+            {
+                "type": "bar",
+                "name": "Weekly Realized",
+                "x": [item.time_period for item in weekly_data],
+                "y": [item.realized for item in weekly_data],
+                "marker": {"color": "red"},
+                "xaxis": "x2",
+                "yaxis": "y2",
+            },
+        ],
+        "layout": {
+            "title": f"KKKS: {kkks_name} - Job Data",
+            "height": 1000,
+            "grid": {"rows": 2, "columns": 1, "pattern": "independent"},
+            "xaxis": {"title": "Month"},
+            "yaxis": {"title": "Number of Jobs"},
+            "xaxis2": {"title": "Week"},
+            "yaxis2": {"title": "Number of Jobs"},
+        },
+    }
+    return json.dumps(chart_data)
+
+# Import your database models and session dependency
+
+
+router = APIRouter()
+
+
+def get_kkks_job_counts(db: Session, kkks_id: str):
+    query = (
+        select(
+            func.count(Job.id).label('total_jobs'),
+            func.sum(case((Planning.status == PlanningStatus.APPROVED, 1), else_=0)).label('approved_jobs'),
+            func.sum(case((Operation.status == OperationStatus.OPERATING, 1), else_=0)).label('operating_jobs'),
+            func.sum(case((Operation.status == OperationStatus.FINISHED, 1), else_=0)).label('finished_jobs')
+        )
+        .select_from(KKKS)
+        .join(Job, KKKS.id == Job.kkks_id)
+        .outerjoin(Planning, Job.id == Planning.proposed_job_id)
+        .outerjoin(Operation, Job.id == Operation.post_operation_job_id)
+        .filter(KKKS.id == kkks_id)
+    )
+    return db.execute(query).first()
+
+def get_kkks_monthly_data(db: Session, kkks_id: str):
+    current_year = datetime.now().year
+    
+    query = (
+        select(
+            func.strftime('%Y-%m', Job.start_date).label('month'),
+            func.count(Planning.id).label('planned_count'),
+            func.count(Operation.id).label('realized_count')
+        )
+        .select_from(KKKS)
+        .join(Job, KKKS.id == Job.kkks_id)
+        .outerjoin(Planning, (Job.id == Planning.proposed_job_id) & (Planning.status == PlanningStatus.APPROVED))
+        .outerjoin(Operation, (Job.id == Operation.post_operation_job_id) & 
+                   (Operation.status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])))
+        .filter(KKKS.id == kkks_id, func.strftime('%Y', Job.start_date) == str(current_year))
+        .group_by(func.strftime('%Y-%m', Job.start_date))
+    )
+    
+    results = {row.month: {'planned': row.planned_count, 'realized': row.realized_count} for row in db.execute(query)}
+    
+    all_months = [f"{current_year}-{month:02d}" for month in range(1, 13)]
+    return [
+        TimeSeriesData(
+            time_period=month,
+            planned=results.get(month, {}).get('planned', 0),
+            realized=results.get(month, {}).get('realized', 0)
+        ) for month in all_months
+    ]
+
+def get_kkks_weekly_data(db: Session, kkks_id: str):
+    current_year = datetime.now().year
+    
+    query = (
+        select(
+            func.strftime('%Y-%W', Job.start_date).label('week'),
+            func.count(Planning.id).label('planned_count'),
+            func.count(Operation.id).label('realized_count')
+        )
+        .select_from(KKKS)
+        .join(Job, KKKS.id == Job.kkks_id)
+        .outerjoin(Planning, (Job.id == Planning.proposed_job_id) & (Planning.status == PlanningStatus.APPROVED))
+        .outerjoin(Operation, (Job.id == Operation.post_operation_job_id) & 
+                   (Operation.status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])))
+        .filter(KKKS.id == kkks_id, func.strftime('%Y', Job.start_date) == str(current_year))
+        .group_by(func.strftime('%Y-%W', Job.start_date))
+    )
+    
+    results = {row.week: {'planned': row.planned_count, 'realized': row.realized_count} for row in db.execute(query)}
+    
+    all_weeks = [f"{current_year}-{week:02d}" for week in range(1, 54)]  # Up to 53 weeks
+    return [
+        TimeSeriesData(
+            time_period=week,
+            planned=results.get(week, {}).get('planned', 0),
+            realized=results.get(week, {}).get('realized', 0)
+        ) for week in all_weeks
+    ]
+
+def create_charts(monthly_data: List[TimeSeriesData], weekly_data: List[TimeSeriesData], kkks_name: str):
+    chart_data = {
+        "data": [
+            {
+                "type": "bar",
+                "name": "Monthly Planned",
+                "x": [item.time_period for item in monthly_data],
+                "y": [item.planned for item in monthly_data],
+                "marker": {"color": "blue"},
+            },
+            {
+                "type": "bar",
+                "name": "Monthly Realized",
+                "x": [item.time_period for item in monthly_data],
+                "y": [item.realized for item in monthly_data],
+                "marker": {"color": "red"},
+            },
+            {
+                "type": "bar",
+                "name": "Weekly Planned",
+                "x": [item.time_period for item in weekly_data],
+                "y": [item.planned for item in weekly_data],
+                "marker": {"color": "blue"},
+                "xaxis": "x2",
+                "yaxis": "y2",
+            },
+            {
+                "type": "bar",
+                "name": "Weekly Realized",
+                "x": [item.time_period for item in weekly_data],
+                "y": [item.realized for item in weekly_data],
+                "marker": {"color": "red"},
+                "xaxis": "x2",
+                "yaxis": "y2",
+            },
+        ],
+        "layout": {
+            "title": f"KKKS: {kkks_name} - Job Data",
+            "height": 1000,
+            "grid": {"rows": 2, "columns": 1, "pattern": "independent"},
+            "xaxis": {"title": "Month"},
+            "yaxis": {"title": "Number of Jobs"},
+            "xaxis2": {"title": "Week"},
+            "yaxis2": {"title": "Number of Jobs"},
+        },
+    }
+    return json.dumps(chart_data)
+
+def get_well_job_data(db: Session, kkks_id: str):
+    query = (
+        select(
+            Well.well_name,
+            Area.area_name.label('wilayah_kerja'),
+            Lapangan.field_name.label('lapangan'),
+            Job.start_date.label('tanggal_mulai'),
+            Job.end_date.label('tanggal_selesai'),
+            Operation.date_started.label('tanggal_realisasi'),
+            Planning.status.label('plan_status'),
+            Operation.status.label('operation_status')
+        )
+        .select_from(Well)
+        .join(Area, Well.area_id == Area.id)
+        .join(Lapangan, Well.field_id == Lapangan.id)
+        .join(Job, Well.kkks_id == Job.kkks_id)
+        .outerjoin(Planning, (Job.id == Planning.proposed_job_id) & (Planning.status == PlanningStatus.APPROVED))
+        .outerjoin(Operation, (Job.id == Operation.post_operation_job_id) & 
+                   (Operation.status == OperationStatus.OPERATING))
+        .where(Well.kkks_id == kkks_id)
+        .where(or_(Planning.status == PlanningStatus.APPROVED, Operation.status == OperationStatus.OPERATING))
+    )
+
+    results = db.execute(query).all()
+
+    return [
+        WellJobData(
+            nama_sumur=row.well_name,
+            wilayah_kerja=row.wilayah_kerja,
+            lapangan=row.lapangan if row.lapangan else None,
+            tanggal_mulai=row.tanggal_mulai.strftime('%d %B %Y') if row.tanggal_mulai else None,
+            tanggal_selesai=row.tanggal_selesai.strftime('%d %B %Y') if row.tanggal_selesai else None,
+            tanggal_realisasi=row.tanggal_realisasi.strftime('%d %B %Y') if row.tanggal_realisasi else None,
+            status="APPROVED" if row.plan_status == PlanningStatus.APPROVED else "OPERATING"
+        ) for row in results
+    ]
+
+def get_job_counts(db: Session, job_types: List[str], statuses: List[str]) -> List[JobCountResponse]:
+    try:
+        # Query untuk menghitung jumlah berdasarkan job_type dan status
+        query = (
+            db.query(
+                Job.job_type,
+                Planning.status,
+                func.count().label('count')
+            )
+            .join(Planning, Job.id == Planning.proposed_job_id)
+            .filter(Job.job_type.in_(job_types), Planning.status.in_(statuses))
+            .group_by(Job.job_type, Planning.status)
+        )
+        
+        results = query.all()
+       
+
+        if not results:
+            return []
+
+        job_counts = [
+            JobCountResponse(
+                job_type=job_type or "Unknown",
+                status=status or "Unknown",
+                count=count or 0
+            )
+            for job_type, status, count in results
+        ]
+
+        return job_counts
+
+    except Exception as e:
+        # Log exception atau handle sesuai kebutuhan
+        raise

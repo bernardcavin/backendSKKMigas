@@ -127,7 +127,7 @@ class Well(Base):
     area = relationship('Area', back_populates='wells')
     
     field_id = Column(String(36), ForeignKey('fields.id')) 
-    field = relationship('Field', back_populates='wells')
+    field = relationship('Lapangan', back_populates='wells')
 
     kkks_id = Column(String(36), ForeignKey('kkks.id')) 
     kkks = relationship('KKKS', back_populates='wells')

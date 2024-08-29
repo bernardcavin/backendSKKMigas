@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session
 from backend.routers.auth.models import *
 from backend.routers.spatial.models import *
-from backend.routers.spatial.models import Field as OilField
+from backend.routers.spatial.models import Lapangan as OilField
 from backend.routers.job.models import ContractType, HazardType, RigType, Severity, WOWSJobType
 from backend.routers.well.models import CasingType, DENLogUOM, DepthDatum, DepthUOM, EnvironmentType, LogType, MediaType, PORLogUOM, SizeUOM, VolumeUOM, WellType, WellStatus, WellProfileType, DiameterUOM
 from backend.routers.utils.schemas import *

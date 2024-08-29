@@ -224,7 +224,7 @@ def generate_dummy_data(n: int):
             field_id = str(uuid.uuid4())
 
             db.add(
-                spatial_models.Field(
+                spatial_models.Lapangan(
                     id = field_id,
                     field_name = f'FIELD0{i}',
                     area_id = area_id,

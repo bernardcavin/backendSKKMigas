@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, extract, and_, cast, Integer,text
+from fastapi import APIRouter, Depends, HTTPException, status,Query
+from sqlalchemy import func, extract, and_, cast, Integer,text,or_
 from sqlalchemy.orm import Session
 from typing import Dict,List
 from backend.routers.auth.models import Role
 from backend.routers.job.models import *
 from backend.routers.well.schemas import *
 from backend.routers.well.models import *
+from backend.routers.spatial.models import *
 from backend.routers.auth.schemas import GetUser
 from backend.routers.dashboard.crud import *
 from calendar import monthrange, month_name as calendar_month_name
@@ -165,45 +166,67 @@ async def get_exploration_realization(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/kkks/{id}/detail", response_model=KKKSDetailResponse)
-async def get_kkks_detail(id: str, db: Session = Depends(get_db)):
-    # Debug: Print the received ID
-    print(f"Received KKKS ID: {id}")
-
-    # Debug: Check if the ID exists in the database
-    kkks_check = db.execute(text(f"SELECT id, nama_kkks FROM kkks WHERE id = :id"), {"id": id}).first()
-    if kkks_check:
-        print(f"Found KKKS in database: {kkks_check}")
-    else:
-        print("KKKS not found in database")
-
-    # Try to fetch the KKKS using SQLAlchemy ORM
-    kkks = db.query(KKKS).filter(KKKS.id == id).first()
-    
+@router.get("/kkks/{kkks_id}/detail", response_model=KKKSDetailResponse)
+async def get_kkks_detail(kkks_id: str, db: Session = Depends(get_db)):
+    kkks = db.query(KKKS).filter(KKKS.id == kkks_id).first()
     if not kkks:
-        # If ORM query fails, try a raw SQL query
-        kkks_raw = db.execute(text("SELECT id, nama_kkks FROM kkks WHERE id = :id"), {"id": id}).first()
-        if kkks_raw:
-            print(f"Found KKKS using raw SQL: {kkks_raw}")
-            kkks = KKKS(id=kkks_raw.id, nama_kkks=kkks_raw.nama_kkks)
-        else:
-            raise HTTPException(status_code=404, detail=f"KKKS with id {id} not found")
+        raise HTTPException(status_code=404, detail=f"KKKS with id {kkks_id} not found")
 
-    # Debug: Print the found KKKS
-    print(f"Using KKKS: {kkks.id}, {kkks.nama_kkks}")
+    job_counts = get_kkks_job_counts(db, kkks_id)
+    monthly_data = get_kkks_monthly_data(db, kkks_id)
+    weekly_data = get_kkks_weekly_data(db, kkks_id)
+    
+    chart_json = create_charts(monthly_data, weekly_data, kkks.nama_kkks)
+    well_job_data = get_well_job_data(db, kkks_id)
 
-    job_counts = get_kkks_job_counts(db, id)
-    monthly_data = get_kkks_monthly_data(db, id)
-    weekly_data = get_kkks_weekly_data(db, id)
 
     return KKKSDetailResponse(
         kkks_name=kkks.nama_kkks,
-        total_jobs=job_counts.total_jobs if job_counts else 0,
-        approved_jobs=job_counts.approved_jobs if job_counts else 0,
-        operating_jobs=job_counts.operating_jobs if job_counts else 0,
-        finished_jobs=job_counts.finished_jobs if job_counts else 0,
+        total_jobs=job_counts.total_jobs,
+        approved_jobs=job_counts.approved_jobs,
+        operating_jobs=job_counts.operating_jobs,
+        finished_jobs=job_counts.finished_jobs,
         monthly_data=monthly_data,
-        weekly_data=weekly_data
+        weekly_data=weekly_data,
+        chart_data=ChartDataModal(chart_json=chart_json),
+        well_job_data=well_job_data
     )
 
+@router.get("/job-counts/planning", response_model=List[JobCountResponse])
+def job_counts(db: Session = Depends(get_db)):
+    try:
+        # Default job_types dan statuses
+        job_type = ["exploration", "development", "workover","wellservices"]  # Sesuaikan dengan tipe pekerjaan yang ada di database
+        statuses = ["Proposed", "Approved", "Returned"]  # Sesuaikan dengan status yang ada di database
 
+        # Query untuk menghitung jumlah berdasarkan job_type dan status
+        query = (
+            db.query(
+                Job.job_type,
+                Planning.status,
+                func.count().label('count')
+            )
+            .join(Planning, Job.id == Planning.proposed_job_id)
+            .group_by(Job.job_type, Planning.status)
+        )
+        print(query)
+        
+        results = query.all()
+        print(results)
+
+        if not results:
+            raise HTTPException(status_code=404, detail="No data found")
+
+        job_counts = [
+            JobCountResponse(
+                job_type=job_type or "Unknown",
+                status=status or "Unknown",
+                count=count or 0
+            )
+            for job_type, status, count in results
+        ]
+
+        return job_counts
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

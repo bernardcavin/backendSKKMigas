@@ -70,14 +70,14 @@ class Area(Base):
     kkks_id = Column(String(36), ForeignKey('kkks.id'))
     kkks = relationship("KKKS", back_populates='area')
     
-    fields = relationship("Field", back_populates="area")
+    fields = relationship("Lapangan", back_populates="area")
     jobs = relationship("Job", back_populates='area')
     wells = relationship("Well", back_populates='area')
     strat_units = relationship("StratUnit", back_populates="area")
     
     geojson = Column(JSON)
 
-class Field(Base):   
+class Lapangan(Base):   
 
     __tablename__ = 'fields'
     

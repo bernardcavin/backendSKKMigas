@@ -91,11 +91,35 @@ class TimeSeriesData(BaseModel):
     planned: int
     realized: int
 
+class ChartDataModal(BaseModel):
+    chart_json: str
+
+class WellJobData(BaseModel):
+    nama_sumur: str
+    wilayah_kerja: str
+    lapangan: Optional[str] 
+    tanggal_mulai: str
+    tanggal_selesai: str
+    tanggal_realisasi: Optional[str] 
+    status: str
+
 class KKKSDetailResponse(BaseModel):
     kkks_name: str
     total_jobs: int
-    approved_jobs: int
-    operating_jobs: int
-    finished_jobs: int
+    approved_jobs: Optional[int]
+    operating_jobs: Optional[int]
+    finished_jobs: Optional[int]
     monthly_data: List[TimeSeriesData]
     weekly_data: List[TimeSeriesData]
+    chart_data: ChartDataModal
+    well_job_data: List[WellJobData]
+
+
+class JobCountResponse(BaseModel):
+    job_type: str
+    status: str
+    count: int
+
+
+
+

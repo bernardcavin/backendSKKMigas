@@ -133,7 +133,7 @@ class Job(Base):
     area = relationship('Area', back_populates='jobs')
     
     field_id = Column(String(36), ForeignKey('fields.id'))
-    field = relationship('Field', back_populates='jobs')
+    field = relationship('Lapangan', back_populates='jobs')
     
     #contract information
     contract_type = Column(Enum(ContractType))
