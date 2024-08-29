@@ -84,3 +84,18 @@ class ChartData(BaseModel):
 
 class BudgetSummaryResponse(BaseModel):
     charts: Dict[str, ChartData]
+
+
+class TimeSeriesData(BaseModel):
+    time_period: str
+    planned: int
+    realized: int
+
+class KKKSDetailResponse(BaseModel):
+    kkks_name: str
+    total_jobs: int
+    approved_jobs: int
+    operating_jobs: int
+    finished_jobs: int
+    monthly_data: List[TimeSeriesData]
+    weekly_data: List[TimeSeriesData]

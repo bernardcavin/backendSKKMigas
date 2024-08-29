@@ -482,4 +482,64 @@ def calculate_exploration_realization(db: Session) -> List[ExplorationRealizatio
 
     return realization_data
 
+def get_kkks_job_counts(db: Session, kkks_id: str):
+    return db.query(
+        func.count(Job.id).label('total_jobs'),
+        func.sum(case((Planning.status == PlanningStatus.APPROVED, 1), else_=0)).label('approved_jobs'),
+        func.sum(case((Operation.status == OperationStatus.OPERATING, 1), else_=0)).label('operating_jobs'),
+        func.sum(case((Operation.status == OperationStatus.FINISHED, 1), else_=0)).label('finished_jobs')
+    ).join(Job, KKKS.id == Job.kkks_id
+    ).outerjoin(Planning, Job.id == Planning.proposed_job_id
+    ).outerjoin(Operation, Job.id == Operation.post_operation_job_id
+    ).filter(KKKS.id == kkks_id).first()
+
+def get_kkks_monthly_data(db: Session, kkks_id: str):
+    current_date = datetime.now()
+    start_date = current_date - timedelta(days=365)  # Last 12 months
+    
+    monthly_data = db.query(
+        func.date_trunc('month', Job.start_date).label('month'),
+        func.count(Planning.id).label('planned_count'),
+        func.count(Operation.id).label('realized_count')
+    ).join(Job, KKKS.id == Job.kkks_id
+    ).outerjoin(Planning, (Job.id == Planning.proposed_job_id) & (Planning.status == PlanningStatus.APPROVED)
+    ).outerjoin(Operation, (Job.id == Operation.post_operation_job_id) & 
+                (Operation.status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]))
+    ).filter(
+        KKKS.id == kkks_id,
+        Job.start_date >= start_date,
+        Job.start_date <= current_date
+    ).group_by(func.date_trunc('month', Job.start_date)
+    ).order_by(func.date_trunc('month', Job.start_date)).all()
+    
+    return [TimeSeriesData(
+        time_period=row.month.strftime("%Y-%m"),
+        planned=row.planned_count,
+        realized=row.realized_count
+    ) for row in monthly_data]
+
+def get_kkks_weekly_data(db: Session, kkks_id: str):
+    current_date = datetime.now()
+    start_date = current_date - timedelta(weeks=12)  # Last 12 weeks
+    
+    weekly_data = db.query(
+        func.date_trunc('week', Job.start_date).label('week'),
+        func.count(Planning.id).label('planned_count'),
+        func.count(Operation.id).label('realized_count')
+    ).join(Job, KKKS.id == Job.kkks_id
+    ).outerjoin(Planning, (Job.id == Planning.proposed_job_id) & (Planning.status == PlanningStatus.APPROVED)
+    ).outerjoin(Operation, (Job.id == Operation.post_operation_job_id) & 
+                (Operation.status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]))
+    ).filter(
+        KKKS.id == kkks_id,
+        Job.start_date >= start_date,
+        Job.start_date <= current_date
+    ).group_by(func.date_trunc('week', Job.start_date)
+    ).order_by(func.date_trunc('week', Job.start_date)).all()
+    
+    return [TimeSeriesData(
+        time_period=row.week.strftime("%Y-%m-%d"),
+        planned=row.planned_count,
+        realized=row.realized_count
+    ) for row in weekly_data]
 

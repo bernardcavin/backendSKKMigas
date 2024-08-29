@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, extract, and_, cast, Integer
+from sqlalchemy import func, extract, and_, cast, Integer,text
 from sqlalchemy.orm import Session
 from typing import Dict,List
 from backend.routers.auth.models import Role
@@ -163,6 +163,47 @@ async def get_exploration_realization(db: Session = Depends(get_db)):
         return ExplorationRealizationResponse(data=realization_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/kkks/{id}/detail", response_model=KKKSDetailResponse)
+async def get_kkks_detail(id: str, db: Session = Depends(get_db)):
+    # Debug: Print the received ID
+    print(f"Received KKKS ID: {id}")
+
+    # Debug: Check if the ID exists in the database
+    kkks_check = db.execute(text(f"SELECT id, nama_kkks FROM kkks WHERE id = :id"), {"id": id}).first()
+    if kkks_check:
+        print(f"Found KKKS in database: {kkks_check}")
+    else:
+        print("KKKS not found in database")
+
+    # Try to fetch the KKKS using SQLAlchemy ORM
+    kkks = db.query(KKKS).filter(KKKS.id == id).first()
     
+    if not kkks:
+        # If ORM query fails, try a raw SQL query
+        kkks_raw = db.execute(text("SELECT id, nama_kkks FROM kkks WHERE id = :id"), {"id": id}).first()
+        if kkks_raw:
+            print(f"Found KKKS using raw SQL: {kkks_raw}")
+            kkks = KKKS(id=kkks_raw.id, nama_kkks=kkks_raw.nama_kkks)
+        else:
+            raise HTTPException(status_code=404, detail=f"KKKS with id {id} not found")
+
+    # Debug: Print the found KKKS
+    print(f"Using KKKS: {kkks.id}, {kkks.nama_kkks}")
+
+    job_counts = get_kkks_job_counts(db, id)
+    monthly_data = get_kkks_monthly_data(db, id)
+    weekly_data = get_kkks_weekly_data(db, id)
+
+    return KKKSDetailResponse(
+        kkks_name=kkks.nama_kkks,
+        total_jobs=job_counts.total_jobs if job_counts else 0,
+        approved_jobs=job_counts.approved_jobs if job_counts else 0,
+        operating_jobs=job_counts.operating_jobs if job_counts else 0,
+        finished_jobs=job_counts.finished_jobs if job_counts else 0,
+        monthly_data=monthly_data,
+        weekly_data=weekly_data
+    )
 
 
