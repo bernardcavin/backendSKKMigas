@@ -42,7 +42,7 @@ async def read_job_and_well_data(db: Session = Depends(get_db)):
 
 @router.get("/combined-data")
 def read_combined_data(db: Session = Depends(get_db)):
-    return get_all_data(db)
+    return get_combined_data(db)
 
 @router.get("/kkks-job-data", response_model=List[KKKSJobData])
 def read_kkks_job_data(db: Session = Depends(get_db)):

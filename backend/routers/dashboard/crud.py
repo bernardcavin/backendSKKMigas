@@ -92,6 +92,8 @@ def get_combined_data(db: Session) -> List[Dict]:
 def get_all_data(db: Session):
     return get_combined_data(db)
 
+
+# AMBIL DATA KKS ITUNG PERSENTASE DASHBOARD SKK
 def get_kkks_job_data(db: Session) -> List[Dict]:
     job_types = ['exploration', 'development', 'workover', 'wellservice']
 
@@ -136,7 +138,7 @@ def get_kkks_job_data(db: Session) -> List[Dict]:
                 kkks[job_type] = {"approved_plans": 0, "active_operations": 0, "percentage": 0}
 
     return list(kkks_data.values())
-
+# DASHBOARD BAGIAN ATAS YANG ADA PANAH HIJAU
 def get_aggregate_job_data(db: Session) -> Dict:
     job_types = ['exploration', 'development', 'workover', 'wellservice']
     
@@ -165,6 +167,7 @@ def get_aggregate_job_data(db: Session) -> Dict:
 
     return processed_result
 
+
 def get_job_data_change(db: Session) -> Dict:
     job_types = ['exploration', 'development', 'workover', 'wellservice']
     today = date.today()
@@ -190,6 +193,8 @@ def get_job_data_change(db: Session) -> Dict:
 
     return changes
 
+
+# BAR PALING ATAS DASHBOARD SKK
 def generate_job_summary_chart_data_json(db: Session) -> Dict:
     aggregate_data = get_aggregate_job_data(db)
     changes = get_job_data_change(db)
@@ -239,44 +244,40 @@ def generate_job_summary_chart_data_json(db: Session) -> Dict:
 
     return {"data": data, "layout": layout}
 
-
+# Ini DATA COUNT CARD SKK
 def get_job_type_summary(db: Session) -> List[Dict]:
     job_types = ['exploration', 'development', 'workover', 'wellservice']
     
-    query = db.query(
-        Job.job_type,
-        func.count(Planning.id).filter(Planning.status == PlanningStatus.APPROVED).label('rencana'),
-        func.count(Operation.id).filter(Operation.status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])).label('realisasi'),
-        func.count(Operation.id).filter(Operation.status == OperationStatus.FINISHED).label('selesai')
-    ).outerjoin(Planning, Job.id == Planning.proposed_job_id) \
-     .outerjoin(Operation, Job.id == Operation.post_operation_job_id) \
-     .group_by(Job.job_type)
-
-    results = query.all()
-
     summary = []
-    for result in results:
+    for job_type in job_types:
+        total = db.query(Job).filter(Job.job_type == job_type).count()
+        print("initotal",total)
+        rencana = db.query(Job).join(Planning).filter(
+            Job.job_type == job_type,
+            Planning.status == PlanningStatus.APPROVED
+        ).count()
+        print(rencana)
+        realisasi = db.query(Job).join(Operation).filter(
+            Job.job_type == job_type,
+            Operation.status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])
+        ).count()
+        selesai = db.query(Job).join(Operation).filter(
+            Job.job_type == job_type,
+            Operation.status == OperationStatus.FINISHED
+        ).count()
+        
         summary.append({
-            "job_type": result.job_type,
-            "rencana": result.rencana,
-            "realisasi": result.realisasi,
-            "selesai": result.selesai
+            "job_type": job_type,
+            "total": total,
+            "rencana": rencana,
+            "realisasi": realisasi,
+            "selesai": selesai
         })
     
-    # Ensure all job types are present
-    job_type_dict = {item['job_type']: item for item in summary}
-    for job_type in job_types:
-        if job_type not in job_type_dict:
-            summary.append({
-                "job_type": job_type,
-                "rencana": 0,
-                "realisasi": 0,
-                "selesai": 0
-            })
-    
-    return sorted(summary, key=lambda x: job_types.index(x['job_type']))
+    return summary
 
 
+# Graphic dibawah CARD SKK
 def get_job_monthly_data_with_cumulative(db: Session) -> Dict:
     current_year = datetime.now().year
     job_types = ['exploration', 'development', 'workover', 'wellservice']
@@ -330,7 +331,7 @@ def get_job_monthly_data_with_cumulative(db: Session) -> Dict:
         "months": months,
         "data": result
     }
-
+# Sambungan ATAS
 def generate_job_chart_data(db: Session) -> Dict:
     data = get_job_monthly_data_with_cumulative(db)
     
@@ -384,7 +385,7 @@ def generate_job_chart_data(db: Session) -> Dict:
     
     return charts
 
-
+# PLAN VS ACTUAL COST
 def get_budget_summary_by_job_type(db: Session) -> Dict[str, Dict]:
     job_types = ['exploration', 'development', 'workover', 'wellservice']
 
