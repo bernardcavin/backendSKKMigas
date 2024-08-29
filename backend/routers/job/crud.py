@@ -42,14 +42,13 @@ def create_job_plan(db: Session, plan: object, user: GetUser):
 
     return db_plan.id
 
-def validate_job_plan(id: str, db: Session, user: GetUser):
+def approve_job_plan(id: str, db: Session, user: GetUser):
 
     db_plan = db.query(Planning).filter_by(id=id).one()
     
     db_plan.date_approved = datetime.now().date()
     db_plan.status = PlanningStatus.APPROVED
-    db_plan.validated_by_id = user.id
-    db_plan.validation_date = datetime.now().date()
+    db_plan.approved_by_id = user.id
     db.commit()
     
     return {

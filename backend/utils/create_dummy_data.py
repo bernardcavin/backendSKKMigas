@@ -162,10 +162,13 @@ def generate_dummy_data(n: int):
     
     with get_db_context() as db:
         
+        skk_user_id = str(uuid.uuid4())
+        kkks_user_id = str(uuid.uuid4())
+        
         db.add_all(
                 [
                     User(
-                        id = str(uuid.uuid4()),
+                        id = skk_user_id,
                         username = f'skk',
                         email = f'skk@skk.com',
                         hashed_password = pwd_context.hash(f'skk'),
@@ -173,7 +176,7 @@ def generate_dummy_data(n: int):
                         verified_status = True
                     ),
                     User(
-                        id = str(uuid.uuid4()),
+                        id = kkks_user_id,
                         username = f'kkks',
                         email = f'kkks@kkks.com',
                         hashed_password = pwd_context.hash(f'kkks'),
@@ -186,7 +189,7 @@ def generate_dummy_data(n: int):
                         email = f'kkks1@kkks.com',
                         hashed_password = pwd_context.hash(f'kkks1'),
                         role = Role.KKKS,
-                        verified_status = True
+                        verified_status = False
                     )
                 ]
             )
@@ -274,7 +277,7 @@ def generate_dummy_data(n: int):
             )
             
 
-            for j in range(random.randint(0,5)):
+            for j in range(random.randint(0,10)):
 
                 plan_start = random_datetime_within_year(2024)
 
@@ -624,9 +627,14 @@ def generate_dummy_data(n: int):
                 #     GetUser.model_validate(user)
                 # )
                 
+                if random.randint(0, 1) == 1:
                     
+                    work_schema = job_crud.CreateExplorationPlanning
+                else:
+                    work_schema = job_crud.CreateDevelopmentPlanning
+                
                 db_plan = job_models.Planning(
-                    **job_crud.parse_schema(job_crud.CreateExplorationPlanning(**drilling_job_dict))
+                    **job_crud.parse_schema(work_schema(**drilling_job_dict))
                 )
 
                 db_plan.date_proposed = datetime.now().date()
@@ -644,7 +652,19 @@ def generate_dummy_data(n: int):
 
                 db_plan.created_by_id = user_id
                 db_plan.time_created = datetime.now()
+                
+                random_approval_status = random.randint(0, 2)
+                
+                if random_approval_status == 1:
+                    db_plan.date_approved = datetime.now().date()
+                    db_plan.status = job_models.PlanningStatus.APPROVED
+                    db_plan.approved_by_id = skk_user_id
+                elif random_approval_status == 2:
+                    db_plan.date_returned = datetime.now().date()
+                    db_plan.status = job_models.PlanningStatus.RETURNED
+                    db_plan.returned_by_id = skk_user_id
 
                 db.add(db_plan)
+                
             
         db.commit()

@@ -240,15 +240,24 @@ class JobOperationDay(Base):
 
 class ValidationBase:
     
-    validation_date = Column(DateTime)
+    remarks = Column(Text)
     
     @declared_attr
-    def validated_by_id(cls):
+    def approved_by_id(cls):
         return Column(String(36), ForeignKey('users.id'))
 
     @declared_attr
-    def validated_by(cls):
-        return relationship("User", foreign_keys=[cls.validated_by_id])
+    def approved_by(cls):
+        return relationship("User", foreign_keys=[cls.approved_by_id])
+    
+    @declared_attr
+    def returned_by_id(cls):
+        return Column(String(36), ForeignKey('users.id'))
+
+    @declared_attr
+    def returned_by(cls):
+        return relationship("User", foreign_keys=[cls.returned_by_id])
+        
 
 class Exploration(Job):
     
