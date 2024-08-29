@@ -66,3 +66,21 @@ class JobTypeSummary(BaseModel):
     rencana: int
     realisasi: int
     selesai: int
+
+class ExplorationRealizationItem(BaseModel):
+    kkks_id: str
+    kkks_name: str
+    approved_plans: int
+    completed_operations: int
+    realization_percentage: float
+
+class ExplorationRealizationResponse(BaseModel):
+    data: List[ExplorationRealizationItem]
+
+
+class ChartData(BaseModel):
+    data: List[Dict]
+    layout: Dict
+
+class BudgetSummaryResponse(BaseModel):
+    charts: Dict[str, ChartData]

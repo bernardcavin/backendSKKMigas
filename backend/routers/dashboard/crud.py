@@ -443,3 +443,41 @@ def get_job_and_well_status_summary(db: Session) -> Dict:
     print(well_status_counts)
 
     return summary
+
+# DATA PALING BAWAH TABLE REALISASI KEGIATAN SETIAP KKKS
+def calculate_exploration_realization(db: Session) -> List[ExplorationRealizationItem]:
+    """
+    Calculate the realization percentage of exploration activities for each KKKS.
+    
+    :param db: Database session
+    :return: List of ExplorationRealizationItem objects
+    """
+    results = (
+        db.query(
+            KKKS.id.label('kkks_id'),
+            KKKS.nama_kkks.label('kkks_name'),
+            func.count(Planning.id).label('approved_plans'),
+            func.count(Operation.id).label('completed_operations')
+        )
+        .join(Job, KKKS.id == Job.kkks_id)
+        .join(Exploration, Job.id == Exploration.id)
+        .outerjoin(Planning, (Job.id == Planning.proposed_job_id) & (Planning.status == PlanningStatus.APPROVED))
+        .outerjoin(Operation, (Job.id == Operation.post_operation_job_id) & 
+                   (Operation.status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])))
+        .group_by(KKKS.id, KKKS.nama_kkks)
+        .all()
+    )
+
+    realization_data = []
+    for result in results:
+        realization_percentage = (result.completed_operations / result.approved_plans * 100) if result.approved_plans > 0 else 0
+        realization_data.append(ExplorationRealizationItem(
+            kkks_id=result.kkks_id,
+            kkks_name=result.kkks_name,
+            approved_plans=result.approved_plans,
+            completed_operations=result.completed_operations,
+            realization_percentage=round(realization_percentage, 2)
+        ))
+
+    return realization_data
+

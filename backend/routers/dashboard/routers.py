@@ -86,14 +86,14 @@ async def read_job_type_summary(db: Session = Depends(get_db)):
 async def get_job_charts(db: Session = Depends(get_db)):
     return generate_job_chart_data(db)
 
-@router.get("/budget-summary-charts", response_model=Dict)
+@router.get("/budget-summary-charts", response_model=BudgetSummaryResponse)
 async def read_budget_summary_charts(db: Session = Depends(get_db)):
     budget_data = get_budget_summary_by_job_type(db)
     
-    charts = []
+    charts = {}
     for job_type, data in budget_data.items():
-        charts.append({
-            "data": [{
+        charts[job_type] = ChartData(
+            data=[{
                 "y": ["Plan", "Actual"],
                 "x": [data["planned"], data["actual"]],
                 "type": "bar",
@@ -102,16 +102,16 @@ async def read_budget_summary_charts(db: Session = Depends(get_db)):
                     "color": ["rgba(103, 58, 183, 0.8)", "rgba(156, 39, 176, 0.8)"]
                 }
             }],
-            "layout": {
+            layout={
                 "title": f"{job_type.capitalize()} Budget",
                 "xaxis": {"title": "Budget (million US$)"},
                 "height": 300,
                 "width": 500,
                 "margin": {"l": 100}  # Increase left margin for labels
             }
-        })
+        )
     
-    return {"charts": charts}
+    return BudgetSummaryResponse(charts=charts)
 
 @router.get("/job-well-status-chart", response_model=Dict)
 async def read_job_well_status_chart(db: Session = Depends(get_db)):
@@ -148,6 +148,21 @@ async def read_job_well_status_chart(db: Session = Depends(get_db)):
     }
     
     return chart_data
+
+
+@router.get("/exploration/realization", response_model=ExplorationRealizationResponse)
+async def get_exploration_realization(db: Session = Depends(get_db)):
+    """
+    Get the realization percentage of exploration activities for each KKKS.
+    
+    :param db: Database session
+    :return: ExplorationRealizationResponse object containing a list of realization data
+    """
+    try:
+        realization_data = calculate_exploration_realization(db)
+        return ExplorationRealizationResponse(data=realization_data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
     
 
 
