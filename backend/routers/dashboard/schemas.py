@@ -13,16 +13,16 @@ from .schemas import WellBase, JobBase  # Assuming you have these in your schema
 router = APIRouter()
 
 class WellData(BaseModel):
-    well_name: str | None
+    well_name: Optional[str]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class JobData(BaseModel):
-    start_date: date | None
+    start_date: Optional[date]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class CombinedData(BaseModel):
     wells: List[WellData]

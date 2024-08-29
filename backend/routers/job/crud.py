@@ -73,8 +73,52 @@ def get_plan(id: str, db: Session) -> Planning:
     db_well = _get_well_from_job(db_job)
     
     view_plan = model_to_dict(db_plan)
-    view_plan['operational'] = model_to_dict(db_job)
-    view_plan['technical'] = model_to_dict(db_well)
+    data_operational = model_to_dict(db_job)
+    data_teknis = model_to_dict(db_well)
+    
+    view_plan['operational'] = {
+        "Tipe Pekerjaan": data_operational["job_type"],
+        "KKKS": db_plan.proposed_job.kkks.nama_kkks,
+        "Wilayah Kerja": db_plan.proposed_job.area.area_name,
+        "Lapangan": db_plan.proposed_job.field.field_name,
+        "Jenis Kontrak": data_operational["contract_type"],
+        "Nomor AFE": data_operational["afe_number"],
+        "Tahun WP&B": data_operational["wpb_year"],
+        "Tanggal Mulai": data_operational["start_date"],
+        "Tanggal Selesai": data_operational["end_date"],
+        "Total Budget": data_operational["total_budget"],
+        "Nama Rig": data_operational["rig_name"],
+        "Tipe Rig": data_operational["rig_type"],
+        "RIG HP": data_operational["rig_horse_power"]
+    }
+
+    view_plan["technical"] = {
+        "UWI": data_teknis["uwi"],
+        "Nama Well": data_teknis["well_name"],
+        "Alias Well": data_teknis["alias_long_name"],
+        "Tipe Well": data_teknis["well_type"],
+        "Tipe Profil Well": data_teknis["well_profile_type"],
+        "Hidrokarbon Target": data_teknis["hydrocarbon_target"],
+        "Tipe Lingkungan": data_teknis["environment_type"],
+        "Longitude Permukaan": data_teknis["surface_longitude"],
+        "Latitude Permukaan": data_teknis["surface_latitude"],
+        "Longitude Bottom Hole": data_teknis["bottom_hole_longitude"],
+        "Latitude Bottom Hole": data_teknis["bottom_hole_latitude"],
+        "Maximum Inclination": data_teknis["maximum_inclination"],
+        "Azimuth": data_teknis["azimuth"],
+        "Nama Seismic Line": data_teknis["line_name"],
+        "Tanggal Tajak": data_teknis["spud_date"],
+        "Tanggal Selesai Drilling": data_teknis["final_drill_date"],
+        "Tanggal Komplesi": data_teknis["completion_date"],
+        "Elevasi Rotary Table": f'{data_teknis["rotary_table_elev"]} {data_teknis["rotary_table_elev_uom"]}',
+        "Elevasi Kelly Bushing": f'{data_teknis["kb_elev"]} {data_teknis["kb_elev_uom"]}',
+        "Elevasi Derrick Floor": f'{data_teknis["derrick_floor_elev"]} {data_teknis["derrick_floor_elev_uom"]}',
+        "Elevasi Ground": f'{data_teknis["ground_elev"]} {data_teknis["ground_elev_uom"]}',
+        "Mean Sea Level": f'{data_teknis["mean_sea_level"]} {data_teknis["mean_sea_level_uom"]}',
+        "Kick Off Point": f'{data_teknis["kick_off_point"]} {data_teknis["kick_off_point_uom"]} from {data_teknis["depth_datum"]}',
+        "Maximum TVD": f'{data_teknis["maximum_tvd"]} {data_teknis["maximum_tvd_uom"]} from {data_teknis["depth_datum"]}',
+        "Final MD": f'{data_teknis["final_md"]} {data_teknis["final_md_uom"]} from {data_teknis["depth_datum"]}',
+    }
     
     #work breakdown structure
     job_wbs = db_job.work_breakdown_structure
@@ -89,7 +133,7 @@ def get_plan(id: str, db: Session) -> Planning:
         plan_end_dates
     )
     
-    view_plan['work_breakdown_structure'] = wbs
+    view_plan['operational']['work_breakdown_structure'] = wbs
     
     #job operation days
     job_operation_days = db_job.job_operation_days
@@ -134,7 +178,7 @@ def get_plan(id: str, db: Session) -> Planning:
         diameters = casing_diameters,
     )
     
-    view_plan['well_casing'] = request_visualize_casing(
+    view_plan['technical']['well_casing'] = request_visualize_casing(
         casing_schema
     )
     
@@ -149,9 +193,9 @@ def get_plan(id: str, db: Session) -> Planning:
         casing_end_depths
     )
     
-    view_plan['well_trajectory'] = well_profile_plot
+    view_plan['technical']['well_trajectory'] = well_profile_plot
     
-    view_plan['job_operation_days'] = operation_days
+    view_plan['operational']['job_operation_days'] = operation_days
     
     return view_plan
     

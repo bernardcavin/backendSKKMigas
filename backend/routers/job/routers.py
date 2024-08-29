@@ -54,6 +54,7 @@ async def validate_planning_exploration(plan_id: str, db: Session = Depends(get_
     return crud.validate_job_plan(plan_id, db, user)
 
 @router.get('/planning/view/{plan_id}')
-@authorize(role=[Role.Admin])
+@authorize(role=[Role.Admin, Role.KKKS])
 async def view_plan(plan_id: str, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
     return crud.get_plan(plan_id, db)
+

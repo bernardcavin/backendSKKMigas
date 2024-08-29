@@ -63,10 +63,10 @@ class WellBase(BaseModel):
     remark: Optional[str]
 
 class WellNameResponse(BaseModel):
-    well_name: str | None
+    well_name: Optional[str]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class WellDocumentBase(BaseModel):
     

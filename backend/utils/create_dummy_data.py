@@ -267,7 +267,7 @@ def generate_dummy_data(n: int):
                         size  = 10000,
                         content_type = 'xlsx',
                         upload_time = datetime.now(),
-                        file_location = '/home/mamoykuns/datagueh/kerjaan skk/backendSKKMigas/uploads/drilling_trajectory.xlsx',
+                        file_location = 'backend/utils/dummy_data/drilling_trajectory.xlsx',
                         uploaded_by_id = user_id,
                     ),
                 ]

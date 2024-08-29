@@ -43,6 +43,7 @@ def request_visualize_casing(casing: schemas.VisualizeCasing):
     }
     
     return {
+        'session_id':session_id,
         'path':f'/visualize/casing-visualization/{session_id}'
     }
 
@@ -52,6 +53,7 @@ async def visualize_casing_request(casing: schemas.VisualizeCasing, user: GetUse
     return visualize_casing(casing)
 
 @router.get("/casing-visualization/{session_id}")
+@authorize(role=[Role.Admin, Role.KKKS])
 async def visualize_casing(session_id: str, background_tasks: BackgroundTasks, user: GetUser = Depends(get_current_user)):
     casing = session_ids[session_id]['schema']
     img_buf = utils.generate_well_casing(
