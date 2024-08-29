@@ -4,10 +4,11 @@ from enum import Enum as PyEnum
 from backend.database import Base
 import uuid
 
-class DataPhase(PyEnum):
-    PROPOSED = 'PROPOSED'
-    APPROVED = 'APPROVED'
-    ACTUAL = 'ACTUAL'
+class WellInstanceType(PyEnum):
+    INITIAL_PROPOSAL = 'INITIAL PROPOSAL'
+    REVISION = 'REVISION'
+    POST_OPERATION = 'POST OPERATION'
+    PPP = 'PPP'
 
 class EnvironmentType(PyEnum):
     MARINE = 'MARINE'
@@ -131,7 +132,7 @@ class Well(Base):
     kkks_id = Column(String(36), ForeignKey('kkks.id')) 
     kkks = relationship('KKKS', back_populates='wells')
 
-    data_phase = Column(Enum(DataPhase))
+    well_instance_type = Column(Enum(WellInstanceType))
     
     # Basic Information
     well_name = Column(String)

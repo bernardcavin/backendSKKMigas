@@ -17,6 +17,8 @@ RUN pip install -r requirements.txt
 
 RUN pip install --upgrade pydantic fastapi
 
+RUN pip install pydantic_extra_types
+
 ENV SQLALCHEMY_DATABASE_URL="sqlite:///./test.db"
 
 
@@ -24,8 +26,6 @@ ENV SQLALCHEMY_DATABASE_URL="sqlite:///./test.db"
 # Make port 8000 available to the world outside this container
 EXPOSE 8000
 
-# Set the working directory to where run.py is located
-WORKDIR /backendSKKMigas
 
 # Run the application using run.py
 CMD ["python", "run.py"]

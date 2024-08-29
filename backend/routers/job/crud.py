@@ -32,7 +32,7 @@ def create_job_plan(db: Session, plan: object, user: GetUser):
     db_plan.proposed_job.well.area_id = db_plan.proposed_job.area_id
     db_plan.proposed_job.well.field_id = db_plan.proposed_job.field_id
     
-    db_plan.proposed_job.well.data_phase = DataPhase.PROPOSED
+    db_plan.proposed_job.well.well_instance_type = WellInstanceType.INITIAL_PROPOSAL
     
     db_plan.created_by_id = user.id
     db_plan.time_created = datetime.now()

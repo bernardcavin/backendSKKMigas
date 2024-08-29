@@ -43,6 +43,111 @@ async def read_job_and_well_data(db: Session = Depends(get_db)):
 @router.get("/combined-data")
 def read_combined_data(db: Session = Depends(get_db)):
     return get_all_data(db)
+
+@router.get("/kkks-job-data", response_model=List[KKKSJobData])
+def read_kkks_job_data(db: Session = Depends(get_db)):
+    return get_kkks_job_data(db)
+
+@router.get("/aggregate-job-data", response_model=AggregateJobData)
+def read_aggregate_job_data(db: Session = Depends(get_db)):
+    aggregate_data = get_aggregate_job_data(db)
+    changes = get_job_data_change(db)
+    
+    result = {}
+    for job_type in ['exploration', 'development', 'workover', 'wellservice']:
+        data = aggregate_data[job_type]
+        result[job_type] = JobTypeDataUP(
+            total=data['total'],
+            plan=data['plan'],
+            realization=data['realization'],
+            percentage=data['percentage'],
+            change=changes[job_type]
+        )
+    
+    return AggregateJobData(**result)
+
+
+@router.get("/job-summary-chart", response_model=Dict)
+async def get_job_summary_chart(db: Session = Depends(get_db)):
+    """
+    Endpoint to get job summary chart data for Plotly visualization.
+    """
+    chart_data = generate_job_summary_chart_data_json(db)
+    return chart_data
+
+@router.get("/job-type-summary-skk", response_model=List[JobTypeSummary])
+async def read_job_type_summary(db: Session = Depends(get_db)):
+    """
+    Get summary of job counts for each job type.
+    """
+    return get_job_type_summary(db)
+
+@router.get("/job-charts", response_model=Dict)
+async def get_job_charts(db: Session = Depends(get_db)):
+    return generate_job_chart_data(db)
+
+@router.get("/budget-summary-charts", response_model=Dict)
+async def read_budget_summary_charts(db: Session = Depends(get_db)):
+    budget_data = get_budget_summary_by_job_type(db)
+    
+    charts = []
+    for job_type, data in budget_data.items():
+        charts.append({
+            "data": [{
+                "y": ["Plan", "Actual"],
+                "x": [data["planned"], data["actual"]],
+                "type": "bar",
+                "orientation": "h",
+                "marker": {
+                    "color": ["rgba(103, 58, 183, 0.8)", "rgba(156, 39, 176, 0.8)"]
+                }
+            }],
+            "layout": {
+                "title": f"{job_type.capitalize()} Budget",
+                "xaxis": {"title": "Budget (million US$)"},
+                "height": 300,
+                "width": 500,
+                "margin": {"l": 100}  # Increase left margin for labels
+            }
+        })
+    
+    return {"charts": charts}
+
+@router.get("/job-well-status-chart", response_model=Dict)
+async def read_job_well_status_chart(db: Session = Depends(get_db)):
+    data = get_job_and_well_status_summary(db)
+    
+    labels = list(data['well_status'].keys()) + ['Other Jobs']
+    values = list(data['well_status'].values()) + [data['post_operation_count']]
+
+    chart_data = {
+        "data": [{
+            "labels": labels,
+            "values": values,
+            "type": "pie",
+            "marker": {
+                "colors": [
+                    "rgba(103, 58, 183, 0.8)",  # Active
+                    "rgba(156, 39, 176, 0.8)",  # Suspended
+                    "rgba(33, 150, 243, 0.8)",  # Abandoned
+                    "rgba(0, 188, 212, 0.8)",   # Abandoned Whipstocked
+                    "rgba(76, 175, 80, 0.8)",   # Capped
+                    "rgba(255, 235, 59, 0.8)",  # Potential
+                    "rgba(255, 152, 0, 0.8)",   # Abandoned Junked
+                    "rgba(244, 67, 54, 0.8)",   # Not Drilled
+                    "rgba(158, 158, 158, 0.8)", # Cancelled
+                    "rgba(96, 125, 139, 0.8)"   # Other Jobs (POST_OPERATION)
+                ]
+            }
+        }],
+        "layout": {
+            "title": "Status Akhir",
+            "height": 500,
+            "width": 700
+        }
+    }
+    
+    return chart_data
     
 
 
