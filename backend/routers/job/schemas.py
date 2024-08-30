@@ -11,43 +11,22 @@ from typing import Optional
 from datetime import datetime, date
 from decimal import Decimal
 
-class JobBase(BaseModel):
-
-    # KKKS information
-    kkks_id: Optional[str]
-    area_id: Optional[str]
-    field_id: Optional[str]
-    
-    # Contract information
-    contract_type: Optional[ContractType]
-    afe_number: Optional[str]
-    wpb_year: Optional[int]
-    
-    start_date: Optional[date]
-    end_date: Optional[date]
-    total_budget: Optional[Decimal] = Field(default=None, max_digits=10, decimal_places=2)
-    
-    # Rig information
-    rig_name: Optional[str]
-    rig_type: Optional[RigType]
-    rig_horse_power: Optional[float]
-
 class WorkBreakdownStructureBase(BaseModel):
     
     event: str
     start_date: date
     end_date: date
-    remarks: str
+    remarks: Optional[str]
     
     class Meta:
         orm_model = WorkBreakdownStructure
 
 class JobHazardBase(BaseModel):
 
-    hazard_type: Optional[HazardType]
+    hazard_type: HazardType
     hazard_description: Optional[str]
-    severity: Optional[Severity]
-    mitigation: Optional[str]
+    severity: Severity
+    mitigation: str
     remark: Optional[str]
     
     class Meta:
@@ -55,24 +34,8 @@ class JobHazardBase(BaseModel):
 
 class JobDocumentBase(BaseModel):
     
-    file_id: Optional[str]
-    
-    title: Optional[str]
-    creator_name: Optional[str]
-    create_date: Optional[datetime]
-    
-    media_type: Optional[MediaType]
-    document_type: Optional[str]
-    
-    item_category: Optional[str]
-    item_sub_category: Optional[str]
-    
-    digital_format: Optional[str]
-    original_file_name: Optional[str]
-    
-    digital_size: Optional[float]
-    digital_size_uom: Optional[SizeUOM]
-    
+    file_id: str
+    document_type: JobDocumentType
     remark: Optional[str]
     
     class Meta:
@@ -80,93 +43,122 @@ class JobDocumentBase(BaseModel):
 
 class JobOperationDayBase(BaseModel):
 
-    phase: Optional[str]
-    depth_datum: Optional[DepthDatum]
+    phase: str
+    depth_datum: DepthDatum
     
-    depth_in: Optional[float]
-    depth_out: Optional[float]
-    depth_uom: Optional[DepthUOM]
+    depth_in: float
+    depth_out: float
+    depth_uom: DepthUOM
     
-    operation_days: Optional[float]
+    operation_days: float
     
     class Meta:
         orm_model = JobOperationDay
 
-class CreateJob(JobBase):
+class JobInstanceBase(BaseModel):
+    
+    start_date: date
+    end_date: date
+    total_budget: Decimal = Field(default=None, max_digits=10, decimal_places=2)
 
+    rig_name: str
+    rig_type: RigType
+    rig_horse_power: Decimal
+    
     job_operation_days: List[JobOperationDayBase]
     work_breakdown_structure: List[WorkBreakdownStructureBase]
     job_hazards: List[JobHazardBase]
     job_documents: List[JobDocumentBase]
 
-class CreateExploration(CreateJob):
+class CreateExploration(JobInstanceBase):
     
     well: CreateWell
+    
+    wrm_pembebasan_lahan: bool
+    wrm_ippkh: bool
+    wrm_ukl_upl: bool
+    wrm_amdal: bool
+    wrm_pengadaan_rig: bool
+    wrm_pengadaan_drilling_services: bool
+    wrm_pengadaan_lli: bool
+    wrm_persiapan_lokasi: bool
+    wrm_internal_kkks: bool
+    wrm_evaluasi_subsurface: bool
 
     class Meta:
         orm_model = Exploration
 
-class CreateDevelopment(CreateJob):
+class CreateDevelopment(JobInstanceBase):
     
     well: CreateWell
+    
+    wrm_pembebasan_lahan: bool
+    wrm_ippkh: bool
+    wrm_ukl_upl: bool
+    wrm_amdal: bool
+    wrm_cutting_dumping: bool
+    wrm_pengadaan_rig: bool
+    wrm_pengadaan_drilling_services: bool
+    wrm_pengadaan_lli: bool
+    wrm_persiapan_lokasi: bool
+    wrm_internal_kkks: bool
+    wrm_evaluasi_subsurface: bool
     
     class Meta:
         orm_model = Development
         
-class CreateWorkover(CreateJob):
+class CreateWorkover(JobInstanceBase):
     
     well: CreateWell
-    job_category: Optional[WOWSJobType]
+    job_category: WOWSJobType
     
-    onstream_oil: Optional[float]
-    onstream_gas:  Optional[float]
-    water_cut:  Optional[float]
+    onstream_oil: Decimal
+    onstream_gas:  Decimal
+    water_cut:  Decimal
 
     class Meta:
         orm_model = Workover
 
-class CreateWellService(CreateJob):
+class CreateWellService(JobInstanceBase):
     
     well: CreateWell
-    job_category: Optional[WOWSJobType]
+    job_category: WOWSJobType
     
-    onstream_oil: Optional[float]
-    onstream_gas:  Optional[float]
-    water_cut:  Optional[float]
+    onstream_oil: Decimal
+    onstream_gas:  Decimal
+    water_cut:  Decimal
 
     class Meta:
         orm_model = WellService
 
-class CreatePlanningBase(BaseModel):
+class PlanJobBase(BaseModel):
+
+    #kkks information
+    area_id: str
+    field_id: str
     
-    pass
+    #contract information
+    contract_type: ContractType
     
-class CreateExplorationPlanning(CreatePlanningBase):
-    
-    proposed_job: CreateExploration
+    afe_number: str
+    wpb_year: int
     
     class Meta:
-        orm_model = Planning
+        orm_model = Job
 
-class CreateDevelopmentPlanning(CreatePlanningBase):
+class ExplorationPlan(PlanJobBase):
     
-    proposed_job: CreateDevelopment
-    
-    class Meta:
-        orm_model = Planning
+    job_plan: CreateExploration
 
-class CreateWorkoverPlanning(CreatePlanningBase):
+class DevelopmentPlan(PlanJobBase):
     
-    proposed_job: CreateDevelopment
-    
-    class Meta:
-        orm_model = Planning
+    job_plan: CreateDevelopment
 
-class CreateWellServicePlanning(CreatePlanningBase):
+class WorkoverPlan(PlanJobBase):
     
-    proposed_job: CreateWellService
+    job_plan: CreateWorkover
+
+class WellServicePlan(PlanJobBase):
     
-    class Meta:
-        orm_model = Planning
-
-
+    job_plan: CreateWellService
+    

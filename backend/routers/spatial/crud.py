@@ -16,7 +16,7 @@ def create_area(db: Session, wk: CreateAreaSchema, user: GetUser):
 
 def create_field(db: Session, field: CreateFieldSchema):
     
-    db_field = Field(
+    db_field = Lapangan(
         **field.model_dump()
     )
     db.add(db_field)

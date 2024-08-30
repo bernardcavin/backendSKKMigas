@@ -5,8 +5,9 @@ from backend.database import Base
 import uuid
 
 class WellInstanceType(PyEnum):
-    INITIAL_PROPOSAL = 'INITIAL PROPOSAL'
-    REVISION = 'REVISION'
+    PROPOSED = 'PROPOSED'
+    APPROVED = 'APPROVED'
+    RETURNED = 'RETURNED'
     POST_OPERATION = 'POST OPERATION'
     PPP = 'PPP'
 
@@ -37,13 +38,8 @@ class WellStatus(PyEnum):
     ACTIVE = "Active"
     SUSPENDED = "Suspended"
     ABANDONED = "Abandoned"
-    ABANDONED_WHIPSTOCKED = "Abandoned Whipstocked"
-    CAPPED = "Capped"
-    POTENTIAL = "Potential"
-    ABANDONED_JUNKED = "Abandoned Junked"
-    NOT_DRILLED = "Not Drilled"
-    CANCELLED = "Cancelled"
-    UNKNOWN = "Unknown"
+    TPA = 'Temporary P&A'
+    PA = "P&A"
 
 class DiameterUOM(PyEnum):
     INCH = 'INCH'
@@ -201,6 +197,31 @@ class Well(Base):
     well_casing = relationship('WellCasing', back_populates='well')
     well_stratigraphy = relationship('WellStratigraphy', back_populates='well')
     
+class WellDocumentType(PyEnum):
+    WELL_REPORT = "Well Report"
+    DRILLING_LOG = "Drilling Log"
+    COMPLETION_REPORT = "Completion Report"
+    WELLBORE_DIAGRAM = "Wellbore Diagram"
+    WELL_TEST_REPORT = "Well Test Report"
+    PRODUCTION_LOG = "Production Log"
+    WELL_WORKOVER_REPORT = "Well Workover Report"
+    WELLHEAD_INSPECTION = "Wellhead Inspection"
+    CASING_REPORT = "Casing Report"
+    CEMENTING_REPORT = "Cementing Report"
+    PORE_PRESSURE_PREDICTION = "Pore Pressure Prediction"
+    FRACTURE_GRADIENT_REPORT = "Fracture Gradient Report"
+    WELL_TRAJECTORY = "Well Trajectory"
+    LOGGING_REPORT = "Logging Report"
+    MUD_LOGGING_REPORT = "Mud Logging Report"
+    WELL_SITE_SURVEY = "Well Site Survey"
+    GEOMECHANICAL_REPORT = "Geomechanical Report"
+    RESERVOIR_CHARACTERIZATION = "Reservoir Characterization"
+    CORE_ANALYSIS_REPORT = "Core Analysis Report"
+    WELL_COMPLETION_SUMMARY = "Well Completion Summary"
+    DRILLING_FLUID_REPORT = "Drilling Fluid Report"
+    WELL_ABANDONMENT_REPORT = "Well Abandonment Report"
+    HSE_REPORT = "HSE Report"
+    
 class WellDocument(Base):
     __tablename__ = 'well_documents'
 
@@ -211,11 +232,8 @@ class WellDocument(Base):
 
     well_id = Column(String(36), ForeignKey('wells.id'))
     well = relationship('Well', back_populates='well_documents')
-    
-    title = Column(String)
-    
-    media_type = Column(Enum(MediaType))
-    document_type = Column(String)
+
+    document_type = Column(Enum(WellDocumentType))
     
     remark = Column(Text)
 
@@ -236,7 +254,7 @@ class WellDigitalData(Base):
 
     __mapper_args__ = {
         'polymorphic_identity': 'well_digital_data',
-        'polymorphic_on': data_class
+        'polymorphic_on': 'data_class'
     }
 
 class WellLog(WellDigitalData):

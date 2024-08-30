@@ -70,11 +70,9 @@ class WellNameResponse(BaseModel):
 
 class WellDocumentBase(BaseModel):
     
-    file_id: Optional[str]
+    file_id: str
     
-    title: Optional[str]
-    media_type: Optional[MediaType]
-    document_type: Optional[str]
+    document_type: WellDocumentType
     remark: Optional[str]
     
     class Meta:

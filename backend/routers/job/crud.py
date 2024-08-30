@@ -15,108 +15,116 @@ from backend.routers.visualize.routers import request_visualize_casing
 from well_profile import load
 import pandas as pd
 
-def create_job_plan(db: Session, plan: object, user: GetUser):
+def create_job_plan(db: Session, job_type: JobType, plan: object, user: GetUser):
 
-    db_plan = Planning(
+    db_job = Job(
         **parse_schema(plan)
     )
     
-    db_plan.date_proposed = datetime.now().date()
-    db_plan.status = PlanningStatus.PROPOSED
+    db_job.kkks_id = user.kkks_id
+    db_job.job_type = job_type
+    db_job.date_proposed = datetime.now().date()
+    db_job.planning_status = PlanningStatus.PROPOSED
     
-    db_plan.proposed_job.job_instance_type = JobInstanceType.INITIAL_PROPOSAL
-    
-    db_plan.proposed_job.well.kkks_id = user.kkks_id
-    db_plan.proposed_job.kkks_id = user.kkks_id
-    
-    db_plan.proposed_job.well.area_id = db_plan.proposed_job.area_id
-    db_plan.proposed_job.well.field_id = db_plan.proposed_job.field_id
-    
-    db_plan.proposed_job.well.well_instance_type = WellInstanceType.INITIAL_PROPOSAL
-    
-    db_plan.created_by_id = user.id
-    db_plan.time_created = datetime.now()
+    db_job.created_by_id = user.id
+    db_job.time_created = datetime.now()
 
-    db.add(db_plan)
+    db.add(db_job)
     db.commit()
 
-    return db_plan.id
+    return db_job.id
 
 def approve_job_plan(id: str, db: Session, user: GetUser):
 
-    db_plan = db.query(Planning).filter_by(id=id).one()
+    db_job = db.query(Job).filter_by(id=id).one()
     
-    db_plan.date_approved = datetime.now().date()
-    db_plan.status = PlanningStatus.APPROVED
-    db_plan.approved_by_id = user.id
+    db_job.planning_status = PlanningStatus.APPROVED
+    db_job.date_approved = datetime.now().date()
+    db_job.approved_by_id = user.id
+    db_job.remarks = None
+    
+    db.commit()
+    
+    return {
+        'status': 'success',
+    }
+
+def return_job_plan(id: str, remarks: str, db: Session, user: GetUser):
+
+    db_job = db.query(Job).filter_by(id=id).one()
+    
+    db_job.planning_status = PlanningStatus.RETURNED
+    db_job.date_returned = datetime.now().date()
+    db_job.returned_by_id = user.id
+    db_job.remarks = remarks
+    
     db.commit()
     
     return {
         'status': 'success',
     }
     
-def _get_well_from_job(job: Union[Exploration, Development]) -> Well:
+def _get_well_from_plan(job: Union[Exploration, Development]) -> Well:
     
     return job.well
 
-def _get_job_from_plan(plan: Planning) -> Union[Exploration, Development]:
+def _get_plan_from_job(plan: Job) -> Union[Exploration, Development]:
     
-    return plan.proposed_job
-
+    return plan.job_plan
     
-def get_plan(id: str, db: Session) -> Planning:
+def get_job_plan(id: str, db: Session) -> Job:
     
-    db_plan = db.query(Planning).get(id)
+    db_job = db.query(Job).get(id)
     
-    db_job = _get_job_from_plan(db_plan)
-    db_well = _get_well_from_job(db_job)
+    db_plan = _get_plan_from_job(db_job)
+    db_well = _get_well_from_plan(db_plan)
     
-    view_plan = model_to_dict(db_plan)
-    data_operational = model_to_dict(db_job)
-    data_teknis = model_to_dict(db_well)
+    view_plan = {}
     
     view_plan['operational'] = {
-        "Tipe Pekerjaan": data_operational["job_type"],
-        "KKKS": db_plan.proposed_job.kkks.nama_kkks,
-        "Wilayah Kerja": db_plan.proposed_job.area.area_name,
-        "Lapangan": db_plan.proposed_job.field.field_name,
-        "Jenis Kontrak": data_operational["contract_type"],
-        "Nomor AFE": data_operational["afe_number"],
-        "Tahun WP&B": data_operational["wpb_year"],
-        "Tanggal Mulai": data_operational["start_date"],
-        "Tanggal Selesai": data_operational["end_date"],
-        "Total Budget": data_operational["total_budget"],
-        "Nama Rig": data_operational["rig_name"],
-        "Tipe Rig": data_operational["rig_type"],
-        "RIG HP": data_operational["rig_horse_power"]
+        "Tipe Pekerjaan": db_job.job_type,
+        "KKKS": db_job.kkks.nama_kkks,
+        "Wilayah Kerja": db_job.area.area_name,
+        "Lapangan": db_job.field.field_name,
+        "Jenis Kontrak": db_job.contract_type.value,
+        "Nomor AFE": db_job.afe_number,
+        "Tahun WP&B": db_job.wpb_year,
+        'Tanggal Diajukan': db_job.date_proposed,
+        "Tanggal Mulai": db_plan.start_date,
+        "Tanggal Selesai": db_plan.end_date,
+        "Total Budget": db_plan.total_budget,
+        "Nama Rig": db_plan.rig_name,
+        "Tipe Rig": db_plan.rig_type,
+        "RIG HP": db_plan.rig_horse_power,
+        "Planning Status": db_job.planning_status,
     }
 
     view_plan["technical"] = {
-        "UWI": data_teknis["uwi"],
-        "Nama Well": data_teknis["well_name"],
-        "Alias Well": data_teknis["alias_long_name"],
-        "Tipe Well": data_teknis["well_type"],
-        "Tipe Profil Well": data_teknis["well_profile_type"],
-        "Hidrokarbon Target": data_teknis["hydrocarbon_target"],
-        "Tipe Lingkungan": data_teknis["environment_type"],
-        "Longitude Permukaan": data_teknis["surface_longitude"],
-        "Latitude Permukaan": data_teknis["surface_latitude"],
-        "Longitude Bottom Hole": data_teknis["bottom_hole_longitude"],
-        "Latitude Bottom Hole": data_teknis["bottom_hole_latitude"],
-        "Maximum Inclination": data_teknis["maximum_inclination"],
-        "Azimuth": data_teknis["azimuth"],
-        "Nama Seismic Line": data_teknis["line_name"],
-        "Tanggal Tajak": data_teknis["spud_date"],
-        "Tanggal Selesai Drilling": data_teknis["final_drill_date"],
-        "Tanggal Komplesi": data_teknis["completion_date"],
-        "Elevasi Rotary Table": f'{data_teknis["rotary_table_elev"]} {data_teknis["rotary_table_elev_uom"]}',
-        "Elevasi Kelly Bushing": f'{data_teknis["kb_elev"]} {data_teknis["kb_elev_uom"]}',
-        "Elevasi Derrick Floor": f'{data_teknis["derrick_floor_elev"]} {data_teknis["derrick_floor_elev_uom"]}',
-        "Elevasi Ground": f'{data_teknis["ground_elev"]} {data_teknis["ground_elev_uom"]}',
-        "Mean Sea Level": f'{data_teknis["mean_sea_level"]} {data_teknis["mean_sea_level_uom"]}',
-        "Kick Off Point": f'{data_teknis["kick_off_point"]} {data_teknis["kick_off_point_uom"]} from {data_teknis["depth_datum"]}',
-        "Maximum TVD": f'{data_teknis["maximum_tvd"]} {data_teknis["maximum_tvd_uom"]} from {data_teknis["depth_datum"]}',
-        "Final MD": f'{data_teknis["final_md"]} {data_teknis["final_md_uom"]} from {data_teknis["depth_datum"]}',
+        "UWI": db_well.uwi,
+        "Nama Well": db_well.well_name,
+        "Alias Well": db_well.alias_long_name,
+        "Tipe Well": db_well.well_type,
+        "Tipe Profil Well": db_well.well_profile_type,
+        "Hidrokarbon Target": db_well.hydrocarbon_target,
+        "Tipe Lingkungan": db_well.environment_type,
+        "Longitude Permukaan": db_well.surface_longitude,
+        "Latitude Permukaan": db_well.surface_latitude,
+        "Longitude Bottom Hole": db_well.bottom_hole_longitude,
+        "Latitude Bottom Hole": db_well.bottom_hole_latitude,
+        "Maximum Inclination": db_well.maximum_inclination,
+        "Azimuth": db_well.azimuth,
+        "Nama Seismic Line": db_well.line_name,
+        "Tanggal Tajak": db_well.spud_date,
+        "Tanggal Selesai Drilling": db_well.final_drill_date,
+        "Tanggal Komplesi": db_well.completion_date,
+        "Elevasi Rotary Table": f'{db_well.rotary_table_elev} {db_well.rotary_table_elev_uom}',
+        "Elevasi Kelly Bushing": f'{db_well.kb_elev} {db_well.kb_elev_uom}',
+        "Elevasi Derrick Floor": f'{db_well.derrick_floor_elev} {db_well.derrick_floor_elev_uom}',
+        "Elevasi Ground": f'{db_well.ground_elev} {db_well.ground_elev_uom}',
+        "Mean Sea Level": f'{db_well.mean_sea_level} {db_well.mean_sea_level_uom}',
+        "Kick Off Point": f'{db_well.kick_off_point} {db_well.kick_off_point_uom} from {db_well.depth_datum}',
+        "Maximum TVD": f'{db_well.maximum_tvd} {db_well.maximum_tvd_uom} from {db_well.depth_datum}',
+        "Final MD": f'{db_well.final_md} {db_well.final_md_uom} from {db_well.depth_datum}',
     }
     
     #work breakdown structure

@@ -6,6 +6,29 @@ from enum import Enum as PyEnum
 import uuid
 from backend.utils.enum_operations import extend_enum
 
+class Percentage(Enum):
+    P0 = "0%"
+    P5 = "5%"
+    P10 = "10%"
+    P15 = "15%"
+    P20 = "20%"
+    P25 = "25%"
+    P30 = "30%"
+    P35 = "35%"
+    P40 = "40%"
+    P45 = "45%"
+    P50 = "50%"
+    P55 = "55%"
+    P60 = "60%"
+    P65 = "65%"
+    P70 = "70%"
+    P75 = "75%"
+    P80 = "80%"
+    P85 = "85%"
+    P90 = "90%"
+    P95 = "95%"
+    P100 = "100%"
+
 class Severity(PyEnum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
@@ -80,8 +103,9 @@ class RigType(PyEnum):
     DRILLSHIP = 'DRILLSHIP'
 
 class JobInstanceType(PyEnum):
-    INITIAL_PROPOSAL = 'INITIAL PROPOSAL'
-    REVISION = 'REVISION'
+    PROPOSED = 'PROPOSED'
+    APPROVED = 'APPROVED'
+    RETURNED = 'RETURNED'
     POST_OPERATION = 'POST OPERATION'
     PPP = 'PPP'
 
@@ -92,6 +116,49 @@ class HazardType(PyEnum):
     WELL_CONTROL = "WELL CONTROL"
     EQUIPMENT_FAILURE = "EQUIPMENT FAILURE"
     OTHER = "OTHER"
+
+class PlanningStatus(PyEnum):
+    PROPOSED = 'PROPOSED'
+    APPROVED = 'APPROVED'
+    RETURNED = 'RETURNED'
+
+class OperationStatus(PyEnum):
+    OPERATING = 'OPERATING'
+    FINISHED = 'FINISHED'
+
+class PPPStatus(PyEnum):
+    PROPOSED = 'PROPOSED'
+    APPROVED = 'APPROVED'
+
+class CloseOutStatus(PyEnum):
+    PROPOSED = 'PROPOSED'
+    APPROVED = 'APPROVED'
+
+class JobType(PyEnum):
+    EXPLORATION = 'Exploration'
+    DEVELOPMENT = 'Development'
+    WORKOVER = 'Workover'
+    WELLSERVICE = 'Well Service'
+    
+class ValidationBase:
+    
+    remarks = Column(Text)
+    
+    @declared_attr
+    def approved_by_id(cls):
+        return Column(String(36), ForeignKey('users.id'))
+
+    @declared_attr
+    def approved_by(cls):
+        return relationship("User", foreign_keys=[cls.approved_by_id])
+    
+    @declared_attr
+    def returned_by_id(cls):
+        return Column(String(36), ForeignKey('users.id'))
+
+    @declared_attr
+    def returned_by(cls):
+        return relationship("User", foreign_keys=[cls.returned_by_id])
 
 class CreateBase:
     
@@ -117,13 +184,13 @@ class EditBase:
     def last_edited_by(cls):
         return relationship("User", foreign_keys=[cls.last_edited_by_id])
 
-class Job(Base):
+class Job(Base, CreateBase, ValidationBase):
     
     __tablename__ = 'jobs'
-
+    
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    job_instance_type = Column(Enum(JobInstanceType))
-    job_type = Column(String)
+    
+    job_type = Column(Enum(JobType))
     
     #kkks information
     kkks_id = Column(String(36), ForeignKey('kkks.id'))
@@ -141,6 +208,49 @@ class Job(Base):
     afe_number = Column(String)
     wpb_year = Column(Integer)
     
+    #Planning
+    job_plan_id = Column(String(36), ForeignKey('job_instances.id'))
+    job_plan = relationship('JobInstance', foreign_keys=[job_plan_id])
+    
+    date_proposed = Column(Date)
+    date_returned = Column(Date)
+    date_approved = Column(Date)
+    
+    planning_status = Column(Enum(PlanningStatus))
+    
+    #Operation
+    actual_job_id = Column(String(36), ForeignKey('job_instances.id'))
+    actual_job = relationship('JobInstance', foreign_keys=[actual_job_id])
+    
+    daily_operations_report = relationship('DailyOperationsReport', back_populates='job')
+    
+    date_started = Column(Date)
+    date_finished = Column(Date)
+    
+    job_issues = relationship('JobIssue', back_populates='job')
+    
+    operation_status = Column(Enum(OperationStatus))
+    
+    #PPP
+    date_ppp_proposed = Column(Date)
+    date_ppp_approved = Column(Date)
+    
+    ppp_status = Column(Enum(PPPStatus))
+    
+    #CloseOut
+    date_proposed = Column(Date)
+    date_approved = Column(Date)
+    
+    closeout_status = Column(Enum(CloseOutStatus))
+
+class JobInstance(Base):
+    
+    __tablename__ = 'job_instances'
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    
+    job_type = Column(Enum(JobType))
+    
     start_date = Column(Date)
     end_date = Column(Date)
     total_budget = Column(Numeric(precision=10, scale=2))
@@ -151,13 +261,13 @@ class Job(Base):
     rig_horse_power = Column(Float)
 
     # job activity
-    job_operation_days = relationship('JobOperationDay', back_populates='job')
-    work_breakdown_structure = relationship('WorkBreakdownStructure', back_populates='job')
-    job_hazards = relationship('JobHazard', back_populates='job')
-    job_documents = relationship('JobDocument', back_populates='job')
+    job_operation_days = relationship('JobOperationDay', back_populates='job_instance')
+    work_breakdown_structure = relationship('WorkBreakdownStructure', back_populates='job_instance')
+    job_hazards = relationship('JobHazard', back_populates='job_instance')
+    job_documents = relationship('JobDocument', back_populates='job_instance')
     
     __mapper_args__ = {
-        "polymorphic_identity": "job",
+        "polymorphic_identity": "job_instance",
         "polymorphic_on": "job_type",
     }
 
@@ -166,8 +276,8 @@ class WorkBreakdownStructure(Base):
     __tablename__ = 'job_wbs'
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    job_id = Column(String(36), ForeignKey('jobs.id'))
-    job = relationship('Job', back_populates='work_breakdown_structure')
+    job_instance_id = Column(String(36), ForeignKey('job_instances.id'))
+    job_instance = relationship('JobInstance', back_populates='work_breakdown_structure')
     
     event = Column(String)
     start_date = Column(Date)
@@ -179,8 +289,8 @@ class JobHazard(Base):
     __tablename__ = 'job_hazards'
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    job_id = Column(String(36), ForeignKey('jobs.id'))
-    job = relationship('Job', back_populates='job_hazards')
+    job_instance_id = Column(String(36), ForeignKey('job_instances.id'))
+    job_instance = relationship('JobInstance', back_populates='job_hazards')
     
     hazard_type = Column(Enum(HazardType))
     hazard_description = Column(Text)
@@ -189,36 +299,37 @@ class JobHazard(Base):
     
     remark = Column(Text)
 
+class JobDocumentType(PyEnum):
+    DRILLING_PLAN = "Drilling Plan"
+    COMPLETION_PLAN = "Completion Plan"
+    WELL_DESIGN = "Well Design"
+    MUD_PLAN = "Mud Plan"
+    CEMENTING_PLAN = "Cementing Plan"
+    WELL_TRAJECTORY_PLAN = "Well Trajectory Plan"
+    RISK_ASSESSMENT_PLAN = "Risk Assessment Plan"
+    SAFETY_PLAN = "Safety Plan"
+    ENVIRONMENTAL_PLAN = "Environmental Plan"
+    LOGGING_PLAN = "Logging Plan"
+    PORE_PRESSURE_PREDICTION = "Pore Pressure Prediction"
+    HYDRAULICS_PLAN = "Hydraulics Plan"
+    CASING_PLAN = "Casing Plan"
+    CONTINGENCY_PLAN = "Contingency Plan"
+
 class JobDocument(Base):
     
     __tablename__ = 'job_documents'
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    job_id = Column(String(36), ForeignKey('jobs.id'))
-    job = relationship('Job', back_populates='job_documents')
+    job_instance_id = Column(String(36), ForeignKey('job_instances.id'))
+    job_instance = relationship('JobInstance', back_populates='job_documents')
 
     file_id = Column(String(36), ForeignKey('files.id'))
     file = relationship('FileDB', foreign_keys=[file_id])
     
-    title = Column(String)
-    creator_name = Column(String)
-    create_date = Column(DateTime)
-    
-    media_type = Column(Enum(MediaType))
-    document_type = Column(String)
-    
-    item_category = Column(String)
-    item_sub_category = Column(String)
-    
-    digital_format = Column(String)
-    
-    original_file_name = Column(String)
-    
-    digital_size = Column(Float)
-    digital_size_uom = Column(Enum(SizeUOM))
+    document_type = Column(Enum(JobDocumentType))
     
     remark = Column(Text)
-
+    
 class JobOperationDay(Base):
     
     __tablename__ = 'job_operation_days'
@@ -235,63 +346,65 @@ class JobOperationDay(Base):
     
     operation_days = Column(Float)
     
-    job_id = Column(String(36), ForeignKey('jobs.id'))
-    job = relationship('Job', back_populates='job_operation_days')
+    job_instance_id = Column(String(36), ForeignKey('job_instances.id'))
+    job_instance = relationship('JobInstance', back_populates='job_operation_days')
 
-class ValidationBase:
-    
-    remarks = Column(Text)
-    
-    @declared_attr
-    def approved_by_id(cls):
-        return Column(String(36), ForeignKey('users.id'))
-
-    @declared_attr
-    def approved_by(cls):
-        return relationship("User", foreign_keys=[cls.approved_by_id])
-    
-    @declared_attr
-    def returned_by_id(cls):
-        return Column(String(36), ForeignKey('users.id'))
-
-    @declared_attr
-    def returned_by(cls):
-        return relationship("User", foreign_keys=[cls.returned_by_id])
-        
-
-class Exploration(Job):
+class Exploration(JobInstance):
     
     __tablename__ = 'job_exploration'
     
-    id = Column(String(36), ForeignKey('jobs.id'), primary_key=True)
+    id = Column(String(36), ForeignKey('job_instances.id'), primary_key=True)
 
     well_id = Column(String(36), ForeignKey('wells.id'))
 
     well = relationship('Well', foreign_keys=[well_id])
+    
+    wrm_pembebasan_lahan = Column(Boolean)
+    wrm_ippkh = Column(Boolean)
+    wrm_ukl_upl = Column(Boolean)
+    wrm_amdal = Column(Boolean)
+    wrm_pengadaan_rig = Column(Boolean)
+    wrm_pengadaan_drilling_services = Column(Boolean)
+    wrm_pengadaan_lli = Column(Boolean)
+    wrm_persiapan_lokasi = Column(Boolean)
+    wrm_internal_kkks = Column(Boolean)
+    wrm_evaluasi_subsurface = Column(Boolean)
 
     __mapper_args__ = {
-        "polymorphic_identity": "exploration",
+        "polymorphic_identity": JobType.EXPLORATION,
     }
 
-class Development(Job):
+class Development(JobInstance):
     
     __tablename__ = 'job_development'
     
-    id = Column(String(36), ForeignKey('jobs.id'), primary_key=True)
+    id = Column(String(36), ForeignKey('job_instances.id'), primary_key=True)
     
     well_id = Column(String(36), ForeignKey('wells.id'))
 
     well = relationship('Well', foreign_keys=[well_id])
+    
+    wrm_pembebasan_lahan = Column(Boolean)
+    wrm_ippkh = Column(Boolean)
+    wrm_ukl_upl = Column(Boolean)
+    wrm_amdal = Column(Boolean)
+    wrm_cutting_dumping = Column(Boolean)
+    wrm_pengadaan_rig = Column(Boolean)
+    wrm_pengadaan_drilling_services = Column(Boolean)
+    wrm_pengadaan_lli = Column(Boolean)
+    wrm_persiapan_lokasi = Column(Boolean)
+    wrm_internal_kkks = Column(Boolean)
+    wrm_evaluasi_subsurface = Column(Boolean)
 
     __mapper_args__ = {
-        "polymorphic_identity": "development",
+        "polymorphic_identity": JobType.DEVELOPMENT,
     }
 
-class Workover(Job):
+class Workover(JobInstance):
     
     __tablename__ = 'job_workover'
     
-    id = Column(String(36), ForeignKey('jobs.id'), primary_key=True)
+    id = Column(String(36), ForeignKey('job_instances.id'), primary_key=True)
     
     well_id = Column(String(36), ForeignKey('wells.id'))
     well = relationship('Well', foreign_keys=[well_id])
@@ -304,14 +417,14 @@ class Workover(Job):
     water_cut = Column(Float)
     
     __mapper_args__ = {
-        "polymorphic_identity": "workover",
+        "polymorphic_identity": JobType.WORKOVER,
     }
 
-class WellService(Job):
+class WellService(JobInstance):
     
     __tablename__ = 'job_well_service'
     
-    id = Column(String(36), ForeignKey('jobs.id'), primary_key=True)
+    id = Column(String(36), ForeignKey('job_instances.id'), primary_key=True)
     
     well_id = Column(String(36), ForeignKey('wells.id'))
     well = relationship('Well', foreign_keys=[well_id])
@@ -324,49 +437,17 @@ class WellService(Job):
     water_cut = Column(Float)
     
     __mapper_args__ = {
-        "polymorphic_identity": "wellservice",
+        "polymorphic_identity": JobType.WELLSERVICE,
     }
 
-class PlanningStatus(PyEnum):
-    PROPOSED = 'PROPOSED'
-    APPROVED = 'APPROVED'
-    RETURNED = 'RETURNED'
-
-class OperationStatus(PyEnum):
-    OPERATING = 'OPERATING'
-    FINISHED = 'FINISHED'
-
-class PPPStatus(PyEnum):
-    PROPOSED = 'PROPOSED'
-    APPROVED = 'APPROVED'
-
-class CloseOutStatus(PyEnum):
-    PROPOSED = 'PROPOSED'
-    APPROVED = 'APPROVED'
-
-class Planning(Base, CreateBase, EditBase, ValidationBase):
-
-    __tablename__ = 'job_plans'
-    
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    
-    proposed_job_id = Column(String(36), ForeignKey('jobs.id'))
-    proposed_job = relationship('Job', foreign_keys=[proposed_job_id])
-    
-    date_proposed = Column(Date)
-    date_returned = Column(Date)
-    date_approved = Column(Date)
-    
-    status = Column(Enum(PlanningStatus))
-    
 class JobIssue(Base):
     
     __tablename__ = 'job_issues'
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     
-    job_operation_id = Column(String(36), ForeignKey('job_operations.id'))
-    job_operation = relationship('Operation', back_populates='job_issues')
+    job_id = Column(String(36), ForeignKey('jobs.id'))
+    job = relationship('Job', back_populates='job_issues')
     
     date_time = Column(DateTime)
     severity = Column(Enum(Severity))
@@ -374,58 +455,6 @@ class JobIssue(Base):
     
     resolved = Column(Boolean)
     resolved_date_time = Column(DateTime)
-
-class Operation(Base, CreateBase, EditBase):
-    
-    __tablename__ = 'job_operations'
-
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    
-    job_plan_id = Column(String(36), ForeignKey('job_plans.id'))
-    job_plan = relationship('Planning', foreign_keys=[job_plan_id])
-    
-    post_operation_job_id = Column(String(36), ForeignKey('jobs.id'))
-    post_operation_job = relationship('Job', foreign_keys=[post_operation_job_id])
-    
-    daily_operations_report = relationship('DailyOperationsReport', )
-    
-    date_started = Column(Date)
-    date_finished = Column(Date)
-    
-    job_issues = relationship('JobIssue', back_populates='job_operation')
-    
-    status = Column(Enum(OperationStatus))
-
-class PPP(Base, CreateBase, EditBase, ValidationBase):
-
-    __tablename__ = 'job_ppp'
-
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    
-    job_operation_id = Column(String(36), ForeignKey('job_operations.id'))
-    job_operation = relationship('Operation', foreign_keys=[job_operation_id])
-
-    approved_job_id = Column(String(36), ForeignKey('jobs.id'))
-    approved_job = relationship('Job', foreign_keys=[approved_job_id])
-    
-    date_proposed = Column(Date)
-    date_approved = Column(Date)
-    
-    status = Column(Enum(PPPStatus))
-
-class CloseOut(Base, CreateBase, EditBase, ValidationBase):
-
-    __tablename__ = 'job_closeout'
-
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    
-    job_ppp_id = Column(String(36), ForeignKey('job_ppp.id'))
-    job_ppp = relationship('PPP', foreign_keys=[job_ppp_id])
-    
-    date_proposed = Column(Date)
-    date_approved = Column(Date)
-    
-    status = Column(Enum(CloseOutStatus))
 
 class YesNo(PyEnum):
     Y = 'Y'
@@ -437,8 +466,8 @@ class DailyOperationsReport(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     
-    job_operation_id = Column(String(36), ForeignKey('job_operations.id'))
-    job_operation = relationship('Operation', back_populates='daily_operations_report')
+    job_id = Column(String(36), ForeignKey('jobs.id'))
+    job = relationship('Job', back_populates='daily_operations_report')
     
     #date
     report_date = Column(Date)
@@ -528,7 +557,7 @@ class JobCategory(PyEnum):
     DRILLING = 'DRILLING'
     COMPLETION = 'COMPLETION'
     WORKOVER = 'WORKOVER'
-    
+
 class NPT(PyEnum):
     NP = 'NP'
     P = 'P'
@@ -839,7 +868,3 @@ class Weather(Base):
     wave_current_speed = Column(Float)
     road_condition = Column(String)
     visibility = Column(String)
-
-
-
-

@@ -19,5 +19,3 @@ class FileDB(Base):
 
     uploaded_by_id = Column(String(36), ForeignKey('users.id'))
     uploaded_by = relationship('User', foreign_keys=[uploaded_by_id])
-    
-
