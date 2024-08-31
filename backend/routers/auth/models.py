@@ -17,7 +17,7 @@ class KKKS(Base):
     users = relationship("User", back_populates="kkks")
     jobs = relationship("Job", back_populates="kkks")
     area = relationship("Area", back_populates='kkks')
-    wells = relationship("Well", back_populates='kkks')
+    well_instances = relationship("WellInstance", back_populates='kkks')
 
 class User(Base):
     __tablename__ = 'users'

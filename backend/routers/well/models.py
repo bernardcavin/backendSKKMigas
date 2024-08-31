@@ -1,8 +1,11 @@
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, String, ForeignKey, DateTime, Enum, Text, Float
+from sqlalchemy import Column, String, ForeignKey, Enum, Text, Float, Date
 from enum import Enum as PyEnum
 from backend.database import Base
 import uuid
+
+from backend.utils.constants import uom
+
 
 class WellInstanceType(PyEnum):
     PROPOSED = 'PROPOSED'
@@ -41,14 +44,6 @@ class WellStatus(PyEnum):
     TPA = 'Temporary P&A'
     PA = "P&A"
 
-class DiameterUOM(PyEnum):
-    INCH = 'INCH'
-    MILIMETER = 'MILIMETER'
-
-class TemperatureUOM(PyEnum):
-    C = 'C'
-    F = 'F'
-
 class CasingType(PyEnum):
     CONDUCTOR_PIPE = 'CONDUCTOR PIPE'
     SURFACE_CASING = 'SURFACE CASING'
@@ -56,42 +51,16 @@ class CasingType(PyEnum):
     PRODUCTION_CASING = 'PRODUCTION CASING'
     PRODUCTION_LINER = 'PRODUCTION LINER'
 
-class DepthUOM(PyEnum):
-    FEET = 'FEET'
-    METER = 'METER'
-
-class VolumeUOM(PyEnum):
-    FEET3 = 'FEET3'
-    METER3 = 'METER3'
-
 class MediaType(PyEnum):
     EXTERNAL_HARDDISK = 'EXTERNAL_HARDDISK'
     PAPER = 'PAPER'
     FILM = 'FILM'
     CDROM = 'CDROM'
 
-class SizeUOM(PyEnum):
-    BYTE = 'BYTE'
-    KILOBYTE = 'KILOBYTE'
-    MEGABYTE = 'MEGABYTE'
-
 class LogType(PyEnum):
     GAMMA_RAY = 'GAMMA RAY'
     DENSITY = 'DENSITY'
     POROSITY = 'POROSITY'
-
-class GRLogUOM(PyEnum):
-    API = 'API'
-    CPS = 'CPS'
-
-class DENLogUOM(PyEnum):
-    GRAM_PER_CC = 'G/CC'
-    GRAM_PER_CM3 = 'G/CM3'
-    KILOGRAM_PER_M3 = 'KG/M3'
-
-class PORLogUOM(PyEnum):
-    PERCENT = '%'
-    DECIMAL = 'DECIMAL'
 
 class DataClass(PyEnum):
     WELL_LOG='WELL LOG'
@@ -102,31 +71,28 @@ class DataClass(PyEnum):
 class HydrocarbonTarget(PyEnum):
     OIL = 'OIL'
     GAS = 'GAS'
-    
-class WeightUOM(PyEnum):
-    PPF = 'PPF'
 
 class DataFormat(PyEnum):
     IMAGE = 'IMAGE'
     PDF = 'PDF'
     PLAIN_TEXT = 'PLAIN TEXT'
+    
 
-class Well(Base):
-    
-    __tablename__ = 'wells'
-    
+class WellInstance(Base):
+    __tablename__ = 'well_instances'
+
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    
+    well_phase = Column(String)
     uwi = Column(String)
     
     area_id = Column(String(36), ForeignKey('area.id'))
-    area = relationship('Area', back_populates='wells')
+    area = relationship('Area', back_populates='well_instances')
     
     field_id = Column(String(36), ForeignKey('fields.id')) 
-    field = relationship('Lapangan', back_populates='wells')
+    field = relationship('Lapangan', back_populates='well_instances')
 
     kkks_id = Column(String(36), ForeignKey('kkks.id')) 
-    kkks = relationship('KKKS', back_populates='wells')
+    kkks = relationship('KKKS', back_populates='well_instances')
 
     well_instance_type = Column(Enum(WellInstanceType))
     
@@ -139,63 +105,103 @@ class Well(Base):
     well_status = Column(Enum(WellStatus))
     well_profile_type = Column(Enum(WellProfileType))
     hydrocarbon_target = Column(Enum(HydrocarbonTarget))
-    environment_type = Column(Enum(EnvironmentType))  # EnvironmentType Type (PPDM: ENVIRONMENT_TYPE)
+    environment_type = Column(Enum(EnvironmentType))
     
     # Coordinates
-    surface_longitude = Column(Float)  # Surface Longitude (PPDM: SURFACE_LONGITUDE)
-    surface_latitude = Column(Float)  # Surface Latitude (PPDM: SURFACE_LATITUDE)
+    surface_longitude = Column(Float)
+    surface_latitude = Column(Float)
     bottom_hole_longitude = Column(Float)
     bottom_hole_latitude = Column(Float)
-    maximum_inclination = Column(Float) #degrees
-    azimuth = Column(Float) #degrees
+    maximum_inclination = Column(Float)
+    azimuth = Column(Float)
         
     # Seismic Information
-    line_name = Column(String)  # Line Name (PPDM: LINE_NAME)
+    line_name = Column(String)
     
     # Key Dates
-    spud_date = Column(DateTime)  # Spud Date (PPDM: SPUD_DATE)
-    final_drill_date = Column(DateTime)  # Final Drill Date (PPDM: FINAL_DRILL_DATE)
-    completion_date = Column(DateTime)  # Completion Date (PPDM: COMPLETION_DATE)
+    spud_date = Column(Date)
+    final_drill_date = Column(Date)
+    completion_date = Column(Date)
     
     # Elevations
-    rotary_table_elev = Column(Float)  # Rotary Table Elevation (PPDM: ROTARY_TABLE_ELEV)
-    rotary_table_elev_uom = Column(Enum(DepthUOM))  # Rotary Table Elevation ODepthUOM (PPDM: ROTARY_TABLE_ELEV_ODepthUOM)
+    rotary_table_elev = Column(Float)
+    rotary_table_elev_uom = Column(String)
     
-    kb_elev = Column(Float)  # Kelly Bushing Elevation (PPDM: KB_ELEV)
-    kb_elev_uom = Column(Enum(DepthUOM))  # Kelly Bushing Elevation ODepthUOM (PPDM: KB_ELEV_ODepthUOM)
+    kb_elev = Column(Float)
+    kb_elev_uom = Column(String)
     
-    derrick_floor_elev = Column(Float)  # Derrick Floor Elevation (PPDM: DERRICK_FLOOR_ELEV)
-    derrick_floor_elev_uom = Column(Enum(DepthUOM))  # Derrick Floor Elevation ODepthUOM (PPDM: DERRICK_FLOOR_ELEV_ODepthUOM)
+    derrick_floor_elev = Column(Float)
+    derrick_floor_elev_uom = Column(String)
     
-    ground_elev = Column(Float)  # Ground Elevation (PPDM: GROUND_ELEV)
-    ground_elev_uom = Column(Enum(DepthUOM)) # Ground Elevation ODepthUOM (PPDM: GROUND_ELEV_ODepthUOM)
+    ground_elev = Column(Float)
+    ground_elev_uom = Column(String)
     
     mean_sea_level = Column(Float)
-    mean_sea_level_uom = Column(Enum(DepthUOM))
+    mean_sea_level_uom = Column(String)
     
     # Depths
-    depth_datum = Column(Enum(DepthDatum))  # Depth Datum (PPDM: DEPTH_DATUM)
+    depth_datum = Column(Enum(DepthDatum))
 
     kick_off_point = Column(Float)
-    kick_off_point_uom = Column(Enum(DepthUOM))
+    kick_off_point_uom = Column(String)
     
-    maximum_tvd = Column(Float)  # Maximum True Vertical Depth (PPDM: MAX_TVD)
-    maximum_tvd_uom = Column(Enum(DepthUOM))  # Maximum True Vertical Depth ODepthUOM (PPDM: MAX_TVD_ODepthUOM)
+    maximum_tvd = Column(Float)
+    maximum_tvd_uom = Column(String)
     
-    final_md = Column(Float)  # Final Total Depth (PPDM: FINAL_TD)
-    final_md_uom = Column(Enum(DepthUOM))  # Final Total Depth ODepthUOM (PPDM: FINAL_TD_ODepthUOM)
+    final_md = Column(Float)
+    final_md_uom = Column(String)
 
-    remark = Column(Text)  # Remarks (PPDM: REMARK)
+    remark = Column(Text)
     
-    well_documents = relationship('WellDocument', back_populates='well')
-    well_summary = relationship('WellSummary', back_populates='well')
-    well_test = relationship('WellTest', back_populates='well')
-    well_trajectory = relationship('WellTrajectory', back_populates='well', uselist=False)
-    well_ppfg = relationship('WellPPFG', back_populates='well', uselist=False)
-    well_logs = relationship('WellLog', back_populates='well')
-    well_drilling_parameter = relationship('WellDrillingParameter', back_populates='well', uselist=False)
-    well_casing = relationship('WellCasing', back_populates='well')
-    well_stratigraphy = relationship('WellStratigraphy', back_populates='well')
+    well_documents = relationship('WellDocument', back_populates='well_instance')
+    well_summary = relationship('WellSummary', back_populates='well_instance')
+    well_trajectory = relationship('WellTrajectory', back_populates='well_instance', uselist=False)
+    well_test = relationship('WellTest', back_populates='well_instance')
+    well_ppfg = relationship('WellPPFG', back_populates='well_instance', uselist=False)
+    well_logs = relationship('WellLog', back_populates='well_instance')
+    well_drilling_parameter = relationship('WellDrillingParameter', back_populates='well_instance', uselist=False)
+    well_casing = relationship('WellCasing', back_populates='well_instance')
+    well_stratigraphy = relationship('WellStratigraphy', back_populates='well_instance')
+
+    __mapper_args__ = {
+        "polymorphic_on": "well_phase",
+    }
+
+    def __init__(self, unit_type,*args, **kwargs):
+
+        # Set UOM fields based on unit_type
+        uom_map = uom.get(unit_type, {})
+        self.rotary_table_elev_uom = uom_map.get('Elevation', 'm')  # Default to meters if not found
+        self.kb_elev_uom = uom_map.get('Elevation', 'm')  # Default to meters if not found
+        self.derrick_floor_elev_uom = uom_map.get('Elevation', 'm')  # Default to meters if not found
+        self.ground_elev_uom = uom_map.get('Elevation', 'm')  # Default to meters if not found
+        self.mean_sea_level_uom = uom_map.get('Elevation', 'm')  # Default to meters if not found
+        self.kick_off_point_uom = uom_map.get('Depth', 'm')  # Default to meters if not found
+        self.maximum_tvd_uom = uom_map.get('Depth', 'm')  # Default to meters if not found
+        self.final_md_uom = uom_map.get('Depth', 'm')  # Default to meters if not found
+
+        super().__init__(*args, **kwargs)
+    
+class PlanWell(WellInstance):
+    
+    __tablename__ = 'well_plans'
+    
+    id = Column(String(36), ForeignKey('well_instances.id'), primary_key=True)
+    
+    __mapper_args__ = {
+        "polymorphic_identity": "plan",
+    }
+    
+
+class ActualWell(WellInstance):
+    
+    __tablename__ = 'well_actuals'
+    
+    id = Column(String(36), ForeignKey('well_instances.id'), primary_key=True)
+    
+    __mapper_args__ = {
+        "polymorphic_identity": "actual",
+    }
     
 class WellDocumentType(PyEnum):
     WELL_REPORT = "Well Report"
@@ -221,7 +227,7 @@ class WellDocumentType(PyEnum):
     DRILLING_FLUID_REPORT = "Drilling Fluid Report"
     WELL_ABANDONMENT_REPORT = "Well Abandonment Report"
     HSE_REPORT = "HSE Report"
-    
+
 class WellDocument(Base):
     __tablename__ = 'well_documents'
 
@@ -230,8 +236,8 @@ class WellDocument(Base):
     file_id = Column(String(36), ForeignKey('files.id'), nullable=True)
     file = relationship('FileDB', foreign_keys=[file_id])
 
-    well_id = Column(String(36), ForeignKey('wells.id'))
-    well = relationship('Well', back_populates='well_documents')
+    well_id = Column(String(36), ForeignKey('well_instances.id'))
+    well_instance = relationship('WellInstance', back_populates='well_documents')
 
     document_type = Column(Enum(WellDocumentType))
     
@@ -243,8 +249,6 @@ class WellDigitalData(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
 
-    well_id = Column(String(36), ForeignKey('wells.id'))
-
     file_id = Column(String(36), ForeignKey('files.id'), nullable=True)
     file = relationship('FileDB', foreign_keys=[file_id])
     
@@ -253,135 +257,192 @@ class WellDigitalData(Base):
     data_class = Column(Enum(DataClass))
 
     __mapper_args__ = {
-        'polymorphic_identity': 'well_digital_data',
         'polymorphic_on': 'data_class'
     }
 
 class WellLog(WellDigitalData):
+    
+    __tablename__ = 'well_digital_logs'
+    
+    id = Column(String(36), ForeignKey('well_digital_data.id'), primary_key=True)
 
     __mapper_args__ = {
         'polymorphic_identity': DataClass.WELL_LOG,
     }
 
-    well = relationship('Well', back_populates='well_logs')
+    well_id = Column(String(36), ForeignKey('well_instances.id'))
+    well_instance = relationship('WellInstance', back_populates='well_logs')
 
 class WellTrajectory(WellDigitalData):
+    
+    __tablename__ = 'well_digital_trajectory'
+    
+    id = Column(String(36), ForeignKey('well_digital_data.id'), primary_key=True)
 
     __mapper_args__ = {
         'polymorphic_identity': DataClass.TRAJECTORY,
     }
 
-    well = relationship('Well', back_populates='well_trajectory', single_parent=True)
+    well_id = Column(String(36), ForeignKey('well_instances.id'))
+    well_instance = relationship('WellInstance', back_populates='well_trajectory', single_parent=True)
 
 class WellPPFG(WellDigitalData):
+    
+    __tablename__ = 'well_digital_ppfg'
+    
+    id = Column(String(36), ForeignKey('well_digital_data.id'), primary_key=True)
 
     __mapper_args__ = {
         'polymorphic_identity': DataClass.PPFG,
     }
 
-    well = relationship('Well', back_populates='well_ppfg', single_parent=True)
+    well_id = Column(String(36), ForeignKey('well_instances.id'))
+    well_instance = relationship('WellInstance', back_populates='well_ppfg', single_parent=True)
 
 class WellDrillingParameter(WellDigitalData):
+    
+    __tablename__ = 'well_digital_drilling_parameter'
+    
+    id = Column(String(36), ForeignKey('well_digital_data.id'), primary_key=True)
 
     __mapper_args__ = {
         'polymorphic_identity': DataClass.DRILLING_PARAMETER,
     }
 
-    well = relationship('Well', back_populates='well_drilling_parameter', single_parent=True)
+    well_id = Column(String(36), ForeignKey('well_instances.id'))
+    well_instance = relationship('WellInstance', back_populates='well_drilling_parameter', single_parent=True)
 
 class WellSummary(Base):
-    
     __tablename__ = 'well_summary'
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
-    well = relationship('Well', back_populates='well_summary')
+    well_id = Column(String(36), ForeignKey('well_instances.id'), nullable=True)
+    well_instance = relationship('WellInstance', back_populates='well_summary')
 
-    depth_datum = Column(Enum(DepthDatum))
-
+    depth_datum = Column(Enum(DepthDatum))  # Changed to String if not using Enums
+    
     depth = Column(Float)
-    depth_uom = Column(Enum(DepthUOM))
+    depth_uom = Column(String)  # Changed to String if not using Enums
     
     hole_diameter = Column(Float)
-    hole_diameter_uom = Column(Enum(DiameterUOM))
+    hole_diameter_uom = Column(String)  # Changed to String if not using Enums
     
     bit = Column(String)
     
     casing_outer_diameter = Column(Float)
-    casing_outer_diameter_uom = Column(Enum(DiameterUOM))
+    casing_outer_diameter_uom = Column(String)  # Changed to String if not using Enums
     
     logging = Column(String)
     mud_program = Column(String)
     cementing_program = Column(String)
     
     bottom_hole_temperature = Column(Float)
-    bottom_hole_temperature_uom = Column(Enum(TemperatureUOM))
+    bottom_hole_temperature_uom = Column(String)  # Changed to String if not using Enums
     
     rate_of_penetration = Column(Float)
     
     remarks = Column(Text)
 
+    def __init__(self, unit_type, *args, **kwargs):
+
+        # Set uom fields based on unit_type
+        uom_map = uom.get(unit_type, {})
+        self.depth_uom = uom_map.get('Length', 'm')  # Default to meters if unit_type is not found
+        self.hole_diameter_uom = uom_map.get('Diameter', 'mm')  # Default to mm if unit_type is not found
+        self.casing_outer_diameter_uom = uom_map.get('Diameter', 'mm')  # Default to mm if unit_type is not found
+        self.bottom_hole_temperature_uom = uom_map.get('Temperature', '°C')  # Default to °C if unit_type is not found
+        
+        super().__init__(*args, **kwargs)
+
 class WellTest(Base):
-    
     __tablename__ = 'well_test'
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
-    well = relationship('Well', back_populates='well_test')
+    well_id = Column(String(36), ForeignKey('well_instances.id'), nullable=True)
+    well_instance = relationship('WellInstance', back_populates='well_test')
     
-    depth_datum = Column(Enum(DepthDatum))
+    depth_datum = Column(Enum(DepthDatum))  # Changed to String if not using Enums
     
     zone_name = Column(String)
     zone_top_depth = Column(Float)
     zone_bottom_depth = Column(Float)
-    depth_uom = Column(Enum(DepthUOM))
+    depth_uom = Column(String)  # Changed to String if not using Enums
+
+    def __init__(self, unit_type, *args, **kwargs):
+        
+        # Set depth_uom based on unit_type
+        uom_map = uom.get(unit_type, {})
+        self.depth_uom = uom_map.get('Length', 'm')  # Default to meters if unit_type is not found
+        
+        super().__init__(*args, **kwargs)
 
 class WellCasing(Base):
-    
     __tablename__ = 'well_casing'
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
-    well = relationship('Well', back_populates='well_casing')
+    well_id = Column(String(36), ForeignKey('well_instances.id'), nullable=True)
+    well_instance = relationship('WellInstance', back_populates='well_casing')
     
-    depth_datum = Column(Enum(DepthDatum))
-    
+    depth_datum = Column(Enum(DepthDatum))  # Changed to String if not using Enums
     depth = Column(Float)
-    depth_uom = Column(Enum(DepthUOM))
+    depth_uom = Column(String)  # Changed to String if not using Enums
     
     length = Column(Float)
-    length_uom = Column(Enum(DepthUOM))
+    length_uom = Column(String)  # Changed to String if not using Enums
     
     hole_diameter = Column(Float)
-    hole_diameter_uom = Column(Enum(DiameterUOM))
+    hole_diameter_uom = Column(String)  # Changed to String if not using Enums
     
     casing_outer_diameter = Column(Float)
-    casing_outer_diameter_uom = Column(Enum(DiameterUOM))
+    casing_outer_diameter_uom = Column(String)  # Changed to String if not using Enums
     
     casing_inner_diameter = Column(Float)
-    casing_inner_diameter_uom = Column(Enum(DiameterUOM))
+    casing_inner_diameter_uom = Column(String)  # Changed to String if not using Enums
     
     casing_grade = Column(String)
     
     casing_weight = Column(Float)
-    casing_weight_uom = Column(Enum(WeightUOM))
+    casing_weight_uom = Column(String)  # Changed to String if not using Enums
     
     connection = Column(String)
     
     description = Column(Text)
+
+    def __init__(self, unit_type, *args, **kwargs):
+        
+        # Set uom fields based on unit_type
+        uom_map = uom.get(unit_type, {})
+        self.depth_uom = uom_map.get('Length', 'm')
+        self.length_uom = uom_map.get('Length', 'm')
+        self.hole_diameter_uom = uom_map.get('Diameter', 'mm')
+        self.casing_outer_diameter_uom = uom_map.get('Diameter', 'mm')
+        self.casing_inner_diameter_uom = uom_map.get('Diameter', 'mm')
+        self.casing_weight_uom = uom_map.get('Weight', 'kg')
+        
+        super().__init__(*args, **kwargs)
     
 class WellStratigraphy(Base):
     
     __tablename__ = 'well_stratigraphy'
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('wells.id'), nullable=True)
-    well = relationship('Well', back_populates='well_stratigraphy')
+    well_id = Column(String(36), ForeignKey('well_instances.id'), nullable=True)
+    well_instance = relationship('WellInstance', back_populates='well_stratigraphy')
     
     depth_datum = Column(Enum(DepthDatum))
     
     depth = Column(Float)
-    depth_uom = Column(Enum(DepthUOM))
+    depth_uom = Column(String)
     
     stratigraphy_id = Column(String(36), ForeignKey('area_strat.id'))
     stratigraphy = relationship('StratUnit', foreign_keys=[stratigraphy_id])
+    
+    def __init__(self, unit_type, *args, **kwargs):
+        
+
+        # Set depth_uom based on unit_type
+        if unit_type in uom and 'Length' in uom[unit_type]:
+            self.depth_uom = uom[unit_type]['Length']
+        else:
+            self.depth_uom = 'm'  # Default value
+        super().__init__(*args, **kwargs)

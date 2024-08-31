@@ -64,11 +64,11 @@ def return_job_plan(id: str, remarks: str, db: Session, user: GetUser):
         'status': 'success',
     }
     
-def _get_well_from_plan(job: Union[Exploration, Development]) -> Well:
+def _get_well_from_plan(job: Union[PlanExploration, PlanDevelopment]) -> PlanWell:
     
-    return job.well
+    return job.well_plan
 
-def _get_plan_from_job(plan: Job) -> Union[Exploration, Development]:
+def _get_plan_from_job(plan: Job) -> Union[PlanExploration, PlanDevelopment]:
     
     return plan.job_plan
     
@@ -128,7 +128,7 @@ def get_job_plan(id: str, db: Session) -> Job:
     }
     
     #work breakdown structure
-    job_wbs = db_job.work_breakdown_structure
+    job_wbs = db_plan.work_breakdown_structure
     
     events = [wbs.event for wbs in job_wbs]
     plan_start_dates = [wbs.start_date for wbs in job_wbs]
@@ -143,13 +143,13 @@ def get_job_plan(id: str, db: Session) -> Job:
     view_plan['operational']['work_breakdown_structure'] = wbs
     
     #job operation days
-    job_operation_days = db_job.job_operation_days
+    job_operation_days = db_plan.job_operation_days
     
     events = [od.phase for od in job_operation_days]
     depth_in = [od.depth_in for od in job_operation_days]
     depth_out = [od.depth_out for od in job_operation_days]
     operation_days = [od.operation_days for od in job_operation_days]
-    daily_costs = [(db_job.total_budget/len(job_operation_days)) for od in job_operation_days]
+    daily_costs = [(db_job.job_plan.total_budget/len(job_operation_days)) for od in job_operation_days]
     
     operation_days = create_operation_plot(
         events,

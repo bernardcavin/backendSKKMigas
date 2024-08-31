@@ -7,9 +7,9 @@ from backend.routers.auth.schemas import GetUser
 from backend.utils.schema_operations import parse_schema
 import uuid
 
-def create_well(db: Session, well: CreateWell, user: GetUser) -> Well:
+def create_well(db: Session, well: CreatePlanWell, user: GetUser):
 
-    db_well = Well(
+    db_well = ActualWell(
         **parse_schema(well)
     )
     

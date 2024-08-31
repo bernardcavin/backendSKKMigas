@@ -5,9 +5,13 @@ from uuid import uuid4
 from datetime import date
 
 from backend.routers.well.models import *
+from backend.utils.constants import UnitType
+
 
 class WellBase(BaseModel):
     
+    unit_type: UnitType
+
     uwi: Optional[str]
     field_id: Optional[str]
     area_id: Optional[str]
@@ -28,38 +32,19 @@ class WellBase(BaseModel):
     bottom_hole_latitude: Optional[float]
     maximum_inclination: Optional[float]
     azimuth: Optional[float]
-
     line_name: Optional[str]
-
     spud_date: Optional[datetime]
     final_drill_date: Optional[datetime]
     completion_date: Optional[datetime]
-
     rotary_table_elev: Optional[float]
-    rotary_table_elev_uom: Optional[DepthUOM]
-
     kb_elev: Optional[float]
-    kb_elev_uom: Optional[DepthUOM]
-
     derrick_floor_elev: Optional[float]
-    derrick_floor_elev_uom: Optional[DepthUOM]
-
     ground_elev: Optional[float]
-    ground_elev_uom: Optional[DepthUOM]
-
     mean_sea_level: Optional[float]
-    mean_sea_level_uom: Optional[DepthUOM]
-
     depth_datum: Optional[DepthDatum]
     kick_off_point: Optional[float]
-    kick_off_point_uom: Optional[DepthUOM]
-
     maximum_tvd: Optional[float]
-    maximum_tvd_uom: Optional[DepthUOM]
-
     final_md: Optional[float]
-    final_md_uom: Optional[DepthUOM]
-
     remark: Optional[str]
 
 class WellNameResponse(BaseModel):
@@ -101,19 +86,17 @@ class WellDrillingParameterBase(WellDigitalDataBase):
 
 class WellSummaryBase(BaseModel):
     
+    unit_type: UnitType
+    
     depth_datum: Optional[DepthDatum]
     depth: Optional[float]
-    depth_uom: Optional[DepthUOM]
     hole_diameter: Optional[float]
-    hole_diameter_uom: Optional[DiameterUOM]
     bit: Optional[str]
     casing_outer_diameter: Optional[float]
-    casing_outer_diameter_uom: Optional[DiameterUOM]
     logging: Optional[str]
     mud_program: Optional[str]
     cementing_program: Optional[str]
     bottom_hole_temperature: Optional[float]
-    bottom_hole_temperature_uom: Optional[TemperatureUOM]
     rate_of_penetration: Optional[float]
     remarks: Optional[str]
     
@@ -122,38 +105,35 @@ class WellSummaryBase(BaseModel):
 
 class WellTestBase(BaseModel):
     
+    unit_type: UnitType
+    
     depth_datum: Optional[DepthDatum]
     zone_name: Optional[str]
     zone_top_depth: Optional[float]
     zone_bottom_depth: Optional[float]
-    depth_uom: Optional[DepthUOM]
     
     class Meta:
         orm_model = WellTest
 
 class WellCasingBase(BaseModel):
     
+    unit_type: UnitType
+    
     depth_datum: Optional[DepthDatum]
     
     depth: Optional[float]
-    depth_uom: Optional[DepthUOM]
     
     length: Optional[float]
-    length_uom: Optional[DepthUOM]
     
     hole_diameter: Optional[float]
-    hole_diameter_uom: Optional[DiameterUOM]
     
     casing_outer_diameter: Optional[float]
-    casing_outer_diameter_uom: Optional[DiameterUOM]
     
     casing_inner_diameter: Optional[float]
-    casing_inner_diameter_uom: Optional[DiameterUOM]
     
     casing_grade: Optional[str]
     
     casing_weight: Optional[float]
-    casing_weight_uom: Optional[WeightUOM]
     
     connection: Optional[str]
     
@@ -164,17 +144,18 @@ class WellCasingBase(BaseModel):
 
 class WellStratigraphyBase(BaseModel):
     
+    unit_type: UnitType
+    
     depth_datum: Optional[DepthDatum]
     
     depth: Optional[float]
-    depth_uom: Optional[DepthUOM]
     
     stratigraphy_id: str
     
     class Meta:
         orm_model = WellStratigraphy
 
-class CreateWell(WellBase):
+class CreatePlanWell(WellBase):
     
     well_documents: Optional[List[WellDocumentBase]]
     well_summary: Optional[List[WellSummaryBase]]
@@ -187,5 +168,6 @@ class CreateWell(WellBase):
     well_stratigraphy: Optional[List[WellStratigraphyBase]]
     
     class Meta:
-        orm_model = Well
+        orm_model = PlanWell
+
 

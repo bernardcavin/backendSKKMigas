@@ -1,12 +1,13 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, JSON, Enum, Text, Boolean, Float, Table, Date, func
-from backend.routers.well.models import DepthUOM, DepthDatum, MediaType, SizeUOM
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, Enum, Text, Boolean, Float, Date, func
+from backend.routers.well.models import DepthDatum
 from sqlalchemy.orm import relationship, declared_attr
 from backend.database import Base
 from enum import Enum as PyEnum
 import uuid
 from backend.utils.enum_operations import extend_enum
+from backend.utils.constants import uom
 
-class Percentage(Enum):
+class Percentage(PyEnum):
     P0 = "0%"
     P5 = "5%"
     P10 = "10%"
@@ -243,33 +244,269 @@ class Job(Base, CreateBase, ValidationBase):
     date_approved = Column(Date)
     
     closeout_status = Column(Enum(CloseOutStatus))
-
+    
 class JobInstance(Base):
     
     __tablename__ = 'job_instances'
-
+    
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     
-    job_type = Column(Enum(JobType))
+    job_phase_type = Column(String)
     
     start_date = Column(Date)
     end_date = Column(Date)
     total_budget = Column(Numeric(precision=10, scale=2))
 
-    # rig information
-    rig_name = Column(String)
-    rig_type = Column(Enum(RigType))
-    rig_horse_power = Column(Float)
-
-    # job activity
     job_operation_days = relationship('JobOperationDay', back_populates='job_instance')
     work_breakdown_structure = relationship('WorkBreakdownStructure', back_populates='job_instance')
     job_hazards = relationship('JobHazard', back_populates='job_instance')
     job_documents = relationship('JobDocument', back_populates='job_instance')
     
     __mapper_args__ = {
-        "polymorphic_identity": "job_instance",
-        "polymorphic_on": "job_type",
+        "polymorphic_on": "job_phase_type",
+    }
+
+class PlanJob(JobInstance):
+    
+    __tablename__ = 'job_plans'
+
+    id = Column(String(36), ForeignKey('job_instances.id'), primary_key=True)
+    
+    __mapper_args__ = {
+        "polymorphic_identity": "plan",
+    }
+
+class ActualJob(JobInstance):
+    
+    __tablename__ = 'job_actuals'
+
+    id = Column(String(36), ForeignKey('job_instances.id'), primary_key=True)
+    
+    __mapper_args__ = {
+        "polymorphic_identity": "actual",
+    }
+
+class PlanExploration(PlanJob):
+    
+    __tablename__ = 'job_plan_exploration'
+    
+    id = Column(String(36), ForeignKey('job_plans.id'), primary_key=True)
+    
+    # rig information
+    rig_name = Column(String)
+    rig_type = Column(Enum(RigType))
+    rig_horse_power = Column(Float)
+
+    well_plan_id = Column(String(36), ForeignKey('well_plans.id'))
+    well_plan = relationship('PlanWell', foreign_keys=[well_plan_id])
+    
+    wrm_pembebasan_lahan = Column(Boolean)
+    wrm_ippkh = Column(Boolean)
+    wrm_ukl_upl = Column(Boolean)
+    wrm_amdal = Column(Boolean)
+    wrm_pengadaan_rig = Column(Boolean)
+    wrm_pengadaan_drilling_services = Column(Boolean)
+    wrm_pengadaan_lli = Column(Boolean)
+    wrm_persiapan_lokasi = Column(Boolean)
+    wrm_internal_kkks = Column(Boolean)
+    wrm_evaluasi_subsurface = Column(Boolean)
+
+    __mapper_args__ = {
+        "polymorphic_identity": 'plan_exploration',
+    }
+
+class PlanDevelopment(PlanJob):
+    
+    __tablename__ = 'job_plan_development'
+    
+    id = Column(String(36), ForeignKey('job_plans.id'), primary_key=True)
+
+    # rig information
+    rig_name = Column(String)
+    rig_type = Column(Enum(RigType))
+    rig_horse_power = Column(Float)
+    
+    well_plan_id = Column(String(36), ForeignKey('well_plans.id'))
+    well_plan = relationship('PlanWell', foreign_keys=[well_plan_id])
+    
+    wrm_pembebasan_lahan = Column(Boolean)
+    wrm_ippkh = Column(Boolean)
+    wrm_ukl_upl = Column(Boolean)
+    wrm_amdal = Column(Boolean)
+    wrm_cutting_dumping = Column(Boolean)
+    wrm_pengadaan_rig = Column(Boolean)
+    wrm_pengadaan_drilling_services = Column(Boolean)
+    wrm_pengadaan_lli = Column(Boolean)
+    wrm_persiapan_lokasi = Column(Boolean)
+    wrm_internal_kkks = Column(Boolean)
+    wrm_evaluasi_subsurface = Column(Boolean)
+
+    __mapper_args__ = {
+        "polymorphic_identity": 'plan_development',
+    }
+
+class PlanWorkover(PlanJob):
+    
+    __tablename__ = 'job_plan_workover'
+    
+    id = Column(String(36), ForeignKey('job_plans.id'), primary_key=True)
+    
+    equipment = Column(String)
+    equipment_sepesifications = Column(Text)
+    
+    well_id = Column(String(36), ForeignKey('well_actuals.id'))
+    well = relationship('ActualWell', foreign_keys=[well_id])
+    
+    job_category = Column(Enum(WOWSJobType))
+    job_description = Column(Text)
+    
+    #current
+    onstream_oil = Column(Float)
+    onstream_gas = Column(Float)
+    onstream_water_cut = Column(Float)
+    
+    #target
+    target_oil = Column(Float)
+    target_gas = Column(Float)
+    target_water_cut = Column(Float)
+    
+    __mapper_args__ = {
+        "polymorphic_identity": 'plan_workover',
+    }
+
+class PlanWellService(PlanJob):
+    
+    __tablename__ = 'job_plan_well_service'
+    
+    id = Column(String(36), ForeignKey('job_plans.id'), primary_key=True)
+    
+    equipment = Column(String)
+    equipment_sepesifications = Column(Text)
+    
+    well_id = Column(String(36), ForeignKey('well_actuals.id'))
+    well = relationship('ActualWell', foreign_keys=[well_id])
+    
+    job_category = Column(Enum(WOWSJobType))
+    job_description = Column(Text)
+    
+    #current
+    onstream_oil = Column(Float)
+    onstream_gas = Column(Float)
+    onstream_water_cut = Column(Float)
+    
+    #target
+    target_oil = Column(Float)
+    target_gas = Column(Float)
+    target_water_cut = Column(Float)
+    
+    __mapper_args__ = {
+        "polymorphic_identity": 'plan_wellservice',
+    }
+
+class ActualExploration(ActualJob):
+    
+    __tablename__ = 'job_actual_exploration'
+    
+    id = Column(String(36), ForeignKey('job_actuals.id'), primary_key=True)
+    
+    # rig information
+    rig_name = Column(String)
+    rig_type = Column(Enum(RigType))
+    rig_horse_power = Column(Float)
+
+    well_id = Column(String(36), ForeignKey('well_actuals.id'))
+    well = relationship('ActualWell', foreign_keys=[well_id])
+    
+    wrm_pembebasan_lahan = Column(Enum(Percentage))
+    wrm_ippkh = Column(Enum(Percentage))
+    wrm_ukl_upl = Column(Enum(Percentage))
+    wrm_amdal = Column(Enum(Percentage))
+    wrm_pengadaan_rig = Column(Enum(Percentage))
+    wrm_pengadaan_drilling_services = Column(Enum(Percentage))
+    wrm_pengadaan_lli = Column(Enum(Percentage))
+    wrm_persiapan_lokasi = Column(Enum(Percentage))
+    wrm_internal_kkks = Column(Enum(Percentage))
+    wrm_evaluasi_subsurface = Column(Enum(Percentage))
+
+    __mapper_args__ = {
+        "polymorphic_identity": 'actual_exploration',
+    }
+
+class ActualDevelopment(ActualJob):
+    
+    __tablename__ = 'job_actual_development'
+    
+    id = Column(String(36), ForeignKey('job_actuals.id'), primary_key=True)
+
+    # rig information
+    rig_name = Column(String)
+    rig_type = Column(Enum(RigType))
+    rig_horse_power = Column(Float)
+    
+    well_id = Column(String(36), ForeignKey('well_actuals.id'))
+    well = relationship('ActualWell', foreign_keys=[well_id])
+    
+    wrm_pembebasan_lahan = Column(Enum(Percentage))
+    wrm_ippkh = Column(Enum(Percentage))
+    wrm_ukl_upl = Column(Enum(Percentage))
+    wrm_amdal = Column(Enum(Percentage))
+    wrm_cutting_dumping = Column(Enum(Percentage))
+    wrm_pengadaan_rig = Column(Enum(Percentage))
+    wrm_pengadaan_drilling_services = Column(Enum(Percentage))
+    wrm_pengadaan_lli = Column(Enum(Percentage))
+    wrm_persiapan_lokasi = Column(Enum(Percentage))
+    wrm_internal_kkks = Column(Enum(Percentage))
+    wrm_evaluasi_subsurface = Column(Enum(Percentage))
+
+    __mapper_args__ = {
+        "polymorphic_identity": 'actual_development',
+    }
+
+class ActualWorkover(ActualJob):
+    
+    __tablename__ = 'job_actual_workover'
+    
+    id = Column(String(36), ForeignKey('job_actuals.id'), primary_key=True)
+    
+    equipment = Column(String)
+    equipment_sepesifications = Column(Text)
+    
+    well_id = Column(String(36), ForeignKey('well_actuals.id'))
+    well = relationship('ActualWell', foreign_keys=[well_id])
+    
+    job_category = Column(Enum(WOWSJobType))
+    job_description = Column(Text)
+    
+    #target
+    onstream_oil = Column(Float)
+    onstream_gas = Column(Float)
+    onstream_water_cut = Column(Float)
+    
+    __mapper_args__ = {
+        "polymorphic_identity": 'actual_workover',
+    }
+
+class ActualWellService(ActualJob):
+    
+    __tablename__ = 'job_actual_well_service'
+    
+    id = Column(String(36), ForeignKey('job_actuals.id'), primary_key=True)
+    
+    equipment = Column(String)
+    equipment_sepesifications = Column(Text)
+    
+    well_id = Column(String(36), ForeignKey('well_actuals.id'))
+    well = relationship('ActualWell', foreign_keys=[well_id])
+    
+    job_category = Column(Enum(WOWSJobType))
+    job_description = Column(Text)
+    
+    onstream_oil = Column(Float)
+    onstream_gas = Column(Float)
+    onstream_water_cut = Column(Float)
+    
+    __mapper_args__ = {
+        "polymorphic_identity": 'actual_wellservice',
     }
 
 class WorkBreakdownStructure(Base):
@@ -332,7 +569,6 @@ class JobDocument(Base):
     remark = Column(Text)
     
 class JobOperationDay(Base):
-    
     __tablename__ = 'job_operation_days'
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
@@ -343,104 +579,21 @@ class JobOperationDay(Base):
     
     depth_in = Column(Float)
     depth_out = Column(Float)
-    depth_uom = Column(Enum(DepthUOM))
+    depth_uom = Column(String)  # Changed to String
     
     operation_days = Column(Float)
     
     job_instance_id = Column(String(36), ForeignKey('job_instances.id'))
     job_instance = relationship('JobInstance', back_populates='job_operation_days')
 
-class Exploration(JobInstance):
-    
-    __tablename__ = 'job_exploration'
-    
-    id = Column(String(36), ForeignKey('job_instances.id'), primary_key=True)
+    def __init__(self, unit_type, *args, **kwargs):
 
-    well_id = Column(String(36), ForeignKey('wells.id'))
+        uom_map = uom.get(unit_type, {})
+        self.depth_uom = uom_map.get('Depth', 'm')  # Default to meters if not found
 
-    well = relationship('Well', foreign_keys=[well_id])
-    
-    wrm_pembebasan_lahan = Column(Boolean)
-    wrm_ippkh = Column(Boolean)
-    wrm_ukl_upl = Column(Boolean)
-    wrm_amdal = Column(Boolean)
-    wrm_pengadaan_rig = Column(Boolean)
-    wrm_pengadaan_drilling_services = Column(Boolean)
-    wrm_pengadaan_lli = Column(Boolean)
-    wrm_persiapan_lokasi = Column(Boolean)
-    wrm_internal_kkks = Column(Boolean)
-    wrm_evaluasi_subsurface = Column(Boolean)
-
-    __mapper_args__ = {
-        "polymorphic_identity": JobType.EXPLORATION,
-    }
-
-class Development(JobInstance):
-    
-    __tablename__ = 'job_development'
-    
-    id = Column(String(36), ForeignKey('job_instances.id'), primary_key=True)
-    
-    well_id = Column(String(36), ForeignKey('wells.id'))
-
-    well = relationship('Well', foreign_keys=[well_id])
-    
-    wrm_pembebasan_lahan = Column(Boolean)
-    wrm_ippkh = Column(Boolean)
-    wrm_ukl_upl = Column(Boolean)
-    wrm_amdal = Column(Boolean)
-    wrm_cutting_dumping = Column(Boolean)
-    wrm_pengadaan_rig = Column(Boolean)
-    wrm_pengadaan_drilling_services = Column(Boolean)
-    wrm_pengadaan_lli = Column(Boolean)
-    wrm_persiapan_lokasi = Column(Boolean)
-    wrm_internal_kkks = Column(Boolean)
-    wrm_evaluasi_subsurface = Column(Boolean)
-
-    __mapper_args__ = {
-        "polymorphic_identity": JobType.DEVELOPMENT,
-    }
-
-class Workover(JobInstance):
-    
-    __tablename__ = 'job_workover'
-    
-    id = Column(String(36), ForeignKey('job_instances.id'), primary_key=True)
-    
-    well_id = Column(String(36), ForeignKey('wells.id'))
-    well = relationship('Well', foreign_keys=[well_id])
-    
-    job_category = Column(Enum(WOWSJobType))
-    
-    #current
-    onstream_oil = Column(Float)
-    onstream_gas = Column(Float)
-    water_cut = Column(Float)
-    
-    __mapper_args__ = {
-        "polymorphic_identity": JobType.WORKOVER,
-    }
-
-class WellService(JobInstance):
-    
-    __tablename__ = 'job_well_service'
-    
-    id = Column(String(36), ForeignKey('job_instances.id'), primary_key=True)
-    
-    well_id = Column(String(36), ForeignKey('wells.id'))
-    well = relationship('Well', foreign_keys=[well_id])
-    
-    job_category = Column(Enum(WOWSJobType))
-    
-    #current
-    onstream_oil = Column(Float)
-    onstream_gas = Column(Float)
-    water_cut = Column(Float)
-    
-    __mapper_args__ = {
-        "polymorphic_identity": JobType.WELLSERVICE,
-    }
-
+        super().__init__(*args, **kwargs)
+        
+        
 class JobIssue(Base):
     
     __tablename__ = 'job_issues'
