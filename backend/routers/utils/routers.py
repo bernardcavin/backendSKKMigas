@@ -21,7 +21,7 @@ from backend.routers.well.crud import *
 from backend.routers.well.schemas import *
 from backend.routers.spatial.models import Area,Lapangan
 from backend.routers.spatial.schemas import *
-from backend.routers.dashboard.schemas import *
+# from backend.routers.dashboard.schemas import *
 from backend.routers.auth.schemas import GetUser
 from backend.routers.well.models import *
 from typing import List, Dict

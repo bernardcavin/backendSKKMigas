@@ -4,9 +4,10 @@ from backend.routers.auth.crud import pwd_context
 from backend.routers.spatial import models as spatial_models
 from datetime import datetime, timedelta
 from backend.routers.job import crud as job_crud
-from backend.routers.job import models as job_models
-from backend.routers.utils.routers import *
+from backend.routers.job.models import *
 from backend.routers.utils import models as utils_models
+from backend.routers.spatial.models import *
+import pandas as pd
 from backend.database import SessionLocal
 import os
 import uuid
@@ -447,7 +448,7 @@ def generate_dummy_data(n: int):
                     else:
                         work_schema = job_crud.DevelopmentJobPlan
                         
-                    db_job = job_models.Job(
+                    db_job = Job(
                         **job_crud.parse_schema(work_schema(**drilling_job_dict))
                     )
 

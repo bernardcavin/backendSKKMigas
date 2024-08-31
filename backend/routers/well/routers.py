@@ -9,7 +9,7 @@ from backend.utils.schema_operations import OutputSchema
 router = APIRouter(prefix="/well", tags=["well"])
 
 @router.post("/create", response_model=OutputSchema)
-@authorize(role=[Role.KKKS])
+@authorize(role=[Role.KKKS, Role.Admin])
 async def create_well(well: schemas.CreatePlanWell, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
     
     well_id = crud.create_well(db, well, user)

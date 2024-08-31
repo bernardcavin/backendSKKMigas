@@ -11,6 +11,8 @@ from typing import Optional
 from datetime import datetime, date
 from decimal import Decimal
 
+from backend.utils.constants import UnitType
+
 class WorkBreakdownStructureBase(BaseModel):
     
     event: str
@@ -43,12 +45,12 @@ class JobDocumentBase(BaseModel):
 
 class JobOperationDayBase(BaseModel):
 
+    unit_type: UnitType
     phase: str
     depth_datum: DepthDatum
     
     depth_in: float
     depth_out: float
-    depth_uom: DepthUOM
     
     operation_days: float
     
@@ -187,4 +189,5 @@ class WorkoverJobPlan(PlanJobBase):
 class WellServiceJobPlan(PlanJobBase):
     
     job_plan: CreatePlanWellService
+    
     

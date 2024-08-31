@@ -1,10 +1,11 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, JSON, Enum, Text, Boolean, Float, Table, Date, func
-from backend.routers.well.models import DepthUOM, DepthDatum, MediaType, SizeUOM
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, Enum, Text, Boolean, Float, Date, func
+from backend.routers.well.models import DepthDatum
 from sqlalchemy.orm import relationship, declared_attr
 from backend.database import Base
 from enum import Enum as PyEnum
 import uuid
 from backend.utils.enum_operations import extend_enum
+from backend.utils.constants import uom
 
 class Percentage(PyEnum):
     P0 = "0%"
@@ -567,7 +568,6 @@ class JobDocument(Base):
     remark = Column(Text)
     
 class JobOperationDay(Base):
-    
     __tablename__ = 'job_operation_days'
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
@@ -578,13 +578,21 @@ class JobOperationDay(Base):
     
     depth_in = Column(Float)
     depth_out = Column(Float)
-    depth_uom = Column(Enum(DepthUOM))
+    depth_uom = Column(String)  # Changed to String
     
     operation_days = Column(Float)
     
     job_instance_id = Column(String(36), ForeignKey('job_instances.id'))
     job_instance = relationship('JobInstance', back_populates='job_operation_days')
 
+    def __init__(self, unit_type, *args, **kwargs):
+
+        uom_map = uom.get(unit_type, {})
+        self.depth_uom = uom_map.get('Depth', 'm')  # Default to meters if not found
+
+        super().__init__(*args, **kwargs)
+        
+        
 class JobIssue(Base):
     
     __tablename__ = 'job_issues'
