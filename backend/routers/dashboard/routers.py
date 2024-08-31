@@ -96,6 +96,8 @@ async def read_job_type_summary(db: Session = Depends(get_db)):
     """
     return get_job_type_summary(db)
 
+
+# REALIASI KEGIATAN CHART DASHBOARD SKK
 @router.get("/job-charts", response_model=Dict)
 async def get_job_charts(db: Session = Depends(get_db)):
     return generate_job_chart_data(db)
@@ -164,46 +166,14 @@ async def read_job_well_status_chart(db: Session = Depends(get_db)):
     return chart_data
 
 
-@router.get("/exploration/realization", response_model=ExplorationRealizationResponse)
-async def get_exploration_realization(db: Session = Depends(get_db)):
-    """
-    Get the realization percentage of exploration activities for each KKKS.
-    
-    :param db: Database session
-    :return: ExplorationRealizationResponse object containing a list of realization data
-    """
-    try:
-        realization_data = calculate_exploration_realization(db)
-        return ExplorationRealizationResponse(data=realization_data)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+@router.get("/exploration-realization", response_model=List[ExplorationRealizationItem])
+def read_exploration_realization(db: Session = Depends(get_db)):
+    return calculate_exploration_realization(db)
 
-
-@router.get("/kkks/{kkks_id}/detail", response_model=KKKSDetailResponse)
-async def get_kkks_detail(kkks_id: str, db: Session = Depends(get_db)):
-    kkks = db.query(KKKS).filter(KKKS.id == kkks_id).first()
-    if not kkks:
-        raise HTTPException(status_code=404, detail=f"KKKS with id {kkks_id} not found")
-
-    job_counts = get_kkks_job_counts(db, kkks_id)
-    monthly_data = get_kkks_monthly_data(db, kkks_id)
-    weekly_data = get_kkks_weekly_data(db, kkks_id)
-    
-    chart_json = create_charts(monthly_data, weekly_data, kkks.nama_kkks)
-    well_job_data = get_well_job_data(db, kkks_id)
-
-
-    return KKKSDetailResponse(
-        kkks_name=kkks.nama_kkks,
-        total_jobs=job_counts.total_jobs,
-        approved_jobs=job_counts.approved_jobs,
-        operating_jobs=job_counts.operating_jobs,
-        finished_jobs=job_counts.finished_jobs,
-        monthly_data=monthly_data,
-        weekly_data=weekly_data,
-        chart_data=ChartDataModal(chart_json=chart_json),
-        well_job_data=well_job_data
-    )
+# DETAIL KKS 
+@router.get("/kkks/{kkks_id}/job-data", response_model=KKKSJobDataChart)
+def read_kkks_job_data(kkks_id: str, db: Session = Depends(get_db)):
+    return get_kkks_job_data(db, kkks_id)
 
 @router.get("/job-counts/planning", response_model=List[JobCountResponse])
 def job_counts(db: Session = Depends(get_db)):
@@ -216,11 +186,11 @@ def job_counts(db: Session = Depends(get_db)):
         query = (
             db.query(
                 Job.job_type,
-                Planning.status,
+                JobInstance.status,
                 func.count().label('count')
             )
-            .join(Planning, Job.id == Planning.proposed_job_id)
-            .group_by(Job.job_type, Planning.status)
+            .join(JobInstance, Job.id == Planning.proposed_job_id)
+            .group_by(Job.job_type, JobInstance.status)
         )
         print(query)
         

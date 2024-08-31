@@ -35,6 +35,7 @@ class JobTypeData(BaseModel):
 class JobTypeData(BaseModel):
     approved_plans: int
     active_operations: int
+    finished_jobs: int
     percentage: float
 
 class KKKSJobData(BaseModel):
@@ -81,11 +82,12 @@ class ChartDataModal(BaseModel):
 class WellJobData(BaseModel):
     nama_sumur: str
     wilayah_kerja: str
-    lapangan: Optional[str] 
-    tanggal_mulai: str
-    tanggal_selesai: str
-    tanggal_realisasi: Optional[str] 
+    lapangan: str | None
+    tanggal_mulai: str | None
+    tanggal_selesai: str | None
+    tanggal_realisasi: str | None
     status: str
+
 
 class KKKSDetailResponse(BaseModel):
     kkks_name: str
@@ -116,6 +118,70 @@ class AggregateJobData(BaseModel):
     development: JobTypeDataUP
     workover: JobTypeDataUP
     wellservice: JobTypeDataUP
+
+
+class BudgetSummary(BaseModel):
+    exploration: Dict[str, float]
+    development: Dict[str, float]
+    workover: Dict[str, float]
+    wellservice: Dict[str, float]
+
+class JobWellStatusSummary(BaseModel):
+    post_operation_count: int
+    well_status: Dict[str, int]
+
+class DashboardData(BaseModel):
+    budget_summary: BudgetSummary
+    job_well_status: JobWellStatusSummary
+    exploration_realization: List[ExplorationRealizationItem]
+
+class JobTypeDataKKKS(BaseModel):
+    approved_plans: int
+    active_operations: int
+    percentage: float
+
+class JobTypeTimeSeriesData(BaseModel):
+    exploration: Optional[List[TimeSeriesData]] = None
+    development: Optional[List[TimeSeriesData]] = None
+    workover: Optional[List[TimeSeriesData]] = None
+    well_service: Optional[List[TimeSeriesData]] = None
+
+
+class ChartDataItem(BaseModel):
+    type: str
+    name: str
+    x: List[str]
+    y: List[int]
+    xaxis: str
+    yaxis: str
+
+class ChartAxis(BaseModel):
+    title: Optional[str] = None
+
+class ChartLayout(BaseModel):
+    title: str
+    xaxis: Optional[ChartAxis] = None
+    yaxis: Optional[ChartAxis] = None
+
+
+class ChartDataKKKS(BaseModel):
+    data: List[ChartDataItem]
+    layout: ChartLayout
+
+class KKKSJobDataChart(BaseModel):
+    id: str
+    nama_kkks: str
+    exploration: JobTypeData
+    development: JobTypeData
+    workover: JobTypeData
+    wellservice: JobTypeData
+    monthly_data: Dict[str, List[TimeSeriesData]]
+    weekly_data: Dict[str, List[TimeSeriesData]]
+    well_job_data: Dict[str, List[WellJobData]]
+    chart_data: Dict[str, ChartDataKKKS]
+
+    class Config:
+        from_attributes = True
 
 
 
