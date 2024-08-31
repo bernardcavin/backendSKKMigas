@@ -171,14 +171,14 @@ class WellInstance(Base):
 
         # Set UOM fields based on unit_type
         uom_map = uom.get(unit_type, {})
-        self.rotary_table_elev_uom = uom_map.get('Elevation', 'm')  # Default to meters if not found
-        self.kb_elev_uom = uom_map.get('Elevation', 'm')  # Default to meters if not found
-        self.derrick_floor_elev_uom = uom_map.get('Elevation', 'm')  # Default to meters if not found
-        self.ground_elev_uom = uom_map.get('Elevation', 'm')  # Default to meters if not found
-        self.mean_sea_level_uom = uom_map.get('Elevation', 'm')  # Default to meters if not found
-        self.kick_off_point_uom = uom_map.get('Depth', 'm')  # Default to meters if not found
-        self.maximum_tvd_uom = uom_map.get('Depth', 'm')  # Default to meters if not found
-        self.final_md_uom = uom_map.get('Depth', 'm')  # Default to meters if not found
+        self.rotary_table_elev_uom = uom_map.get('Length', 'm')  # Default to meters if not found
+        self.kb_elev_uom = uom_map.get('Length', 'm')  # Default to meters if not found
+        self.derrick_floor_elev_uom = uom_map.get('Length', 'm')  # Default to meters if not found
+        self.ground_elev_uom = uom_map.get('Length', 'm')  # Default to meters if not found
+        self.mean_sea_level_uom = uom_map.get('Length', 'm')  # Default to meters if not found
+        self.kick_off_point_uom = uom_map.get('Length', 'm')  # Default to meters if not found
+        self.maximum_tvd_uom = uom_map.get('Length', 'm')  # Default to meters if not found
+        self.final_md_uom = uom_map.get('Length', 'm')  # Default to meters if not found
 
         super().__init__(*args, **kwargs)
     

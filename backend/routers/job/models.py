@@ -588,7 +588,7 @@ class JobOperationDay(Base):
     def __init__(self, unit_type, *args, **kwargs):
 
         uom_map = uom.get(unit_type, {})
-        self.depth_uom = uom_map.get('Depth', 'm')  # Default to meters if not found
+        self.depth_uom = uom_map.get('Length', 'm')  # Default to meters if not found
 
         super().__init__(*args, **kwargs)
         

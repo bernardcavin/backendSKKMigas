@@ -82,10 +82,10 @@ class ChartDataModal(BaseModel):
 class WellJobData(BaseModel):
     nama_sumur: str
     wilayah_kerja: str
-    lapangan: str | None
-    tanggal_mulai: str | None
-    tanggal_selesai: str | None
-    tanggal_realisasi: str | None
+    lapangan: Optional[str]
+    tanggal_mulai: Optional[str]
+    tanggal_selesai: Optional[str]
+    tanggal_realisasi: Optional[str]
     status: str
 
 

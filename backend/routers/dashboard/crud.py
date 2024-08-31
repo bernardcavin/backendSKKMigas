@@ -40,7 +40,7 @@ def count_job_data(db: Session) -> Dict[str, int]:
 
 def get_well_names(db: Session) -> List[WellData]:
     try:
-        wells = db.query(Well.well_name).all()
+        wells = db.query(WellInstance.well_name).all()
         return [WellData(well_name=well.well_name) for well in wells]
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=f"Database error in wells: {str(e)}")
@@ -57,7 +57,7 @@ def get_status_counts(db: Session) -> List[Dict[str, Any]]:
         # Query to get well names along with relevant status counts and dates
         results = (
             db.query(
-                Well.well_name.label('well_name'),
+                WellInstance.well_name.label('well_name'),
                 func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).label('approved_planning_count'),
                 func.count(Job.id).filter(Job.operation_status == OperationStatus.OPERATING).label('operating_count'),
                 func.count(Job.id).filter(Job.operation_status == OperationStatus.FINISHED).label('finished_count'),
@@ -75,8 +75,8 @@ def get_status_counts(db: Session) -> List[Dict[str, Any]]:
                 func.min(Job.ppp_status).label('ppp_status'),
                 func.min(Job.closeout_status).label('closeout_status')
             )
-            .join(Job, (Job.field_id == Well.field_id))
-            .group_by(Well.well_name)
+            .join(Job, (Job.field_id == WellInstance.field_id))
+            .group_by(WellInstance.well_name)
             .all()
         )
 
@@ -444,9 +444,9 @@ def get_job_and_well_status_summary(db: Session) -> Dict:
 
     # Count wells by status
     well_status_counts = db.query(
-        Well.well_status,
-        func.count(Well.id).label('count')
-    ).filter(Well.well_instance_type == WellInstanceType.POST_OPERATION).group_by(Well.well_status).all()
+        WellInstance.well_status,
+        func.count(WellInstance.id).label('count')
+    ).filter(WellInstance.well_instance_type == WellInstanceType.POST_OPERATION).group_by(WellInstance.well_status).all()
 
     # Prepare well status data
     well_status_data = {status.value: count for status, count in well_status_counts}
@@ -544,7 +544,7 @@ def get_kkks_weekly_data(db: Session, kkks_id: str):
 def get_well_job_data(db: Session, kkks_id: str):
     query = (
         select(
-            Well.name.label('well_name'),
+            WellInstance.name.label('well_name'),
             Area.name.label('wilayah_kerja'),
             Lapangan.name.label('lapangan'),
             Job.date_proposed.label('tanggal_mulai'),
@@ -553,11 +553,11 @@ def get_well_job_data(db: Session, kkks_id: str):
             Job.planning_status.label('plan_status'),
             Job.operation_status.label('operation_status')
         )
-        .select_from(Well)
-        .join(Area, Well.area_id == Area.id)
-        .join(Lapangan, Well.field_id == Lapangan.id)
-        .join(Job, Well.kkks_id == Job.kkks_id)
-        .where(Well.kkks_id == kkks_id)
+        .select_from(WellInstance)
+        .join(Area, WellInstance.area_id == Area.id)
+        .join(Lapangan, WellInstance.field_id == Lapangan.id)
+        .join(Job, WellInstance.kkks_id == Job.kkks_id)
+        .where(WellInstance.kkks_id == kkks_id)
         .where(or_(Job.planning_status == PlanningStatus.APPROVED, Job.operation_status == OperationStatus.OPERATING))
     )
 
@@ -648,9 +648,9 @@ def get_job_and_well_status_summary(db: Session) -> Dict:
 
     # Count wells by status
     well_status_counts = db.query(
-        Well.well_status,
-        func.count(Well.id).label('count')
-    ).filter(Well.well_instance_type == WellInstanceType.POST_OPERATION).group_by(Well.well_status).all()
+        WellInstance.well_status,
+        func.count(WellInstance.id).label('count')
+    ).filter(WellInstance.well_instance_type == WellInstanceType.POST_OPERATION).group_by(WellInstance.well_status).all()
 
     # Prepare well status data
     well_status_data = {status.value: count for status, count in well_status_counts}
@@ -769,7 +769,7 @@ def get_kkks_weekly_data(db: Session, kkks_id: str) -> Dict[str, List[TimeSeries
 def get_well_job_data(db: Session, kkks_id: str) -> Dict[str, List[WellJobData]]:
     query = (
         select(
-            Well.well_name.label('well_name'),
+            WellInstance.well_name.label('well_name'),
             Area.area_name.label('wilayah_kerja'),
             Lapangan.field_name.label('lapangan'),
             Job.date_proposed.label('tanggal_mulai'),
@@ -779,11 +779,11 @@ def get_well_job_data(db: Session, kkks_id: str) -> Dict[str, List[WellJobData]]
             Job.operation_status.label('operation_status'),
             Job.job_type
         )
-        .select_from(Well)
-        .join(Area, Well.area_id == Area.id)
-        .join(Lapangan, Well.field_id == Lapangan.id)
-        .join(Job, Well.kkks_id == Job.kkks_id) 
-        .where(Well.kkks_id == kkks_id)
+        .select_from(WellInstance)
+        .join(Area, WellInstance.area_id == Area.id)
+        .join(Lapangan, WellInstance.field_id == Lapangan.id)
+        .join(Job, WellInstance.kkks_id == Job.kkks_id) 
+        .where(WellInstance.kkks_id == kkks_id)
         .where(or_(Job.planning_status == PlanningStatus.APPROVED, Job.operation_status == OperationStatus.OPERATING))
     )
 
