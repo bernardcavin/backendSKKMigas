@@ -4,7 +4,7 @@ from backend.routers.auth import routers as auth_routers
 from backend.routers.job import routers as job_routers
 from backend.routers.spatial import routers as spatial_routers
 from backend.routers.well import routers as well_routers
-# from backend.routers.utils import routers as utils_routers
+from backend.routers.utils import routers as utils_routers
 from backend.routers.dashboard import routers as dashboard_routers
 from backend.routers.visualize import routers as visualization_routers
 from fastapi.middleware.cors import CORSMiddleware
@@ -49,6 +49,6 @@ app.include_router(auth_routers.router)
 app.include_router(job_routers.router)
 app.include_router(spatial_routers.router)
 app.include_router(well_routers.router)
-# app.include_router(utils_routers.router)
+app.include_router(utils_routers.router)
 app.include_router(dashboard_routers.router)
 app.include_router(visualization_routers.router)
