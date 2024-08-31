@@ -171,14 +171,11 @@ class ChartDataKKKS(BaseModel):
 class KKKSJobDataChart(BaseModel):
     id: str
     nama_kkks: str
-    exploration: JobTypeData
-    development: JobTypeData
-    workover: JobTypeData
-    wellservice: JobTypeData
+    job_data: JobTypeData
     monthly_data: Dict[str, List[TimeSeriesData]]
     weekly_data: Dict[str, List[TimeSeriesData]]
     well_job_data: Dict[str, List[WellJobData]]
-    chart_data: Dict[str, ChartDataKKKS]
+    chart_data: ChartDataKKKS
 
     class Config:
         from_attributes = True

@@ -1,3 +1,4 @@
+from cProfile import label
 from unittest import result
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -59,7 +60,6 @@ def get_status_counts(db: Session) -> List[Dict[str, Any]]:
         results = (
             db.query(
                 WellInstance.well_name.label('well_name'),
-                WellInstance.well_name.label('well_name'),
                 func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).label('approved_planning_count'),
                 func.count(Job.id).filter(Job.operation_status == OperationStatus.OPERATING).label('operating_count'),
                 func.count(Job.id).filter(Job.operation_status == OperationStatus.FINISHED).label('finished_count'),
@@ -77,8 +77,6 @@ def get_status_counts(db: Session) -> List[Dict[str, Any]]:
                 func.min(Job.ppp_status).label('ppp_status'),
                 func.min(Job.closeout_status).label('closeout_status')
             )
-            .join(Job, (Job.field_id == WellInstance.field_id))
-            .group_by(WellInstance.well_name)
             .join(Job, (Job.field_id == WellInstance.field_id))
             .group_by(WellInstance.well_name)
             .all()
@@ -750,6 +748,7 @@ def get_kkks_monthly_data(db: Session, kkks_id: str) -> Dict[str, List[TimeSerie
         ] for job_type in job_types
     }
 
+
 def get_kkks_weekly_data(db: Session, kkks_id: str) -> Dict[str, List[TimeSeriesData]]:
     current_year = datetime.now().year
     job_types = [job_type.value for job_type in JobType]
@@ -786,6 +785,7 @@ def get_kkks_weekly_data(db: Session, kkks_id: str) -> Dict[str, List[TimeSeries
             ) for week in all_weeks
         ] for job_type in job_types
     }
+
 def get_well_job_data(db: Session, kkks_id: str) -> Dict[str, List[WellJobData]]:
     query = (
         select(
@@ -833,6 +833,19 @@ def create_charts(monthly_data: Dict[str, List[TimeSeriesData]], weekly_data: Di
         monthly = monthly_data[job_type]
         weekly = weekly_data[job_type]
         
+        # Define separate layout for monthly and weekly charts
+        monthly_layout = ChartLayout(
+            title=f"KKKS: {kkks_name} - {job_type.capitalize()} Monthly Data",
+            xaxis=ChartAxis(title=f"{job_type.capitalize()} Month"),
+            yaxis=ChartAxis(title="Number of Jobs")
+        )
+        
+        weekly_layout = ChartLayout(
+            title=f"KKKS: {kkks_name} - {job_type.capitalize()} Weekly Data",
+            xaxis=ChartAxis(title=f"{job_type.capitalize()} Week"),
+            yaxis=ChartAxis(title="Number of Jobs")
+        )
+        
         job_type_chart = {
             "data": [
                 {
@@ -873,24 +886,21 @@ def create_charts(monthly_data: Dict[str, List[TimeSeriesData]], weekly_data: Di
                 },
             ],
             "layout": {
-                "title": f"KKKS: {kkks_name} - {job_type.capitalize()} Job Data",
-                "height": 1000,
-                "grid": {"rows": 2, "columns": 1, "pattern": "independent"},
-                "xaxis1": {"title": f"{job_type.capitalize()} Month"},
-                "yaxis1": {"title": "Number of Jobs"},
-                "xaxis2": {"title": f"{job_type.capitalize()} Week"},
-                "yaxis2": {"title": "Number of Jobs"}
+                "monthly": monthly_layout.dict(),  # Convert Pydantic model to dictionary
+                "weekly": weekly_layout.dict()  # Convert Pydantic model to dictionary
             }
         }
-        
+        print(monthly_layout.dict())
+        print(weekly_layout.dict())
+
         chart_data[job_type] = job_type_chart
     
     return json.dumps(chart_data)
 
-def get_kkks_job_counts(db: Session, kkks_id: str) -> Dict[str, Dict[str, int]]:
+
+def get_kkks_job_counts(db: Session, kkks_id: str) -> Dict[str, int]:
     query = (
         db.query(
-            Job.job_type,
             func.count(Job.id).label('total_jobs'),
             func.sum(case((Job.planning_status == PlanningStatus.APPROVED, 1), else_=0)).label('approved_jobs'),
             func.sum(case(
@@ -900,30 +910,27 @@ def get_kkks_job_counts(db: Session, kkks_id: str) -> Dict[str, Dict[str, int]]:
             func.sum(case((Job.operation_status == OperationStatus.FINISHED, 1), else_=0)).label('finished_jobs')
         )
         .filter(Job.kkks_id == kkks_id)
-        .group_by(Job.job_type)
     )
     
-    results = query.all()
+    result = query.first()
     
-    # Initialize the dictionary with all job types
-    job_counts = {job_type.value.lower(): {
-        'total_jobs': 0,
-        'approved_jobs': 0,
-        'realized_jobs': 0,
-        'finished_jobs': 0
-    } for job_type in JobType}
-    
-    # Fill in the actual counts
-    for row in results:
-        job_type = row.job_type.value.lower()
-        job_counts[job_type] = {
-            'total_jobs': row.total_jobs,
-            'approved_jobs': row.approved_jobs,
-            'realized_jobs': row.realized_jobs,
-            'finished_jobs': row.finished_jobs
+    if not result:
+        return {
+            'total_jobs': 0,
+            'approved_jobs': 0,
+            'realized_jobs': 0,
+            'finished_jobs': 0
         }
     
+    job_counts = {
+        'total_jobs': result.total_jobs,
+        'approved_jobs': result.approved_jobs,
+        'realized_jobs': result.realized_jobs,
+        'finished_jobs': result.finished_jobs
+    }
+    
     return job_counts
+
 # Additional helper function to get job data for a specific KKKS
 def get_kkks_job_data(db: Session, kkks_id: str) -> KKKSJobDataChart:
     kkks = db.query(KKKS).filter(KKKS.id == kkks_id).first()
@@ -936,57 +943,55 @@ def get_kkks_job_data(db: Session, kkks_id: str) -> KKKSJobDataChart:
     well_job_data = get_well_job_data(db, kkks_id)
     
     chart_json = create_charts(monthly_data, weekly_data, kkks.nama_kkks)
-    chart_data = json.loads(chart_json)
+    chart_data_dict = json.loads(chart_json)
+    print(chart_data_dict)
     
     # Calculate job type data
-    job_type_data: Dict[str, JobTypeData] = {}
-    for job_type, counts in job_counts.items():
-        approved_plans = counts['approved_jobs']
-        realized_jobs = counts['realized_jobs']
-        finished_jobs = counts['finished_jobs']
-        percentage = (realized_jobs / approved_plans * 100) if approved_plans > 0 else 0
-        job_type_data[job_type] = JobTypeData(
-            approved_plans=approved_plans,
-            active_operations=realized_jobs,
-            finished_jobs=finished_jobs,
-            percentage=round(percentage, 2)
-        )
+    approved_plans = job_counts['approved_jobs']
+    realized_jobs = job_counts['realized_jobs']
+    finished_jobs = job_counts['finished_jobs']
+    percentage = (realized_jobs / approved_plans * 100) if approved_plans > 0 else 0
+    
+    job_type_data = JobTypeData(
+        approved_plans=approved_plans,
+        active_operations=realized_jobs,
+        finished_jobs=finished_jobs,
+        percentage=round(percentage, 2)
+    )
     
     # Create ChartDataKKKS objects for each job type
     chart_data_kkks = {
         job_type: ChartDataKKKS(
-            data=job_chart["data"],
+            data=[
+                ChartDataItem(
+                    type=item["type"],
+                    name=item["name"],
+                    x=item["x"],
+                    y=item["y"],
+                    xaxis=item.get("xaxis", "x1"),
+                    yaxis=item.get("yaxis", "y1")
+                )
+                for item in job_chart["data"]
+            ],
             layout=ChartLayout(
                 title=job_chart["layout"]["title"],
-                xaxis=ChartAxis(title=job_chart["layout"]["xaxis1"]["title"]),
-                yaxis=ChartAxis(title=job_chart["layout"]["yaxis1"]["title"])
+                xaxis=ChartAxis(title=job_chart["layout"].get("xaxis", {}).get("title")),
+                yaxis=ChartAxis(title=job_chart["layout"].get("yaxis", {}).get("title"))
             )
         )
-        for job_type, job_chart in chart_data.items()
+        for job_type, job_chart in chart_data_dict.items()
     }
     
-    # Helper function to get job type data with a fallback to empty data
-    def get_job_type_data(job_type: str) -> JobTypeData:
-        return job_type_data.get(job_type, JobTypeData(
-            approved_plans=0,
-            active_operations=0,
-            finished_jobs=0,
-            percentage=0
-        ))
-    
+    # Return KKKSJobDataChart with chart_data as a dictionary of ChartDataKKKS
     return KKKSJobDataChart(
         id=kkks.id,
         nama_kkks=kkks.nama_kkks,
-        exploration=get_job_type_data('exploration'),
-        development=get_job_type_data('development'),
-        workover=get_job_type_data('workover'),
-        wellservice=get_job_type_data('wellservice'),  # Try 'wellservice'
+        job_data=job_type_data,
         monthly_data=monthly_data,
         weekly_data=weekly_data,
         well_job_data=well_job_data,
-        chart_data=chart_data_kkks
+        chart_data=chart_data_kkks  # Ensure this is a dictionary with job type keys and ChartDataKKKS values
     )
-
 # Function to get overall dashboard data
 def get_dashboard_data(db: Session):
     budget_summary = get_budget_summary_by_job_type(db)
@@ -1001,46 +1006,89 @@ def get_dashboard_data(db: Session):
 
 # Function to get job counts for specific job types and statuses
 def generate_rig_type_pie_chart(db: Session) -> Dict:
-    # Query to count rig types
-    rig_type_counts = db.query(
-        JobInstance.rig_type,
-        func.count(JobInstance.id).label('count')
-    ).group_by(JobInstance.rig_type).all()
+    # Query to count rig types in PlanDevelopment
+    development_counts = db.query(
+        PlanDevelopment.rig_type,
+        func.count(PlanDevelopment.id).label('count')
+    ).group_by(PlanDevelopment.rig_type).all()
 
-    # Process the results
-    labels = []
-    values = []
-    for rig_type, count in rig_type_counts:
+    # Query to count rig types in PlanExploration
+    exploration_counts = db.query(
+        PlanExploration.rig_type,
+        func.count(PlanExploration.id).label('count')
+    ).group_by(PlanExploration.rig_type).all()
+
+    # Process the results for development
+    dev_labels = []
+    dev_values = []
+    for rig_type, count in development_counts:
         if rig_type is not None:
-            labels.append(rig_type.value)
-            values.append(count)
+            dev_labels.append(rig_type.value)
+            dev_values.append(count)
 
-    # Create Plotly figure
-    fig = go.Figure(data=[go.Pie(
-        labels=labels,
-        values=values,
+    # Process the results for exploration
+    exp_labels = []
+    exp_values = []
+    for rig_type, count in exploration_counts:
+        if rig_type is not None:
+            exp_labels.append(rig_type.value)
+            exp_values.append(count)
+
+    # Create Plotly figures for both charts
+    dev_fig = go.Figure(data=[go.Pie(
+        labels=dev_labels,
+        values=dev_values,
         hole=.3,
         hoverinfo='label+percent+value',
         textinfo='percent',
         insidetextorientation='radial'
     )])
 
-    fig.update_layout(
-        title_text="Rig Type Distribution",
+    exp_fig = go.Figure(data=[go.Pie(
+        labels=exp_labels,
+        values=exp_values,
+        hole=.3,
+        hoverinfo='label+percent+value',
+        textinfo='percent',
+        insidetextorientation='radial'
+    )])
+
+    # Update layout for both figures
+    dev_fig.update_layout(
+        title_text="Development Rig Type Distribution",
         height=500,
         width=700
     )
 
-    # Convert the figure to JSON
-    chart_json = fig.to_json()
+    exp_fig.update_layout(
+        title_text="Exploration Rig Type Distribution",
+        height=500,
+        width=700
+    )
 
+    # Convert the figures to JSON
+    dev_chart_json = dev_fig.to_json()
+    exp_chart_json = exp_fig.to_json()
+
+    # Return the structured data
     return {
-        "chart_data": chart_json,
-        "raw_data": {
-            "labels": labels,
-            "values": values
+        "exploration": {
+            "chart_data": exp_chart_json,
+            "raw_data": {
+                "labels": exp_labels,
+                "values": exp_values
+            }
+        },
+        "development": {
+            "chart_data": dev_chart_json,
+            "raw_data": {
+                "labels": dev_labels,
+                "values": dev_values
+            }
         }
     }
+
+
 
 def get_jobs(db: Session) -> Dict[str, List[Dict]]:
     jobs = db.query(
