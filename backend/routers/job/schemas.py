@@ -55,24 +55,24 @@ class JobOperationDayBase(BaseModel):
     class Meta:
         orm_model = JobOperationDay
 
-class JobInstanceBase(BaseModel):
+class JobPlanInstanceBase(BaseModel):
     
     start_date: date
     end_date: date
     total_budget: Decimal = Field(default=None, max_digits=10, decimal_places=2)
-
-    rig_name: str
-    rig_type: RigType
-    rig_horse_power: Decimal
     
     job_operation_days: List[JobOperationDayBase]
     work_breakdown_structure: List[WorkBreakdownStructureBase]
     job_hazards: List[JobHazardBase]
     job_documents: List[JobDocumentBase]
 
-class CreateExploration(JobInstanceBase):
+class CreatePlanExploration(JobPlanInstanceBase):
     
-    well: CreateWell
+    rig_name: str
+    rig_type: RigType
+    rig_horse_power: Decimal
+
+    well_plan: CreatePlanWell
     
     wrm_pembebasan_lahan: bool
     wrm_ippkh: bool
@@ -86,11 +86,15 @@ class CreateExploration(JobInstanceBase):
     wrm_evaluasi_subsurface: bool
 
     class Meta:
-        orm_model = Exploration
+        orm_model = PlanExploration
 
-class CreateDevelopment(JobInstanceBase):
+class CreatePlanDevelopment(JobPlanInstanceBase):
     
-    well: CreateWell
+    rig_name: str
+    rig_type: RigType
+    rig_horse_power: Decimal
+
+    well_plan: CreatePlanWell
     
     wrm_pembebasan_lahan: bool
     wrm_ippkh: bool
@@ -105,31 +109,53 @@ class CreateDevelopment(JobInstanceBase):
     wrm_evaluasi_subsurface: bool
     
     class Meta:
-        orm_model = Development
+        orm_model = PlanDevelopment
         
-class CreateWorkover(JobInstanceBase):
+class CreatePlanWorkover(JobPlanInstanceBase):
     
-    well: CreateWell
+    equipment: str
+    equipment_sepesifications: str
+    
+    well_id: str
+    
     job_category: WOWSJobType
+    job_description: str
     
+    #current
     onstream_oil: Decimal
-    onstream_gas:  Decimal
-    water_cut:  Decimal
+    onstream_gas: Decimal
+    onstream_water_cut: Decimal
+    
+    #target
+    target_oil: Decimal
+    target_gas: Decimal
+    target_water_cut: Decimal
 
     class Meta:
-        orm_model = Workover
+        orm_model = PlanWorkover
 
-class CreateWellService(JobInstanceBase):
+class CreatePlanWellService(JobPlanInstanceBase):
     
-    well: CreateWell
+    equipment: str
+    equipment_sepesifications: str
+    
+    well_id: str
+    
     job_category: WOWSJobType
+    job_description: str
     
+    #current
     onstream_oil: Decimal
-    onstream_gas:  Decimal
-    water_cut:  Decimal
+    onstream_gas: Decimal
+    onstream_water_cut: Decimal
+    
+    #target
+    target_oil: Decimal
+    target_gas: Decimal
+    target_water_cut: Decimal
 
     class Meta:
-        orm_model = WellService
+        orm_model = PlanWellService
 
 class PlanJobBase(BaseModel):
 
@@ -146,19 +172,19 @@ class PlanJobBase(BaseModel):
     class Meta:
         orm_model = Job
 
-class ExplorationPlan(PlanJobBase):
+class ExplorationJobPlan(PlanJobBase):
     
-    job_plan: CreateExploration
+    job_plan: CreatePlanExploration
 
-class DevelopmentPlan(PlanJobBase):
+class DevelopmentJobPlan(PlanJobBase):
     
-    job_plan: CreateDevelopment
+    job_plan: CreatePlanDevelopment
 
-class WorkoverPlan(PlanJobBase):
+class WorkoverJobPlan(PlanJobBase):
     
-    job_plan: CreateWorkover
+    job_plan: CreatePlanWorkover
 
-class WellServicePlan(PlanJobBase):
+class WellServiceJobPlan(PlanJobBase):
     
-    job_plan: CreateWellService
+    job_plan: CreatePlanWellService
     

@@ -174,7 +174,7 @@ class WellStratigraphyBase(BaseModel):
     class Meta:
         orm_model = WellStratigraphy
 
-class CreateWell(WellBase):
+class CreatePlanWell(WellBase):
     
     well_documents: Optional[List[WellDocumentBase]]
     well_summary: Optional[List[WellSummaryBase]]
@@ -187,5 +187,5 @@ class CreateWell(WellBase):
     well_stratigraphy: Optional[List[WellStratigraphyBase]]
     
     class Meta:
-        orm_model = Well
+        orm_model = PlanWell
 

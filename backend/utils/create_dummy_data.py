@@ -319,7 +319,7 @@ def generate_dummy_data(n: int):
                                 "remark": "string"
                             }
                             ],
-                            "well": {
+                            "well_plan": {
                                 "uwi": f'{i+j}{j}',
                                 "field_id": field_id,
                                 "area_id": area_id,
@@ -443,9 +443,9 @@ def generate_dummy_data(n: int):
                     }
 
                     if job_type == JobType.EXPLORATION:
-                        work_schema = job_crud.ExplorationPlan
+                        work_schema = job_crud.ExplorationJobPlan
                     else:
-                        work_schema = job_crud.DevelopmentPlan
+                        work_schema = job_crud.DevelopmentJobPlan
                         
                     db_job = job_models.Job(
                         **job_crud.parse_schema(work_schema(**drilling_job_dict))
@@ -466,6 +466,168 @@ def generate_dummy_data(n: int):
                         db_job.date_approved = datetime.now().date()
                         db_job.approved_by_id = user.id
                         db_job.remarks = None
+                        
+                        random_operation_status = random.randint(0, 2)
+                        
+                        if random_operation_status == 1:
+                            
+                            db_job.operation_status = OperationStatus.OPERATING
+                            db_job.date_started = (plan_start+timedelta(days=random.randint(0, 5))).date()
+                        
+                        # elif random_operation_status == 2:
+                            
+                        #     db_job.operation_status = OperationStatus.FINISHED
+                        #     db_job.date_started = (plan_start+timedelta(days=random.randint(0, 5))).date()
+                        #     db_job.date_finished = (plan_start+timedelta(days=25)).date()
+                        #     db_job.actual_job = JobInstance(**{
+                        #             "start_date": plan_start.date(),
+                        #             "end_date": (plan_start+timedelta(days=20)).date(),
+                        #             "total_budget": round(random.uniform(9999999, 999999),2),
+                        #             "rig_name": f'RIG0{j}',
+                        #             "rig_type": random_enum_value(RigType).value,
+                        #             "rig_horse_power": random.randint(100, 5000),
+                        #             "job_operation_days": plan_job_operation_days,
+                        #             "work_breakdown_structure": plan_wbs,
+                        #             "job_hazards": [
+                        #             {
+                        #                 "hazard_type": "GAS KICK",
+                        #                 "hazard_description": "string",
+                        #                 "severity": "LOW",
+                        #                 "mitigation": "string",
+                        #                 "remark": "string"
+                        #             }
+                        #             ],
+                        #             "job_documents": [
+                        #             {
+                        #                 "file_id": "string",
+                        #                 "document_type": "Drilling Plan",
+                        #                 "remark": "string"
+                        #             }
+                        #             ],
+                        #             "well": {
+                        #                 "uwi": f'{i+j}{j}',
+                        #                 "field_id": field_id,
+                        #                 "area_id": area_id,
+                        #                 "kkks_id": kkks_id,
+                        #                 "well_name": f'WELL0{i+j}{j}',
+                        #                 "alias_long_name": "-",
+                        #                 "well_type": random_enum_value(WellType).value,
+                        #                 "well_status": random_enum_value(WellStatus).value,
+                        #                 "well_profile_type": random_enum_value(WellProfileType).value,
+                        #                 "hydrocarbon_target": random_enum_value(HydrocarbonTarget).value,
+                        #                 "environment_type": random_enum_value(EnvironmentType).value,
+                        #                 "surface_longitude": 106.816666,
+                        #                 "surface_latitude": -6.200000,
+                        #                 "bottom_hole_longitude": 106.816666,
+                        #                 "bottom_hole_latitude": -6.200000,
+                        #                 "maximum_inclination": 0,
+                        #                 "azimuth": 0,
+                        #                 "line_name": "string",
+                        #                 "spud_date": "2024-08-24T13:50:55.638Z",
+                        #                 "final_drill_date": "2024-08-24T13:50:55.638Z",
+                        #                 "completion_date": "2024-08-24T13:50:55.638Z",
+                        #                 "rotary_table_elev": 0,
+                        #                 "rotary_table_elev_uom": "FEET",
+                        #                 "kb_elev": 0,
+                        #                 "kb_elev_uom": "FEET",
+                        #                 "derrick_floor_elev": 0,
+                        #                 "derrick_floor_elev_uom": "FEET",
+                        #                 "ground_elev": 0,
+                        #                 "ground_elev_uom": "FEET",
+                        #                 "mean_sea_level": 0,
+                        #                 "mean_sea_level_uom": "FEET",
+                        #                 "depth_datum": "RT",
+                        #                 "kick_off_point": 0,
+                        #                 "kick_off_point_uom": "FEET",
+                        #                 "maximum_tvd": 0,
+                        #                 "maximum_tvd_uom": "FEET",
+                        #                 "final_md": 0,
+                        #                 "final_md_uom": "FEET",
+                        #                 "remark": "string",
+                        #                 "well_documents": [
+                        #                     {
+                        #                         "file_id": "string",
+                        #                         "document_type": "Well Report",
+                        #                         "remark": "string"
+                        #                     }
+                        #                     ],
+                        #                 "well_summary": [
+                        #                     {
+                        #                     "depth_datum": "RT",
+                        #                     "depth": 0,
+                        #                     "depth_uom": "FEET",
+                        #                     "hole_diameter": 0,
+                        #                     "hole_diameter_uom": "INCH",
+                        #                     "bit": "string",
+                        #                     "casing_outer_diameter": 0,
+                        #                     "casing_outer_diameter_uom": "INCH",
+                        #                     "logging": "string",
+                        #                     "mud_program": "string",
+                        #                     "cementing_program": "string",
+                        #                     "bottom_hole_temperature": 0,
+                        #                     "bottom_hole_temperature_uom": "C",
+                        #                     "rate_of_penetration": 0,
+                        #                     "remarks": "string"
+                        #                     }
+                        #                 ],
+                        #                 "well_test": [
+                        #                     {
+                        #                     "depth_datum": "RT",
+                        #                     "zone_name": "string",
+                        #                     "zone_top_depth": 0,
+                        #                     "zone_bottom_depth": 0,
+                        #                     "depth_uom": "FEET"
+                        #                     }
+                        #                 ],
+                        #                 "well_trajectory": 
+                        #                     {
+                        #                     "file_id": drilling_trajectory_file_id,
+                        #                     "data_format": DataFormat.PLAIN_TEXT,
+                        #                     }
+                        #                 ,
+                        #                 "well_ppfg": 
+                        #                     {
+                        #                     "file_id": "string",
+                        #                     "data_format": "IMAGE",
+                        #                     }
+                        #                 ,
+                        #                 "well_logs": [
+                        #                     {
+                        #                     "file_id": "string",
+                        #                     "data_format": "IMAGE",
+                        #                     }
+                        #                 ],
+                        #                 "well_drilling_parameter": 
+                        #                     {
+                        #                     "file_id": "string",
+                        #                     "data_format": "IMAGE",
+                        #                     }
+                        #                 ,
+                        #                 "well_casing": plan_casing,
+                        #                 "well_stratigraphy": [
+                        #                     {
+                        #                     "depth_datum": "RT",
+                        #                     "depth": 0,
+                        #                     "depth_uom": "FEET",
+                        #                     "stratigraphy_id": "string"
+                        #                     }
+                        #                 ]
+                        #             },
+                        #             "wrm_pembebasan_lahan": True,
+                        #             "wrm_ippkh": True,
+                        #             "wrm_ukl_upl": True,
+                        #             "wrm_amdal": True,
+                        #             "wrm_cutting_dumping": True,
+                        #             "wrm_pengadaan_rig": True,
+                        #             "wrm_pengadaan_drilling_services": True,
+                        #             "wrm_pengadaan_lli": True,
+                        #             "wrm_persiapan_lokasi": True,
+                        #             "wrm_internal_kkks": True,
+                        #             "wrm_evaluasi_subsurface": True
+                        #         }
+                        #     }
+                        #     )
+                        
                     elif random_approval_status == 2:
                         db_job.planning_status = PlanningStatus.RETURNED
                         db_job.date_returned = datetime.now().date()
@@ -475,9 +637,152 @@ def generate_dummy_data(n: int):
                     db.add(db_job)
                     
                 else:
-                    pass
-                
-
-                
+                    
+                    wows_job_dict = {
+                        "area_id": area_id,
+                        "field_id": field_id,
+                        "contract_type": contract_type,
+                        "afe_number": f'AFE0{j}' if contract_type == 'COST-RECOVERY' else '-',
+                        "wpb_year": 2024,
+                        "job_plan": {
+                            "start_date": "2024-08-31",
+                            "end_date": "2024-08-31",
+                            "total_budget": 0,
+                            "rig_name": "string",
+                            "rig_type": "JACK-UP",
+                            "rig_horse_power": 0,
+                            "job_operation_days": plan_job_operation_days,
+                            "work_breakdown_structure": plan_wbs,
+                            "job_hazards": [
+                            {
+                                "hazard_type": "GAS KICK",
+                                "hazard_description": "string",
+                                "severity": "LOW",
+                                "mitigation": "string",
+                                "remark": "string"
+                            }
+                            ],
+                            "job_documents": [
+                            {
+                                "file_id": "string",
+                                "document_type": "Drilling Plan",
+                                "remark": "string"
+                            }
+                            ],
+                            "well": {
+                                "uwi": f'{i+j}{j}',
+                                "field_id": field_id,
+                                "area_id": area_id,
+                                "kkks_id": kkks_id,
+                                "well_name": f'WELL0{i+j}{j}',
+                                "alias_long_name": "-",
+                                "well_type": random_enum_value(WellType).value,
+                                "well_status": random_enum_value(WellStatus).value,
+                                "well_profile_type": random_enum_value(WellProfileType).value,
+                                "hydrocarbon_target": random_enum_value(HydrocarbonTarget).value,
+                                "environment_type": random_enum_value(EnvironmentType).value,
+                                "surface_longitude": 106.816666,
+                                "surface_latitude": -6.200000,
+                                "bottom_hole_longitude": 106.816666,
+                                "bottom_hole_latitude": -6.200000,
+                                "maximum_inclination": 0,
+                                "azimuth": 0,
+                                "line_name": "string",
+                                "spud_date": "2024-08-24T13:50:55.638Z",
+                                "final_drill_date": "2024-08-24T13:50:55.638Z",
+                                "completion_date": "2024-08-24T13:50:55.638Z",
+                                "rotary_table_elev": 0,
+                                "rotary_table_elev_uom": "FEET",
+                                "kb_elev": 0,
+                                "kb_elev_uom": "FEET",
+                                "derrick_floor_elev": 0,
+                                "derrick_floor_elev_uom": "FEET",
+                                "ground_elev": 0,
+                                "ground_elev_uom": "FEET",
+                                "mean_sea_level": 0,
+                                "mean_sea_level_uom": "FEET",
+                                "depth_datum": "RT",
+                                "kick_off_point": 0,
+                                "kick_off_point_uom": "FEET",
+                                "maximum_tvd": 0,
+                                "maximum_tvd_uom": "FEET",
+                                "final_md": 0,
+                                "final_md_uom": "FEET",
+                                "remark": "string",
+                                "well_documents": [
+                                    {
+                                        "file_id": "string",
+                                        "document_type": "Well Report",
+                                        "remark": "string"
+                                    }
+                                    ],
+                                "well_summary": [
+                                    {
+                                    "depth_datum": "RT",
+                                    "depth": 0,
+                                    "depth_uom": "FEET",
+                                    "hole_diameter": 0,
+                                    "hole_diameter_uom": "INCH",
+                                    "bit": "string",
+                                    "casing_outer_diameter": 0,
+                                    "casing_outer_diameter_uom": "INCH",
+                                    "logging": "string",
+                                    "mud_program": "string",
+                                    "cementing_program": "string",
+                                    "bottom_hole_temperature": 0,
+                                    "bottom_hole_temperature_uom": "C",
+                                    "rate_of_penetration": 0,
+                                    "remarks": "string"
+                                    }
+                                ],
+                                "well_test": [
+                                    {
+                                    "depth_datum": "RT",
+                                    "zone_name": "string",
+                                    "zone_top_depth": 0,
+                                    "zone_bottom_depth": 0,
+                                    "depth_uom": "FEET"
+                                    }
+                                ],
+                                "well_trajectory": 
+                                    {
+                                    "file_id": drilling_trajectory_file_id,
+                                    "data_format": DataFormat.PLAIN_TEXT,
+                                    }
+                                ,
+                                "well_ppfg": 
+                                    {
+                                    "file_id": "string",
+                                    "data_format": "IMAGE",
+                                    }
+                                ,
+                                "well_logs": [
+                                    {
+                                    "file_id": "string",
+                                    "data_format": "IMAGE",
+                                    }
+                                ],
+                                "well_drilling_parameter": 
+                                    {
+                                    "file_id": "string",
+                                    "data_format": "IMAGE",
+                                    }
+                                ,
+                                "well_casing": plan_casing,
+                                "well_stratigraphy": [
+                                    {
+                                    "depth_datum": "RT",
+                                    "depth": 0,
+                                    "depth_uom": "FEET",
+                                    "stratigraphy_id": "string"
+                                    }
+                                ]
+                            },
+                            "job_category": random_enum_value(WOWSJobType),
+                            "onstream_oil": random.randint(0, 100),
+                            "onstream_gas": random.randint(0, 100),
+                            "water_cut": random.randint(0, 100)
+                        }
+                    }
 
         db.commit()
