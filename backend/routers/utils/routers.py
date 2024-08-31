@@ -5,35 +5,23 @@ from backend.routers.auth.models import *
 from backend.routers.spatial.models import *
 from backend.routers.spatial.models import Lapangan as OilField
 from backend.routers.job.models import ContractType, HazardType, RigType, Severity, WOWSJobType
-from backend.routers.well.models import CasingType, DENLogUOM, DepthDatum, DepthUOM, EnvironmentType, LogType, MediaType, PORLogUOM, SizeUOM, VolumeUOM, WellType, WellStatus, WellProfileType, DiameterUOM
+from backend.routers.well.models import CasingType, DepthDatum, EnvironmentType, LogType, MediaType, WellType, WellStatus, WellProfileType
 from backend.routers.utils.schemas import *
 from backend.routers.utils.crud import *
 from backend.routers.auth.utils import authorize, get_db, get_current_user
 
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, HTTPException
 from backend.routers.auth.models import *
 from backend.routers.job.models import *
 from backend.routers.job.schemas import *
 from backend.routers.well.crud import *
 from backend.routers.well.schemas import *
-from backend.routers.spatial.models import Area,Lapangan
+from backend.routers.spatial.models import Area
 from backend.routers.spatial.schemas import *
-# from backend.routers.dashboard.schemas import *
 from backend.routers.auth.schemas import GetUser
 from backend.routers.well.models import *
-from typing import List, Dict
-from datetime import date
-from sqlalchemy import and_,case,extract,select,text,or_
-import plotly.graph_objs as go
-from plotly.subplots import make_subplots
-import json
-from datetime import date, timedelta
-import itertools
-from typing import Union
-import logging
+from typing import List
 
 router = APIRouter(prefix="/utils", tags=["utils"])
 
@@ -81,15 +69,9 @@ enum_map = {
     "environment": EnvironmentType,
     "well_type": WellType,
     "profile_type": WellProfileType,
-    "casing_uom": DiameterUOM,
     "casing_type": CasingType,
-    "depth_uom": DepthUOM,
-    "volume_uom": VolumeUOM,
     "media_type": MediaType,
-    "size_uom": SizeUOM,
     "log_type": LogType,
-    "denlog_uom": DENLogUOM,
-    "porlog_uom": PORLogUOM,
     "well_status": WellStatus,
 }
 
