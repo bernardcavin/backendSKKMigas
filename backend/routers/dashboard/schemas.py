@@ -154,14 +154,17 @@ class ChartDataItem(BaseModel):
     y: List[int]
     xaxis: str
     yaxis: str
+    marker: Optional[Dict[str, str]] = None
 
 class ChartAxis(BaseModel):
     title: Optional[str] = None
 
 class ChartLayout(BaseModel):
     title: str
-    xaxis: Optional[ChartAxis] = None
-    yaxis: Optional[ChartAxis] = None
+    xaxis1: ChartAxis
+    yaxis1: ChartAxis
+    xaxis2: ChartAxis
+    yaxis2: ChartAxis
 
 
 class ChartDataKKKS(BaseModel):
@@ -175,10 +178,7 @@ class KKKSJobDataChart(BaseModel):
     monthly_data: Dict[str, List[TimeSeriesData]]
     weekly_data: Dict[str, List[TimeSeriesData]]
     well_job_data: Dict[str, List[WellJobData]]
-    chart_data: ChartDataKKKS
-
-    class Config:
-        from_attributes = True
+    chart_data: Dict[str, ChartDataKKKS]
 
 class JobResponse(BaseModel):
     id: str

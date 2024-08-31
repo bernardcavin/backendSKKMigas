@@ -1,6 +1,6 @@
 from cProfile import label
 from unittest import result
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session,aliased
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, HTTPException
@@ -17,7 +17,7 @@ from backend.routers.auth.schemas import GetUser
 from backend.routers.well.models import *
 from typing import List, Dict
 from datetime import date
-from sqlalchemy import and_,case,extract,select,text,or_
+from sqlalchemy import and_,case,extract,select,text,or_,union_all,literal_column
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import json
@@ -408,29 +408,79 @@ def generate_job_chart_data(db: Session) -> Dict:
 def get_budget_summary_by_job_type(db: Session) -> Dict[str, Dict]:
     job_types = [job_type.value for job_type in JobType]
 
+    # Create aliases for each job type table
+    PlanExplorationAlias = aliased(PlanExploration)
+    PlanDevelopmentAlias = aliased(PlanDevelopment)
+    PlanWorkoverAlias = aliased(PlanWorkover)
+    PlanWellServiceAlias = aliased(PlanWellService)
+
     # Query for planned budget
-    planned_budget_query = db.query(
-        JobInstance.job_type,
-        func.sum(JobInstance.total_budget).label('total')
-    ).join(
-        Job, Job.job_plan_id == JobInstance.id
-    ).filter(
-        Job.planning_status == PlanningStatus.APPROVED
-    ).group_by(JobInstance.job_type)
+    planned_budget_query = union_all(
+        db.query(
+            literal_column("'Exploration'").label('job_type'),
+            func.sum(PlanExplorationAlias.total_budget).label('total')
+        ).join(Job, Job.job_plan_id == PlanExplorationAlias.id)
+        .filter(Job.planning_status == PlanningStatus.APPROVED),
+
+        db.query(
+            literal_column("'Development'").label('job_type'),
+            func.sum(PlanDevelopmentAlias.total_budget).label('total')
+        ).join(Job, Job.job_plan_id == PlanDevelopmentAlias.id)
+        .filter(Job.planning_status == PlanningStatus.APPROVED),
+
+        db.query(
+            literal_column("'Workover'").label('job_type'),
+            func.sum(PlanWorkoverAlias.total_budget).label('total')
+        ).join(Job, Job.job_plan_id == PlanWorkoverAlias.id)
+        .filter(Job.planning_status == PlanningStatus.APPROVED),
+
+        db.query(
+            literal_column("'Well Service'").label('job_type'),
+            func.sum(PlanWellServiceAlias.total_budget).label('total')
+        ).join(Job, Job.job_plan_id == PlanWellServiceAlias.id)
+        .filter(Job.planning_status == PlanningStatus.APPROVED)
+    ).alias('planned_budget')
+
+    # Create aliases for each actual job type table
+    ActualExplorationAlias = aliased(ActualExploration)
+    ActualDevelopmentAlias = aliased(ActualDevelopment)
+    ActualWorkoverAlias = aliased(ActualWorkover)
+    ActualWellServiceAlias = aliased(ActualWellService)
 
     # Query for actual budget
-    actual_budget_query = db.query(
-        JobInstance.job_type,
-        func.sum(JobInstance.total_budget).label('total')
-    ).join(
-        Job, Job.actual_job_id == JobInstance.id
-    ).filter(
-        Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])
-    ).group_by(JobInstance.job_type)
+    actual_budget_query = union_all(
+        db.query(
+            literal_column("'Exploration'").label('job_type'),
+            func.sum(ActualExplorationAlias.total_budget).label('total')
+        ).join(Job, Job.actual_job_id == ActualExplorationAlias.id)
+        .filter(Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])),
+
+        db.query(
+            literal_column("'Development'").label('job_type'),
+            func.sum(ActualDevelopmentAlias.total_budget).label('total')
+        ).join(Job, Job.actual_job_id == ActualDevelopmentAlias.id)
+        .filter(Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])),
+
+        db.query(
+            literal_column("'Workover'").label('job_type'),
+            func.sum(ActualWorkoverAlias.total_budget).label('total')
+        ).join(Job, Job.actual_job_id == ActualWorkoverAlias.id)
+        .filter(Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])),
+
+        db.query(
+            literal_column("'Well Service'").label('job_type'),
+            func.sum(ActualWellServiceAlias.total_budget).label('total')
+        ).join(Job, Job.actual_job_id == ActualWellServiceAlias.id)
+        .filter(Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]))
+    ).alias('actual_budget')
+
+    # Execute queries
+    planned_results = db.execute(db.query(planned_budget_query)).fetchall()
+    actual_results = db.execute(db.query(actual_budget_query)).fetchall()
 
     # Convert query results to dictionaries
-    planned_budget = {row.job_type.value: float(row.total) for row in planned_budget_query}
-    actual_budget = {row.job_type.value: float(row.total) for row in actual_budget_query}
+    planned_budget = {row.job_type: float(row.total or 0) for row in planned_results}
+    actual_budget = {row.job_type: float(row.total or 0) for row in actual_results}
 
     # Prepare the result
     result = {}
@@ -494,97 +544,6 @@ def calculate_exploration_realization(db: Session) -> List[ExplorationRealizatio
 
     return realization_data
 
-def get_kkks_monthly_data(db: Session, kkks_id: str):
-    current_year = datetime.now().year
-    
-    query = (
-        select(
-            func.strftime('%Y-%m', Job.date_proposed).label('month'),
-            func.count(case((Job.planning_status == PlanningStatus.APPROVED, Job.id), else_=None)).label('planned_count'),
-            func.count(case((Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]), Job.id), else_=None)).label('realized_count')
-        )
-        .select_from(KKKS)
-        .join(Job, KKKS.id == Job.kkks_id)
-        .filter(KKKS.id == kkks_id, func.strftime('%Y', Job.date_proposed) == str(current_year))
-        .group_by(func.strftime('%Y-%m', Job.date_proposed))
-    )
-    
-    results = {row.month: {'planned': row.planned_count, 'realized': row.realized_count} for row in db.execute(query)}
-    
-    all_months = [f"{current_year}-{month:02d}" for month in range(1, 13)]
-    return [
-        TimeSeriesData(
-            time_period=month,
-            planned=results.get(month, {}).get('planned', 0),
-            realized=results.get(month, {}).get('realized', 0)
-        ) for month in all_months
-    ]
-
-def get_kkks_weekly_data(db: Session, kkks_id: str):
-    current_year = datetime.now().year
-    
-    query = (
-        select(
-            func.strftime('%Y-%W', Job.date_proposed).label('week'),
-            func.count(case((Job.planning_status == PlanningStatus.APPROVED, Job.id), else_=None)).label('planned_count'),
-            func.count(case((Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]), Job.id), else_=None)).label('realized_count')
-        )
-        .select_from(KKKS)
-        .join(Job, KKKS.id == Job.kkks_id)
-        .filter(KKKS.id == kkks_id, func.strftime('%Y', Job.date_proposed) == str(current_year))
-        .group_by(func.strftime('%Y-%W', Job.date_proposed))
-    )
-    
-    results = {row.week: {'planned': row.planned_count, 'realized': row.realized_count} for row in db.execute(query)}
-    
-    all_weeks = [f"{current_year}-{week:02d}" for week in range(1, 54)]  # Up to 53 weeks
-    return [
-        TimeSeriesData(
-            time_period=week,
-            planned=results.get(week, {}).get('planned', 0),
-            realized=results.get(week, {}).get('realized', 0)
-        ) for week in all_weeks
-    ]
-
-def get_well_job_data(db: Session, kkks_id: str):
-    query = (
-        select(
-            WellInstance.name.label('well_name'),
-            WellInstance.name.label('well_name'),
-            Area.name.label('wilayah_kerja'),
-            Lapangan.name.label('lapangan'),
-            Job.date_proposed.label('tanggal_mulai'),
-            Job.date_approved.label('tanggal_selesai'),
-            Job.date_started.label('tanggal_realisasi'),
-            Job.planning_status.label('plan_status'),
-            Job.operation_status.label('operation_status')
-        )
-        .select_from(WellInstance)
-        .join(Area, WellInstance.area_id == Area.id)
-        .join(Lapangan, WellInstance.field_id == Lapangan.id)
-        .join(Job, WellInstance.kkks_id == Job.kkks_id)
-        .where(WellInstance.kkks_id == kkks_id)
-        .select_from(WellInstance)
-        .join(Area, WellInstance.area_id == Area.id)
-        .join(Lapangan, WellInstance.field_id == Lapangan.id)
-        .join(Job, WellInstance.kkks_id == Job.kkks_id)
-        .where(WellInstance.kkks_id == kkks_id)
-        .where(or_(Job.planning_status == PlanningStatus.APPROVED, Job.operation_status == OperationStatus.OPERATING))
-    )
-
-    results = db.execute(query).all()
-
-    return [
-        WellJobData(
-            nama_sumur=row.well_name,
-            wilayah_kerja=row.wilayah_kerja,
-            lapangan=row.lapangan if row.lapangan else None,
-            tanggal_mulai=row.tanggal_mulai.strftime('%d %B %Y') if row.tanggal_mulai else None,
-            tanggal_selesai=row.tanggal_selesai.strftime('%d %B %Y') if row.tanggal_selesai else None,
-            tanggal_realisasi=row.tanggal_realisasi.strftime('%d %B %Y') if row.tanggal_realisasi else None,
-            status="APPROVED" if row.plan_status == PlanningStatus.APPROVED else "OPERATING"
-        ) for row in results
-    ]
 
 def get_job_counts(db: Session, job_types: List[str], statuses: List[str]) -> List[JobCountResponse]:
     try:
@@ -828,24 +787,11 @@ def get_well_job_data(db: Session, kkks_id: str) -> Dict[str, List[WellJobData]]
 
 def create_charts(monthly_data: Dict[str, List[TimeSeriesData]], weekly_data: Dict[str, List[TimeSeriesData]], kkks_name: str):
     chart_data = {}
-    
+
     for job_type in monthly_data.keys():
         monthly = monthly_data[job_type]
         weekly = weekly_data[job_type]
-        
-        # Define separate layout for monthly and weekly charts
-        monthly_layout = ChartLayout(
-            title=f"KKKS: {kkks_name} - {job_type.capitalize()} Monthly Data",
-            xaxis=ChartAxis(title=f"{job_type.capitalize()} Month"),
-            yaxis=ChartAxis(title="Number of Jobs")
-        )
-        
-        weekly_layout = ChartLayout(
-            title=f"KKKS: {kkks_name} - {job_type.capitalize()} Weekly Data",
-            xaxis=ChartAxis(title=f"{job_type.capitalize()} Week"),
-            yaxis=ChartAxis(title="Number of Jobs")
-        )
-        
+
         job_type_chart = {
             "data": [
                 {
@@ -886,16 +832,17 @@ def create_charts(monthly_data: Dict[str, List[TimeSeriesData]], weekly_data: Di
                 },
             ],
             "layout": {
-                "monthly": monthly_layout.dict(),  # Convert Pydantic model to dictionary
-                "weekly": weekly_layout.dict()  # Convert Pydantic model to dictionary
+                "title": f"KKKS: {kkks_name} - {job_type.capitalize()} Data",
+                "xaxis1": {"title": f"{job_type.capitalize()} Month"},
+                "yaxis1": {"title": "Number of Jobs"},
+                "xaxis2": {"title": f"{job_type.capitalize()} Week"},
+                "yaxis2": {"title": "Number of Jobs"}
             }
         }
-        print(monthly_layout.dict())
-        print(weekly_layout.dict())
 
         chart_data[job_type] = job_type_chart
-    
-    return json.dumps(chart_data)
+
+    return chart_data
 
 
 def get_kkks_job_counts(db: Session, kkks_id: str) -> Dict[str, int]:
@@ -932,33 +879,90 @@ def get_kkks_job_counts(db: Session, kkks_id: str) -> Dict[str, int]:
     return job_counts
 
 # Additional helper function to get job data for a specific KKKS
+def create_charts(monthly_data: Dict[str, List[TimeSeriesData]], weekly_data: Dict[str, List[TimeSeriesData]], kkks_name: str):
+    chart_data = {}
+
+    for job_type in monthly_data.keys():
+        monthly = monthly_data[job_type]
+        weekly = weekly_data[job_type]
+
+        job_type_chart = {
+            "data": [
+                {
+                    "type": "bar",
+                    "name": f"{job_type.capitalize()} Monthly Planned",
+                    "x": [item.time_period for item in monthly],
+                    "y": [item.planned for item in monthly],
+                    "marker": {"color": "blue"},
+                    "xaxis": "x1",
+                    "yaxis": "y1",
+                },
+                {
+                    "type": "bar",
+                    "name": f"{job_type.capitalize()} Monthly Realized",
+                    "x": [item.time_period for item in monthly],
+                    "y": [item.realized for item in monthly],
+                    "marker": {"color": "red"},
+                    "xaxis": "x1",
+                    "yaxis": "y1",
+                },
+                {
+                    "type": "bar",
+                    "name": f"{job_type.capitalize()} Weekly Planned",
+                    "x": [item.time_period for item in weekly],
+                    "y": [item.planned for item in weekly],
+                    "marker": {"color": "blue"},
+                    "xaxis": "x2",
+                    "yaxis": "y2",
+                },
+                {
+                    "type": "bar",
+                    "name": f"{job_type.capitalize()} Weekly Realized",
+                    "x": [item.time_period for item in weekly],
+                    "y": [item.realized for item in weekly],
+                    "marker": {"color": "red"},
+                    "xaxis": "x2",
+                    "yaxis": "y2",
+                },
+            ],
+            "layout": {
+                "title": f"KKKS: {kkks_name} - {job_type.capitalize()} Data",
+                "xaxis1": {"title": f"{job_type.capitalize()} Month"},
+                "yaxis1": {"title": "Number of Jobs"},
+                "xaxis2": {"title": f"{job_type.capitalize()} Week"},
+                "yaxis2": {"title": "Number of Jobs"}
+            }
+        }
+
+        chart_data[job_type] = job_type_chart
+
+    return chart_data
+
 def get_kkks_job_data(db: Session, kkks_id: str) -> KKKSJobDataChart:
     kkks = db.query(KKKS).filter(KKKS.id == kkks_id).first()
     if not kkks:
         raise HTTPException(status_code=404, detail="KKKS not found")
-    
+
     job_counts = get_kkks_job_counts(db, kkks_id)
     monthly_data = get_kkks_monthly_data(db, kkks_id)
     weekly_data = get_kkks_weekly_data(db, kkks_id)
     well_job_data = get_well_job_data(db, kkks_id)
-    
-    chart_json = create_charts(monthly_data, weekly_data, kkks.nama_kkks)
-    chart_data_dict = json.loads(chart_json)
-    print(chart_data_dict)
-    
+
+    chart_data = create_charts(monthly_data, weekly_data, kkks.nama_kkks)
+
     # Calculate job type data
     approved_plans = job_counts['approved_jobs']
     realized_jobs = job_counts['realized_jobs']
     finished_jobs = job_counts['finished_jobs']
     percentage = (realized_jobs / approved_plans * 100) if approved_plans > 0 else 0
-    
+
     job_type_data = JobTypeData(
         approved_plans=approved_plans,
         active_operations=realized_jobs,
         finished_jobs=finished_jobs,
         percentage=round(percentage, 2)
     )
-    
+
     # Create ChartDataKKKS objects for each job type
     chart_data_kkks = {
         job_type: ChartDataKKKS(
@@ -975,14 +979,15 @@ def get_kkks_job_data(db: Session, kkks_id: str) -> KKKSJobDataChart:
             ],
             layout=ChartLayout(
                 title=job_chart["layout"]["title"],
-                xaxis=ChartAxis(title=job_chart["layout"].get("xaxis", {}).get("title")),
-                yaxis=ChartAxis(title=job_chart["layout"].get("yaxis", {}).get("title"))
+                xaxis1=ChartAxis(title=job_chart["layout"]["xaxis1"]["title"]),
+                yaxis1=ChartAxis(title=job_chart["layout"]["yaxis1"]["title"]),
+                xaxis2=ChartAxis(title=job_chart["layout"]["xaxis2"]["title"]),
+                yaxis2=ChartAxis(title=job_chart["layout"]["yaxis2"]["title"])
             )
         )
-        for job_type, job_chart in chart_data_dict.items()
+        for job_type, job_chart in chart_data.items()
     }
-    
-    # Return KKKSJobDataChart with chart_data as a dictionary of ChartDataKKKS
+
     return KKKSJobDataChart(
         id=kkks.id,
         nama_kkks=kkks.nama_kkks,
@@ -990,7 +995,7 @@ def get_kkks_job_data(db: Session, kkks_id: str) -> KKKSJobDataChart:
         monthly_data=monthly_data,
         weekly_data=weekly_data,
         well_job_data=well_job_data,
-        chart_data=chart_data_kkks  # Ensure this is a dictionary with job type keys and ChartDataKKKS values
+        chart_data=chart_data_kkks
     )
 # Function to get overall dashboard data
 def get_dashboard_data(db: Session):
