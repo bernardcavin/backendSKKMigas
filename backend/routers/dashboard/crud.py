@@ -42,7 +42,6 @@ def count_job_data(db: Session) -> Dict[str, int]:
 def get_well_names(db: Session) -> List[WellData]:
     try:
         wells = db.query(WellInstance.well_name).all()
-        wells = db.query(WellInstance.well_name).all()
         return [WellData(well_name=well.well_name) for well in wells]
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=f"Database error in wells: {str(e)}")
@@ -456,10 +455,6 @@ def get_job_and_well_status_summary(db: Session) -> Dict:
         WellInstance.well_status,
         func.count(WellInstance.id).label('count')
     ).filter(WellInstance.well_instance_type == WellInstanceType.POST_OPERATION).group_by(WellInstance.well_status).all()
-        WellInstance.well_status,
-        func.count(WellInstance.id).label('count')
-    ).filter(WellInstance.well_instance_type == WellInstanceType.POST_OPERATION).group_by(WellInstance.well_status).all()
-
     # Prepare well status data
     well_status_data = {status.value: count for status, count in well_status_counts}
 

@@ -1,9 +1,9 @@
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship,Mapped
 from sqlalchemy import Column, String, ForeignKey, Enum, Text, Float, Date
 from enum import Enum as PyEnum
 from backend.database import Base
 import uuid
-from typing import Optional, List
+from typing import Optional, List,ClassVar
 
 
 from backend.utils.constants import uom
@@ -425,28 +425,29 @@ class WellCasing(Base):
         super().__init__(*args, **kwargs)
     
 class WellStratigraphy(Base):
-    
     __tablename__ = 'well_stratigraphy'
     
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    well_id = Column(String(36), ForeignKey('well_instances.id'), nullable=True)
-    well_instance = relationship('WellInstance', back_populates='well_stratigraphy')
+    id: Mapped[str] = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    well_id: Mapped[Optional[str]] = Column(String(36), ForeignKey('well_instances.id'), nullable=True)
+    well_instance: Mapped["WellInstance"] = relationship("WellInstance", back_populates='well_stratigraphy')
     
-    depth_datum = Column(Enum(DepthDatum))
+    depth_datum: Mapped[Optional[DepthDatum]] = Column(Enum(DepthDatum))
     
-    depth = Column(Float)
-    depth_uom = Column(String)
+    depth: Mapped[Optional[float]] = Column(Float)
+    depth_uom: Mapped[str] = Column(String)
     
-    stratigraphy_id = Column(String(36), ForeignKey('area_strat.id'))
-    stratigraphy = relationship('StratUnit', foreign_keys=[stratigraphy_id])
-    unit_type: Optional[str] = None 
+    stratigraphy_id: Mapped[str] = Column(String(36), ForeignKey('area_strat.id'))
+    stratigraphy: Mapped["StratUnit"] = relationship("StratUnit", foreign_keys=[stratigraphy_id])
     
-    def __init__(self, unit_type, *args, **kwargs):
-        
+    unit_type: ClassVar[str]
+
+    def __init__(self, unit_type: str, *args, **kwargs):
+        self.unit_type = unit_type
 
         # Set depth_uom based on unit_type
         if unit_type in uom and 'Length' in uom[unit_type]:
             self.depth_uom = uom[unit_type]['Length']
         else:
             self.depth_uom = 'm'  # Default value
+        
         super().__init__(*args, **kwargs)
