@@ -24,6 +24,7 @@ from datetime import date, timedelta
 import itertools
 from typing import Union
 import logging
+from collections import defaultdict
 
 
 def count_job_data(db: Session) -> Dict[str, int]:
@@ -408,23 +409,27 @@ def get_budget_summary_by_job_type(db: Session) -> Dict[str, Dict]:
 
     # Query for planned budget
     planned_budget_query = db.query(
-        Job.job_type,
-        func.sum(Job.total_budget).label('total')
+        JobInstance.job_type,
+        func.sum(JobInstance.total_budget).label('total')
+    ).join(
+        Job, Job.job_plan_id == JobInstance.id
     ).filter(
         Job.planning_status == PlanningStatus.APPROVED
-    ).group_by(Job.job_type)
+    ).group_by(JobInstance.job_type)
 
     # Query for actual budget
     actual_budget_query = db.query(
-        Job.job_type,
-        func.sum(Job.total_budget).label('total')
+        JobInstance.job_type,
+        func.sum(JobInstance.total_budget).label('total')
+    ).join(
+        Job, Job.actual_job_id == JobInstance.id
     ).filter(
         Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])
-    ).group_by(Job.job_type)
+    ).group_by(JobInstance.job_type)
 
     # Convert query results to dictionaries
-    planned_budget = {row.job_type: float(row.total) for row in planned_budget_query}
-    actual_budget = {row.job_type: float(row.total) for row in actual_budget_query}
+    planned_budget = {row.job_type.value: float(row.total) for row in planned_budget_query}
+    actual_budget = {row.job_type.value: float(row.total) for row in actual_budget_query}
 
     # Prepare the result
     result = {}
@@ -606,62 +611,69 @@ def get_job_counts(db: Session, job_types: List[str], statuses: List[str]) -> Li
     except Exception as e:
         # Log exception or handle as needed
         raise
-def get_budget_summary_by_job_type(db: Session) -> Dict[str, Dict]:
-    job_types = [job_type.value for job_type in JobType]
 
-    # Query for planned budget
-    planned_budget_query = db.query(
-        Job.job_type,
-        func.sum(JobInstance.total_budget).label('total')
-    ).filter(
-        Job.planning_status == PlanningStatus.APPROVED
-    ).group_by(Job.job_type)
-    print(planned_budget_query)
-
-    # Query for actual budget
-    actual_budget_query = db.query(
-        Job.job_type,
-        func.sum(JobInstance.total_budget).label('total')
-    ).filter(
-        Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])
-    ).group_by(Job.job_type)
-
-    # Convert query results to dictionaries
-    planned_budget = {row.job_type: float(row.total) for row in planned_budget_query}
-    actual_budget = {row.job_type: float(row.total) for row in actual_budget_query}
-
-    # Prepare the result
-    result = {}
-    for job_type in job_types:
-        result[job_type] = {
-            "planned": planned_budget.get(job_type, 0),
-            "actual": actual_budget.get(job_type, 0)
-        }
-
-    return result
 
 def get_job_and_well_status_summary(db: Session) -> Dict:
-    # Count jobs with POST_OPERATION instance type
-    post_operation_count = db.query(func.count(Job.id)).filter(
-        Job.job_instance_type == JobInstanceType.POST_OPERATION
-    ).scalar()
+    # Query jobs grouped by job type and instance type
+    job_counts = db.query(
+        Job.job_type,
+        func.count(Job.id).label('total_count'),
+        func.sum(case((Job.job_instance_type == JobInstanceType.POST_OPERATION, 1), else_=0)).label('post_operation_count')
+    ).group_by(Job.job_type).all()
+
+    # Prepare job count data
+    job_count_data = {}
+    for job_type, total_count, post_operation_count in job_counts:
+        job_count_data[job_type.value] = {
+            "total_count": total_count,
+            "post_operation_count": post_operation_count
+        }
 
     # Count wells by status
     well_status_counts = db.query(
         Well.well_status,
         func.count(Well.id).label('count')
-    ).filter(Well.well_instance_type == WellInstanceType.POST_OPERATION).group_by(Well.well_status).all()
+    ).group_by(Well.well_status).all()
 
     # Prepare well status data
     well_status_data = {status.value: count for status, count in well_status_counts}
 
+    # Create Plotly figure
+    fig = make_subplots(rows=2, cols=2, specs=[[{'type':'pie'}, {'type':'pie'}],
+                                               [{'type':'pie'}, {'type':'pie'}]],
+                        subplot_titles=('Total Jobs by Type', 'Post-Operation Jobs by Type',
+                                        'Well Status Distribution', ''))
+
+    # Total Jobs Pie Chart
+    fig.add_trace(go.Pie(labels=list(job_count_data.keys()),
+                         values=[data['total_count'] for data in job_count_data.values()],
+                         name="Total Jobs"),
+                  row=1, col=1)
+
+    # Post-Operation Jobs Pie Chart
+    fig.add_trace(go.Pie(labels=list(job_count_data.keys()),
+                         values=[data['post_operation_count'] for data in job_count_data.values()],
+                         name="Post-Operation Jobs"),
+                  row=1, col=2)
+
+    # Well Status Pie Chart
+    fig.add_trace(go.Pie(labels=list(well_status_data.keys()),
+                         values=list(well_status_data.values()),
+                         name="Well Status"),
+                  row=2, col=1)
+
+    # Update layout
+    fig.update_layout(height=800, width=800, title_text="Job and Well Status Summary")
+
+    # Convert the figure to a dict and then to JSON
+    plot_json = json.dumps(fig.to_dict(), indent=2)
+
     # Combine data
     summary = {
-        "post_operation_count": post_operation_count,
-        "well_status": well_status_data
+        "job_counts": job_count_data,
+        "well_status": well_status_data,
+        "plotly_chart": plot_json
     }
-
-    print(well_status_counts)
 
     return summary
 
@@ -980,5 +992,76 @@ def get_dashboard_data(db: Session):
     }
 
 # Function to get job counts for specific job types and statuses
-def get_filtered_job_counts(db: Session, job_types: List[str], statuses: List[str]):
-    return get_job_counts(db, job_types, statuses)
+def generate_rig_type_pie_chart(db: Session) -> Dict:
+    # Query to count rig types
+    rig_type_counts = db.query(
+        JobInstance.rig_type,
+        func.count(JobInstance.id).label('count')
+    ).group_by(JobInstance.rig_type).all()
+
+    # Process the results
+    labels = []
+    values = []
+    for rig_type, count in rig_type_counts:
+        if rig_type is not None:
+            labels.append(rig_type.value)
+            values.append(count)
+
+    # Create Plotly figure
+    fig = go.Figure(data=[go.Pie(
+        labels=labels,
+        values=values,
+        hole=.3,
+        hoverinfo='label+percent+value',
+        textinfo='percent',
+        insidetextorientation='radial'
+    )])
+
+    fig.update_layout(
+        title_text="Rig Type Distribution",
+        height=500,
+        width=700
+    )
+
+    # Convert the figure to JSON
+    chart_json = fig.to_json()
+
+    return {
+        "chart_data": chart_json,
+        "raw_data": {
+            "labels": labels,
+            "values": values
+        }
+    }
+
+def get_jobs(db: Session) -> Dict[str, List[Dict]]:
+    jobs = db.query(
+        Job.id,
+        Job.job_type,
+        Well.well_name,
+        Area.area_name,
+        Lapangan.field_name,
+        Job.date_proposed,
+        Job.date_approved,
+        Job.date_started,
+        Job.planning_status
+    ).join(Well, Job.area_id == Well.area_id)\
+     .join(Area, Job.area_id == Area.id)\
+     .join(Lapangan, Job.field_id == Lapangan.id)\
+     .all()
+
+    result = defaultdict(list)
+    for job in jobs:
+        job_data = {
+            "id": job.id,
+            "well_name": job.well_name,
+            "area_name": job.area_name,
+            "field_name": job.field_name,
+            "date_proposed": job.date_proposed.strftime("%d %B %Y") if job.date_proposed else None,
+            "date_approved": job.date_approved.strftime("%d %B %Y") if job.date_approved else None,
+            "date_started": job.date_started.strftime("%d %B %Y") if job.date_started else None,
+            "planning_status": job.planning_status.value
+        }
+        result[job.job_type.value].append(job_data)
+    
+    return dict(result)

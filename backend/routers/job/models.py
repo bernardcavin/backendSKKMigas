@@ -191,6 +191,7 @@ class Job(Base, CreateBase, ValidationBase):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     
     job_type = Column(Enum(JobType))
+    job_instance_type = Column(Enum(JobInstanceType))
     
     #kkks information
     kkks_id = Column(String(36), ForeignKey('kkks.id'))

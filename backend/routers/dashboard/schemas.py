@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from typing import List, Dict
-from pydantic import BaseModel
+from pydantic import BaseModel,RootModel
 from datetime import date
 from backend.routers.job.schemas import *
 from backend.routers.well.schemas import *
@@ -183,6 +183,21 @@ class KKKSJobDataChart(BaseModel):
     class Config:
         from_attributes = True
 
+class JobResponse(BaseModel):
+    id: str
+    well_name: str
+    area_name: str
+    field_name: str
+    date_proposed: Optional[str]
+    date_approved: Optional[str]
+    date_started: Optional[str]
+    planning_status: PlanningStatus
+
+class JobTypeGroup(BaseModel):
+    root: Dict[str, List[JobResponse]]
+
+    class Config:
+        from_attributes = True
 
 
 

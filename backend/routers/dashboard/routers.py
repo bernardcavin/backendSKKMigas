@@ -13,6 +13,8 @@ from calendar import monthrange, month_name as calendar_month_name
 from datetime import datetime,timedelta
 import plotly.graph_objects as go
 import numpy as np
+from fastapi.responses import JSONResponse
+
 
 from backend.routers.auth.utils import authorize, get_db, get_current_user
 from backend.routers.job import crud, schemas, models
@@ -131,39 +133,8 @@ async def read_budget_summary_charts(db: Session = Depends(get_db)):
 
 @router.get("/job-well-status-chart", response_model=Dict)
 async def read_job_well_status_chart(db: Session = Depends(get_db)):
-    data = get_job_and_well_status_summary(db)
-    
-    labels = list(data['well_status'].keys()) + ['Other Jobs']
-    values = list(data['well_status'].values()) + [data['post_operation_count']]
-
-    chart_data = {
-        "data": [{
-            "labels": labels,
-            "values": values,
-            "type": "pie",
-            "marker": {
-                "colors": [
-                    "rgba(103, 58, 183, 0.8)",  # Active
-                    "rgba(156, 39, 176, 0.8)",  # Suspended
-                    "rgba(33, 150, 243, 0.8)",  # Abandoned
-                    "rgba(0, 188, 212, 0.8)",   # Abandoned Whipstocked
-                    "rgba(76, 175, 80, 0.8)",   # Capped
-                    "rgba(255, 235, 59, 0.8)",  # Potential
-                    "rgba(255, 152, 0, 0.8)",   # Abandoned Junked
-                    "rgba(244, 67, 54, 0.8)",   # Not Drilled
-                    "rgba(158, 158, 158, 0.8)", # Cancelled
-                    "rgba(96, 125, 139, 0.8)"   # Other Jobs (POST_OPERATION)
-                ]
-            }
-        }],
-        "layout": {
-            "title": "Status Akhir",
-            "height": 500,
-            "width": 700
-        }
-    }
-    
-    return chart_data
+    data=get_job_and_well_status_summary(db)
+    return JSONResponse(content=data, media_type="application/json")
 
 
 @router.get("/exploration-realization", response_model=List[ExplorationRealizationItem])
@@ -213,3 +184,15 @@ def job_counts(db: Session = Depends(get_db)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/rig-type-pie-chart", response_model=Dict)
+async def read_rig_type_pie_chart(db: Session = Depends(get_db)):
+    """
+    Get rig type distribution pie chart data.
+    """
+    return generate_rig_type_pie_chart(db)
+
+@router.get("/jobs/typedetail", response_model=JobTypeGroup)
+async def read_jobs_grouped(db: Session = Depends(get_db)):
+    jobs = get_jobs(db)
+    return JobTypeGroup(root=jobs)
