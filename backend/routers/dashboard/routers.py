@@ -43,7 +43,7 @@ async def read_job_and_well_data(db: Session = Depends(get_db)):
 
 @router.get("/combined-data")
 def read_combined_data(db: Session = Depends(get_db)):
-    return get_combined_data(db)
+    return get_status_counts(db)
 
 @router.get("/kkks-job-data", response_model=List[KKKSJobData])
 def read_kkks_job_data(db: Session = Depends(get_db)):
@@ -51,21 +51,34 @@ def read_kkks_job_data(db: Session = Depends(get_db)):
 
 @router.get("/aggregate-job-data", response_model=AggregateJobData)
 def read_aggregate_job_data(db: Session = Depends(get_db)):
-    aggregate_data = get_aggregate_job_data(db)
-    changes = get_job_data_change(db)
-    
-    result = {}
-    for job_type in ['exploration', 'development', 'workover', 'wellservice']:
-        data = aggregate_data[job_type]
-        result[job_type] = JobTypeDataUP(
-            total=data['total'],
-            plan=data['plan'],
-            realization=data['realization'],
-            percentage=data['percentage'],
-            change=changes[job_type]
-        )
-    
-    return AggregateJobData(**result)
+    try:
+        aggregate_data = get_aggregate_job_data(db)
+        changes = get_job_data_change(db)
+
+        result = {}
+        for job_type in ['exploration', 'development', 'workover', 'wellservice']:
+            data = aggregate_data.get(job_type, {'plan': 0, 'realization': 0})
+            change = changes.get(job_type, 0)
+
+            plan = data.get('plan', 0)
+            realization = data.get('realization', 0)
+            total = plan + realization
+            
+            # Calculate percentage
+            percentage = (realization / plan * 100) if plan > 0 else 0
+            percentage = round(percentage, 2)  # Round to 2 decimal places
+
+            result[job_type] = JobTypeDataUP(
+                total=total,
+                plan=plan,
+                realization=realization,
+                percentage=percentage,
+                change=change
+            )
+
+        return AggregateJobData(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
 @router.get("/job-summary-chart", response_model=Dict)

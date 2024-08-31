@@ -45,19 +45,6 @@ class KKKSJobData(BaseModel):
     workover: JobTypeData
     wellservice: JobTypeData
 
-class JobTypeDataUP(BaseModel):
-    total: int
-    plan: int
-    realization: int
-    percentage: float
-    change: int
-
-class AggregateJobData(BaseModel):
-    exploration: JobTypeDataUP
-    development: JobTypeDataUP
-    workover: JobTypeDataUP
-    wellservice: JobTypeDataUP
-
 class JobTypeSummary(BaseModel):
     job_type: str
     rencana: int
@@ -116,6 +103,19 @@ class JobCountResponse(BaseModel):
     job_type: str
     status: str
     count: int
+
+class JobTypeDataUP(BaseModel):
+    total: int
+    plan: int
+    realization: int
+    percentage: float
+    change: int
+
+class AggregateJobData(BaseModel):
+    exploration: JobTypeDataUP
+    development: JobTypeDataUP
+    workover: JobTypeDataUP
+    wellservice: JobTypeDataUP
 
 
 
