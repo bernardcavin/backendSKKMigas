@@ -160,7 +160,7 @@ def job_counts(db: Session = Depends(get_db)):
                 JobInstance.status,
                 func.count().label('count')
             )
-            .join(JobInstance, Job.id == Planning.proposed_job_id)
+            .join(JobInstance, Job.id == JobInstance.proposed_job_id)
             .group_by(Job.job_type, JobInstance.status)
         )
         print(query)

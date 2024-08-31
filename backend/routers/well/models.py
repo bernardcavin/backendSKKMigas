@@ -3,6 +3,8 @@ from sqlalchemy import Column, String, ForeignKey, Enum, Text, Float, Date
 from enum import Enum as PyEnum
 from backend.database import Base
 import uuid
+from typing import Optional, List
+
 
 from backend.utils.constants import uom
 
@@ -407,6 +409,7 @@ class WellCasing(Base):
     connection = Column(String)
     
     description = Column(Text)
+    
 
     def __init__(self, unit_type, *args, **kwargs):
         
@@ -436,6 +439,7 @@ class WellStratigraphy(Base):
     
     stratigraphy_id = Column(String(36), ForeignKey('area_strat.id'))
     stratigraphy = relationship('StratUnit', foreign_keys=[stratigraphy_id])
+    unit_type: Optional[str] = None 
     
     def __init__(self, unit_type, *args, **kwargs):
         
