@@ -790,7 +790,6 @@ def get_well_job_data(db: Session, kkks_id: str) -> Dict[str, List[WellJobData]]
     query = (
         select(
             WellInstance.well_name.label('well_name'),
-            WellInstance.well_name.label('well_name'),
             Area.area_name.label('wilayah_kerja'),
             Lapangan.field_name.label('lapangan'),
             Job.date_proposed.label('tanggal_mulai'),
@@ -800,11 +799,6 @@ def get_well_job_data(db: Session, kkks_id: str) -> Dict[str, List[WellJobData]]
             Job.operation_status.label('operation_status'),
             Job.job_type
         )
-        .select_from(WellInstance)
-        .join(Area, WellInstance.area_id == Area.id)
-        .join(Lapangan, WellInstance.field_id == Lapangan.id)
-        .join(Job, WellInstance.kkks_id == Job.kkks_id) 
-        .where(WellInstance.kkks_id == kkks_id)
         .select_from(WellInstance)
         .join(Area, WellInstance.area_id == Area.id)
         .join(Lapangan, WellInstance.field_id == Lapangan.id)
