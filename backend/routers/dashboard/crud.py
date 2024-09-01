@@ -785,66 +785,6 @@ def get_well_job_data(db: Session, kkks_id: str) -> Dict[str, List[WellJobData]]
 
     return well_job_data
 
-def create_charts(monthly_data: Dict[str, List[TimeSeriesData]], weekly_data: Dict[str, List[TimeSeriesData]], kkks_name: str):
-    chart_data = {}
-
-    for job_type in monthly_data.keys():
-        monthly = monthly_data[job_type]
-        weekly = weekly_data[job_type]
-
-        job_type_chart = {
-            "data": [
-                {
-                    "type": "bar",
-                    "name": f"{job_type.capitalize()} Monthly Planned",
-                    "x": [item.time_period for item in monthly],
-                    "y": [item.planned for item in monthly],
-                    "marker": {"color": "blue"},
-                    "xaxis": "x1",
-                    "yaxis": "y1",
-                },
-                {
-                    "type": "bar",
-                    "name": f"{job_type.capitalize()} Monthly Realized",
-                    "x": [item.time_period for item in monthly],
-                    "y": [item.realized for item in monthly],
-                    "marker": {"color": "red"},
-                    "xaxis": "x1",
-                    "yaxis": "y1",
-                },
-                {
-                    "type": "bar",
-                    "name": f"{job_type.capitalize()} Weekly Planned",
-                    "x": [item.time_period for item in weekly],
-                    "y": [item.planned for item in weekly],
-                    "marker": {"color": "blue"},
-                    "xaxis": "x2",
-                    "yaxis": "y2",
-                },
-                {
-                    "type": "bar",
-                    "name": f"{job_type.capitalize()} Weekly Realized",
-                    "x": [item.time_period for item in weekly],
-                    "y": [item.realized for item in weekly],
-                    "marker": {"color": "red"},
-                    "xaxis": "x2",
-                    "yaxis": "y2",
-                },
-            ],
-            "layout": {
-                "title": f"KKKS: {kkks_name} - {job_type.capitalize()} Data",
-                "xaxis1": {"title": f"{job_type.capitalize()} Month"},
-                "yaxis1": {"title": "Number of Jobs"},
-                "xaxis2": {"title": f"{job_type.capitalize()} Week"},
-                "yaxis2": {"title": "Number of Jobs"}
-            }
-        }
-
-        chart_data[job_type] = job_type_chart
-
-    return chart_data
-
-
 def get_kkks_job_counts(db: Session, kkks_id: str) -> Dict[str, int]:
     query = (
         db.query(
@@ -881,56 +821,94 @@ def get_kkks_job_counts(db: Session, kkks_id: str) -> Dict[str, int]:
 # Additional helper function to get job data for a specific KKKS
 def create_charts(monthly_data: Dict[str, List[TimeSeriesData]], weekly_data: Dict[str, List[TimeSeriesData]], kkks_name: str):
     chart_data = {}
+    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    current_year = datetime.now().year
 
     for job_type in monthly_data.keys():
         monthly = monthly_data[job_type]
         weekly = weekly_data[job_type]
 
+        # Ensure we have data for all months
+        all_months = {f"{current_year}-{i+1:02d}": {"planned": 0, "realized": 0} for i in range(12)}
+        for item in monthly:
+            all_months[item.time_period] = {"planned": item.planned, "realized": item.realized}
+
+        all_weeks = {f"{current_year}-W{i+1:02d}": {"planned": 0, "realized": 0} for i in range(53)}  # Up to 53 weeks
+        for item in weekly:
+            if item.time_period in all_weeks:
+                all_weeks[item.time_period] = {"planned": item.planned, "realized": item.realized}
+
+        week_labels = list(all_weeks.keys())
+
         job_type_chart = {
-            "data": [
-                {
-                    "type": "bar",
-                    "name": f"{job_type.capitalize()} Monthly Planned",
-                    "x": [item.time_period for item in monthly],
-                    "y": [item.planned for item in monthly],
-                    "marker": {"color": "blue"},
-                    "xaxis": "x1",
-                    "yaxis": "y1",
-                },
-                {
-                    "type": "bar",
-                    "name": f"{job_type.capitalize()} Monthly Realized",
-                    "x": [item.time_period for item in monthly],
-                    "y": [item.realized for item in monthly],
-                    "marker": {"color": "red"},
-                    "xaxis": "x1",
-                    "yaxis": "y1",
-                },
-                {
-                    "type": "bar",
-                    "name": f"{job_type.capitalize()} Weekly Planned",
-                    "x": [item.time_period for item in weekly],
-                    "y": [item.planned for item in weekly],
-                    "marker": {"color": "blue"},
-                    "xaxis": "x2",
-                    "yaxis": "y2",
-                },
-                {
-                    "type": "bar",
-                    "name": f"{job_type.capitalize()} Weekly Realized",
-                    "x": [item.time_period for item in weekly],
-                    "y": [item.realized for item in weekly],
-                    "marker": {"color": "red"},
-                    "xaxis": "x2",
-                    "yaxis": "y2",
-                },
-            ],
-            "layout": {
-                "title": f"KKKS: {kkks_name} - {job_type.capitalize()} Data",
-                "xaxis1": {"title": f"{job_type.capitalize()} Month"},
-                "yaxis1": {"title": "Number of Jobs"},
-                "xaxis2": {"title": f"{job_type.capitalize()} Week"},
-                "yaxis2": {"title": "Number of Jobs"}
+            "monthly": {
+                "data": [
+                    {
+                        "type": "bar",
+                        "name": f"{job_type.capitalize()} Monthly Planned",
+                        "x": months,
+                        "y": [all_months[f"{current_year}-{i+1:02d}"]["planned"] for i in range(12)],
+                        "marker": {"color": "blue"},
+                    },
+                    {
+                        "type": "bar",
+                        "name": f"{job_type.capitalize()} Monthly Realized",
+                        "x": months,
+                        "y": [all_months[f"{current_year}-{i+1:02d}"]["realized"] for i in range(12)],
+                        "marker": {"color": "orange"},
+                    },
+                ],
+                "layout": {
+                    "title": f"KKKS: {kkks_name} - {job_type.capitalize()} Monthly Data",
+                    "xaxis": {
+                        "title": f"{job_type.capitalize()} Month",
+                        "tickmode": "array",
+                        "tickvals": months,
+                        "ticktext": months,
+                    },
+                    "yaxis": {
+                        "title": "Number of Jobs",
+                        "range": [0, max(max(item["planned"], item["realized"]) for item in all_months.values()) * 1.1]
+                    },
+                    "barmode": "group",
+                    "bargap": 0.15,
+                    "bargroupgap": 0.1
+                }
+            },
+            "weekly": {
+                "data": [
+                    {
+                        "type": "bar",
+                        "name": f"{job_type.capitalize()} Weekly Planned",
+                        "x": week_labels,
+                        "y": [all_weeks[week]["planned"] for week in week_labels],
+                        "marker": {"color": "blue"},
+                    },
+                    {
+                        "type": "bar",
+                        "name": f"{job_type.capitalize()} Weekly Realized",
+                        "x": week_labels,
+                        "y": [all_weeks[week]["realized"] for week in week_labels],
+                        "marker": {"color": "orange"},
+                    },
+                ],
+                "layout": {
+                    "title": f"KKKS: {kkks_name} - {job_type.capitalize()} Weekly Data",
+                    "xaxis": {
+                        "title": f"{job_type.capitalize()} Week",
+                        "tickmode": "array",
+                        "tickvals": week_labels[::4],  # Setiap label minggu keempat
+                        "ticktext": [f"Week {i+1}" for i in range(0, len(week_labels), 4)],
+                        "tickangle": 45,
+                    },
+                    "yaxis": {
+                        "title": "Number of Jobs",
+                        "range": [0, max(max(item["planned"], item["realized"]) for item in all_weeks.values()) * 1.1]
+                    },
+                    "barmode": "group",
+                    "bargap": 0.15,
+                    "bargroupgap": 0.1
+                }
             }
         }
 
@@ -950,10 +928,12 @@ def get_kkks_job_data(db: Session, kkks_id: str) -> KKKSJobDataChart:
 
     chart_data = create_charts(monthly_data, weekly_data, kkks.nama_kkks)
 
-    # Calculate job type data
-    approved_plans = job_counts['approved_jobs']
-    realized_jobs = job_counts['realized_jobs']
-    finished_jobs = job_counts['finished_jobs']
+    # Calculate job type data with null checks
+    approved_plans = job_counts.get('approved_jobs', 0) or 0
+    realized_jobs = job_counts.get('realized_jobs', 0) or 0
+    finished_jobs = job_counts.get('finished_jobs', 0) or 0
+
+    # Avoid division by zero
     percentage = (realized_jobs / approved_plans * 100) if approved_plans > 0 else 0
 
     job_type_data = JobTypeData(
@@ -964,29 +944,52 @@ def get_kkks_job_data(db: Session, kkks_id: str) -> KKKSJobDataChart:
     )
 
     # Create ChartDataKKKS objects for each job type
-    chart_data_kkks = {
-        job_type: ChartDataKKKS(
+    chart_data_kkks = {}
+    for job_type, job_chart in chart_data.items():
+        monthly_chart = ChartDataKKKS(
             data=[
                 ChartDataItem(
                     type=item["type"],
                     name=item["name"],
                     x=item["x"],
                     y=item["y"],
-                    xaxis=item.get("xaxis", "x1"),
-                    yaxis=item.get("yaxis", "y1")
+                    marker=item.get("marker")
                 )
-                for item in job_chart["data"]
+                for item in job_chart["monthly"]["data"]
             ],
             layout=ChartLayout(
-                title=job_chart["layout"]["title"],
-                xaxis1=ChartAxis(title=job_chart["layout"]["xaxis1"]["title"]),
-                yaxis1=ChartAxis(title=job_chart["layout"]["yaxis1"]["title"]),
-                xaxis2=ChartAxis(title=job_chart["layout"]["xaxis2"]["title"]),
-                yaxis2=ChartAxis(title=job_chart["layout"]["yaxis2"]["title"])
+                title=job_chart["monthly"]["layout"]["title"],
+                xaxis=ChartAxis(**job_chart["monthly"]["layout"]["xaxis"]),
+                yaxis=ChartAxis(**job_chart["monthly"]["layout"]["yaxis"]),
+                barmode=job_chart["monthly"]["layout"].get("barmode"),
+                bargap=job_chart["monthly"]["layout"].get("bargap"),
+                bargroupgap=job_chart["monthly"]["layout"].get("bargroupgap")
             )
         )
-        for job_type, job_chart in chart_data.items()
-    }
+        weekly_chart = ChartDataKKKS(
+            data=[
+                ChartDataItem(
+                    type=item["type"],
+                    name=item["name"],
+                    x=item["x"],
+                    y=item["y"],
+                    marker=item.get("marker")
+                )
+                for item in job_chart["weekly"]["data"]
+            ],
+            layout=ChartLayout(
+                title=job_chart["weekly"]["layout"]["title"],
+                xaxis=ChartAxis(**job_chart["weekly"]["layout"]["xaxis"]),
+                yaxis=ChartAxis(**job_chart["weekly"]["layout"]["yaxis"]),
+                barmode=job_chart["weekly"]["layout"].get("barmode"),
+                bargap=job_chart["weekly"]["layout"].get("bargap"),
+                bargroupgap=job_chart["weekly"]["layout"].get("bargroupgap")
+            )
+        )
+        chart_data_kkks[job_type] = {
+            "monthly": monthly_chart,
+            "weekly": weekly_chart
+        }
 
     return KKKSJobDataChart(
         id=kkks.id,

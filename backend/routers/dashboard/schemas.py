@@ -147,24 +147,28 @@ class JobTypeTimeSeriesData(BaseModel):
     well_service: Optional[List[TimeSeriesData]] = None
 
 
-class ChartDataItem(BaseModel):
-    type: str
-    name: str
-    x: List[str]
-    y: List[int]
-    xaxis: str
-    yaxis: str
-    marker: Optional[Dict[str, str]] = None
-
 class ChartAxis(BaseModel):
-    title: Optional[str] = None
+    title: str
+    tickmode: Optional[str] = None
+    tickvals: Optional[List] = None
+    ticktext: Optional[List] = None
+    tickangle: Optional[int] = None
+    range: Optional[List[float]] = None
 
 class ChartLayout(BaseModel):
     title: str
-    xaxis1: ChartAxis
-    yaxis1: ChartAxis
-    xaxis2: ChartAxis
-    yaxis2: ChartAxis
+    xaxis: ChartAxis
+    yaxis: ChartAxis
+    barmode: Optional[str] = None
+    bargap: Optional[float] = None
+    bargroupgap: Optional[float] = None
+
+class ChartDataItem(BaseModel):
+    type: str
+    name: str
+    x: List
+    y: List
+    marker: Optional[dict] = None
 
 
 class ChartDataKKKS(BaseModel):
@@ -178,7 +182,7 @@ class KKKSJobDataChart(BaseModel):
     monthly_data: Dict[str, List[TimeSeriesData]]
     weekly_data: Dict[str, List[TimeSeriesData]]
     well_job_data: Dict[str, List[WellJobData]]
-    chart_data: Dict[str, ChartDataKKKS]
+    chart_data: Dict[str, Dict[str, ChartDataKKKS]]
 
 class JobResponse(BaseModel):
     id: str

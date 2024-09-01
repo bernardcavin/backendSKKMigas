@@ -29,6 +29,10 @@ import PlanningDevelopment from "./Page/PageSKK/ChildDevelopment/PlanningDev";
 import PlanningWellService from "./Page/PageSKK/ChildWellService/PlanningWS";
 import PlanningWorkOver from "./Page/PageSKK/ChildWorkOver/PlanningWO";
 import PengajuanDrillingForm from "./Page/Forms/PengajuanDrillingForm";
+import '@fontsource/montserrat/400.css'; // Regular weight
+import '@fontsource/montserrat/600.css'; // Semi-bold weight
+import '@fontsource/montserrat/700.css'; // Bold weight
+
 
 function App() {
   const { isAuthenticated } = useAuth();

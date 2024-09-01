@@ -54,7 +54,7 @@ const Navbar = ({ appName = "Aplikasi Pengeboran Dan Sumuran", nameUser }) => {
   const userName = "John Doe";
 
   return (
-    <Box bg="white" shadow={"md"} px={4} py={1} borderRadius={"lg"}>
+    <Box bg="black" boxShadow= '0px 1px 2px rgba(0, 0, 0, 0.10)' px={4} py={1} borderRadius={"lg"}>
       <Flex h={16} alignItems="center" justifyContent="space-between">
         <IconButton
           size="md"
