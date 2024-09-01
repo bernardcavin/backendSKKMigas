@@ -28,7 +28,7 @@ import {
   InputRightAddon,
 } from "@chakra-ui/react";
 import { ChevronRightIcon, CheckIcon } from "@chakra-ui/icons";
-import { AllEnums, getUtilsdb } from "./API/AllEnums";
+import { AllEnums, getUtilsdb } from "../API/AllEnums";
 import { useOutletContext } from "react-router-dom";
 
 // NavigationMenu Component
@@ -61,7 +61,7 @@ const NavigationMenu = ({ completedSections, activeTab, onNavigate }) => (
 
 // Main WellForm Component
 const WellForm = ({}) => {
-  const { sendData } = useOutletContext();
+  // const { sendData } = useOutletContext();
 
   const [fetchingData, setFetchingData] = useState(null);
   const [utilsDb, setUtilsDb] = useState();
@@ -549,51 +549,51 @@ const WellForm = ({}) => {
     jobOperationDays,
     jobHazard,
   ]);
-  useEffect(() => {
-    const allData = {
-      teknisData: {
-        well: wellData,
-        koordinat: koordinatData,
-        seismic: seismicData,
-        keydates: keydatesData,
-        elevasi: elevasiData,
-        wellSummary: wellSummary,
-        wellTest: wellTest,
-        wellTrajectoryFile: wellTrajectoryFile,
-        stratigraphy:stratigraphy,
-        wellCasing:wellCasing,
-        koordinatData:koordinatData,
+  // useEffect(() => {
+  //   const allData = {
+  //     teknisData: {
+  //       well: wellData,
+  //       koordinat: koordinatData,
+  //       seismic: seismicData,
+  //       keydates: keydatesData,
+  //       elevasi: elevasiData,
+  //       wellSummary: wellSummary,
+  //       wellTest: wellTest,
+  //       wellTrajectoryFile: wellTrajectoryFile,
+  //       stratigraphy:stratigraphy,
+  //       wellCasing:wellCasing,
+  //       koordinatData:koordinatData,
         
         
-      },
-      operasionalData: {
-        proposedJob: proposedJob,
-        workBreakdown: workBreakdown,
-        jobDocument: jobDocument,
-        jobOperationDays: jobOperationDays,
-        jobHazard: jobHazard,
-      },
-    };
+  //     },
+  //     operasionalData: {
+  //       proposedJob: proposedJob,
+  //       workBreakdown: workBreakdown,
+  //       jobDocument: jobDocument,
+  //       jobOperationDays: jobOperationDays,
+  //       jobHazard: jobHazard,
+  //     },
+  //   };
 
-    sendData(allData);
-  }, [
-    wellData,
-    koordinatData,
-    seismicData,
-    keydatesData,
-    elevasiData,
-    wellSummary,
-    wellTest,
-    wellTrajectoryFile,
-    proposedJob,
-    workBreakdown,
-    jobDocument,
-    jobOperationDays,
-    jobHazard,
-    stratigraphy,
-    wellCasing
-    ,
-  ]);
+  //   sendData(allData);
+  // }, [
+  //   wellData,
+  //   koordinatData,
+  //   seismicData,
+  //   keydatesData,
+  //   elevasiData,
+  //   wellSummary,
+  //   wellTest,
+  //   wellTrajectoryFile,
+  //   proposedJob,
+  //   workBreakdown,
+  //   jobDocument,
+  //   jobOperationDays,
+  //   jobHazard,
+  //   stratigraphy,
+  //   wellCasing
+  //   ,
+  // ]);
 
   useEffect(() => {
     if (elevasiData.unit === "feet") {

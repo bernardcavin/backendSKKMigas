@@ -2,15 +2,12 @@ import {
   Box,
   Grid,
   GridItem,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
-  SimpleGrid,
   CircularProgress,
   CircularProgressLabel,
   Text,
+  Tr,
+  Td,
+  Flex,
   Image,
 } from "@chakra-ui/react";
 import Plot from "react-plotly.js";
@@ -19,9 +16,15 @@ import WellTable from "../Components/Card/WellTable";
 import FilterBar from "./Card/FilterBar";
 import SummaryBox from "./Card/SummaryBox";
 import Hero from "../../assets/Hero.jpg";
+import { SimpleGrid } from "@chakra-ui/react";
 import CustomCard from "./Card/CustomCard";
 import { FaCalendarDay, FaChartLine, FaChartPie } from "react-icons/fa";
 import PropTypes from "prop-types";
+import HeaderTitle from "./Card/HeaderTitle";
+import TableDashboard from "./Card/TableDashboard";
+import DashboardBarChart from "./Card/DashboardBarChart";
+import { FiArrowUp, FiInfo } from "react-icons/fi";
+import { useState } from "react";
 
 // Data yang dibutuhkan
 const progressData = [
@@ -103,6 +106,7 @@ const CombinedBarLineChart = () => (
     layout={{
       width: "1100",
       title: "",
+      height: "600",
       paper_bgcolor: "transparent",
       plot_bgcolor: "transparent",
       barmode: "group",
@@ -149,153 +153,259 @@ CircularProgressBar.propTypes = {
 };
 
 const HomeDash = () => {
+  const dateNow = new Date();
+  const formatter = new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
+  const titlePekerjaanKUPS = [
+    "Info",
+    "Rencana",
+    "Realisasi",
+    "Percentage",
+    "Change",
+  ];
+  const data = [
+    {
+      info: "Exploration",
+      rencana: 50,
+      realisasi: 12,
+      percentage: 24,
+      change: 1,
+    },
+    {
+      info: "Development",
+      rencana: 990,
+      realisasi: 150,
+      percentage: 15,
+      change: 15,
+    },
+    {
+      info: "Workover",
+      rencana: 906,
+      realisasi: 197,
+      percentage: 22,
+      change: null,
+    },
+    {
+      info: "Well Service",
+      rencana: 35690,
+      realisasi: 7559,
+      percentage: 21,
+      change: 562,
+    },
+  ];
+
+  const dataKKKS = [
+    {
+      kkks: "KKKS1",
+      exploration: 50,
+      development: 12,
+      workover: 45,
+      wellservice: 80,
+    },
+    {
+      kkks: "KKKS1",
+      exploration: 50,
+      development: 12,
+      workover: 24,
+      wellservice: 100,
+    },
+    {
+      kkks: "KKKS1",
+      exploration: 50,
+      development: 12,
+      workover: 24,
+      wellservice: 100,
+    },
+  ];
+
+  const titlePekerjaanKUPSKKS = [
+    "Info",
+    "KKKS",
+    "Explorasi",
+    "Development",
+    "Workover",
+    "Well Service",
+  ];
+
+  const formattedDate = formatter.format(dateNow);
   return (
     <Box p={4}>
       <Grid templateColumns="repeat(5, 1fr)" gap={4}>
-        <GridItem colSpan={5}>
-          <Box
-            borderRadius="2xl"
-            bg="white"
-            boxShadow="md"
-            overflow="hidden"
-            position="relative"
-            height="200px" // Membuat height lebih rendah untuk bagian welcome
+        {/* <GridItem colSpan={5}>
+          <HeaderTitle
+            title={"Realisasi Kegiatan Pengeboran & KUPS"}
+            subtitle={formattedDate}
           >
-            <Image
-              src={Hero} // Ganti dengan URL gambar Anda
-              alt="Background Image"
-              width="100%"
-              height="100%"
-              objectFit="cover"
-            />
-            <Box
-              position="absolute"
-              top="0"
-              left="0"
-              width="100%"
-              height="100%"
-              bg="rgba(0, 0, 0, 0.4)"
-              color="white"
-              p={5}
-              display="flex"
-              flexDirection="column"
-              justifyContent="center"
-              textAlign="center"
-            >
-              <Text fontSize="2xl" fontWeight="bold">
-                Selamat Datang di SIPS
-              </Text>
-              <Text fontSize="lg">Sistem Informasi Pengoboran dan Sumuran</Text>
-            </Box>
-          </Box>
+            <Grid templateColumns={"repeat(2, 1fr)"} gap={8}>
+              <TableDashboard headers={titlePekerjaanKUPS}>
+                {data.map((row, index) => (
+                  <Tr key={index}>
+                    <Td textAlign={"center"}>
+                      <Flex>
+                        <FiInfo color="" size={"30px"} />
+                      </Flex>
+                    </Td>
+                    <Td>
+                      <Text>{row.info}</Text>
+                    </Td>
+                    <Td>{row.rencana.toLocaleString()}</Td>
+                    <Td>
+                      <Flex justifyContent="flex-start" alignItems="center">
+                        {row.realisasi}
+                        {row.change && (
+                          <Box ml={2} color="green.500">
+                            <Flex alignItems="center">
+                              <FiArrowUp />
+                              <Text fontSize="md" ml={1}>
+                                {row.change}
+                              </Text>
+                            </Flex>
+                          </Box>
+                        )}
+                      </Flex>
+                    </Td>
+                    <Td>{row.percentage}%</Td>
+                  </Tr>
+                ))}
+              </TableDashboard>
+              <DashboardBarChart />
+            </Grid>
+          </HeaderTitle>
         </GridItem>
+        <GridItem colSpan={5}>
+          <HeaderTitle
+            title={"Rencana Kegiatan Pengeboran & KUPS KKKS"}
+            subtitle={"Realisasi pekerjaan tiap KKKS"}
+          >
+            <TableDashboard headers={titlePekerjaanKUPSKKS}>
+              {dataKKKS.map((row, index) => {
+                return (
+                  <Tr key={index}>
+                    <Td>
+                      <Flex>
+                        <FiInfo color="" size={"30px"} />
+                      </Flex>
+                    </Td>
+                    <Td width={"40%"}>{row.kkks}</Td>
+                    <Td
+                      bg={
+                        row.exploration < 45
+                          ? "red.500"
+                          : row.exploration < 60
+                          ? "orange.500"
+                          : row.exploration < 100
+                          ? "yellow.500"
+                          : "green.500"
+                      }
+                    >
+                      {row.exploration}
+                    </Td>
+                    <Td
+                      bg={
+                        row.development < 45
+                          ? "red.500"
+                          : row.development < 60
+                          ? "orange.500"
+                          : row.development < 100
+                          ? "yellow.500"
+                          : "green.500"
+                      }
+                    >
+                      {row.development}
+                    </Td>
+                    <Td
+                      bg={
+                        row.workover < 45
+                          ? "red.500"
+                          : row.workover < 60
+                          ? "orange.500"
+                          : row.workover < 100
+                          ? "yellow.500"
+                          : "green.500"
+                      }
+                    >
+                      {row.workover}
+                    </Td>
+                    <Td
+                      bg={
+                        row.wellservice < 45
+                          ? "red.500"
+                          : row.wellservice < 60
+                          ? "orange.500"
+                          : row.wellservice < 100
+                          ? "yellow.500"
+                          : "green.500"
+                      }
+                    >
+                      {row.wellservice}
+                    </Td>
+                  </Tr>
+                );
+              })}
+            </TableDashboard>
+          </HeaderTitle>
+        </GridItem> */}
 
         <GridItem colSpan={5}>
-          <Tabs variant="soft-rounded" colorScheme="green">
-            <TabList>
-              <Tab>Summary</Tab>
-              <Tab>Progress</Tab>
-            </TabList>
-            <TabPanels>
-              <TabPanel>
-                <Grid templateColumns="repeat(4, 1fr)" gap={4}>
-                  <SummaryBox
-                    icon={<CheckIcon />}
-                    value="102"
-                    label="Disetujui"
-                    percentage="+2,36%"
-                    gradient="linear(to-r, #3EC7AD, #80F571)"
-                    iconColor="#3EC7AD"
-                  />
-                  <SummaryBox
-                    icon={<EditIcon />} // Pisau bedah
-                    value="101"
-                    label="Operasi"
-                    percentage="+2,36%"
-                    gradient="linear(to-r, #9BE3FC, #53B4EB)"
-                    iconColor="#53B4EB"
-                  />
-                  <SummaryBox
-                    icon={<SettingsIcon />} // Gear
-                    value="102"
-                    label="P3"
-                    percentage={"+2,36%"}
-                    gradient="linear(to-r, #74A7FB, #397BFE)"
-                    iconColor="#397BFE"
-                  />
-                  <SummaryBox
-                    icon={<CloseIcon />} // Exit
-                    value="102"
-                    label="Close Out"
-                    percentage="+2,36%"
-                    gradient="linear(to-r, #8D6DF6, #6940FE)"
-                    iconColor="#6940FE"
-                  />
-                </Grid>
-                <Box mt={8}>
-                  <WellTable />
-                </Box>
-              </TabPanel>
+          <FilterBar />
+          <Grid templateColumns="repeat(3, 1fr)" gap={4} mb={4}>
+            <CustomCard
+              icon={FaCalendarDay}
+              count={20 / 20}
+              label="Rencana/Realisasi"
+              bgColor="white"
+              iconBgColor="#E6FFFA"
+              iconColor="#00c9a1"
+            />
+            <CustomCard
+              icon={FaChartLine}
+              count={20}
+              label="Realisasi"
+              bgColor="white"
+              iconBgColor="#ffe6ea"
+              iconColor="#a3001b"
+            />
+            <CustomCard
+              icon={FaChartPie}
+              count={20}
+              label="Pencapaian 2024"
+              bgColor="white"
+              iconBgColor="#e6ecff"
+              iconColor="#2255ff"
+            />
+          </Grid>
 
-              <TabPanel>
-                <FilterBar />
-
-                <Grid templateColumns="repeat(3, 1fr)" gap={4} mb={4}>
-                  <CustomCard
-                    icon={FaCalendarDay}
-                    count={20/20}
-                    label="Rencana/Realisasi"
-                    bgColor="white"
-                    iconBgColor="#E6FFFA"
-                    iconColor="#00c9a1"
+          <Grid templateColumns="2fr 1fr" gap={4}>
+            <GridItem>
+              <Box
+                width={"100%"}
+                borderRadius="2xl"
+                bg="white"
+                boxShadow="md"
+                p={5}
+                height="100%"
+              >
+                <CombinedBarLineChart/>
+              </Box>
+            </GridItem>
+            <GridItem>
+              <SimpleGrid columns={1} spacing={4}>
+                {progressData.map((data, index) => (
+                  <CircularProgressBar
+                    key={index}
+                    label={data.label}
+                    value={data.value}
+                    color={data.color}
                   />
-                  <CustomCard
-                    icon={FaChartLine}
-                    count={20}
-                    label="Realisasi"
-                    bgColor="white"
-                    iconBgColor="#ffe6ea"
-                    iconColor="#a3001b"
-                  />
-                  <CustomCard
-                    icon={FaChartPie}
-                    count={20}
-                    label="Pencapaian 2024"
-                    bgColor="white"
-                    iconBgColor="#e6ecff"
-                    iconColor="#2255ff"
-                  />
-                </Grid>
-
-                <Grid templateColumns="2fr 1fr" gap={4}>
-                  <GridItem>
-                    <Box
-                      width={"100%"}
-                      borderRadius="2xl"
-                      bg="white"
-                      boxShadow="md"
-                      p={5}
-                      height="100%"
-                    >
-                      <CombinedBarLineChart />
-                    </Box>
-                  </GridItem>
-                  <GridItem>
-                    <SimpleGrid columns={1} spacing={4}>
-                      {progressData.map((data, index) => (
-                        <CircularProgressBar
-                          key={index}
-                          label={data.label}
-                          value={data.value}
-                          color={data.color}
-                        />
-                      ))}
-                    </SimpleGrid>
-                  </GridItem>
-                </Grid>
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
+                ))}
+              </SimpleGrid>
+              
+            </GridItem>
+          </Grid>
         </GridItem>
       </Grid>
     </Box>

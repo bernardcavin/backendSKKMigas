@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import {
   Box,
@@ -7,10 +7,16 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
-  SimpleGrid,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
   Card,
   CardBody,
   CardHeader,
+  SimpleGrid,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import Sidebar from "./../Components/Sidebar";
 import Navbar from "./../Components/Navbar";
@@ -19,6 +25,13 @@ import Plot from "react-plotly.js";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
+
+const accordionButtonStyles = [
+  { bg: "blue.500", color: "white" },
+  { bg: "green.500", color: "white" },
+  { bg: "red.500", color: "white" },
+  { bg: "purple.500", color: "white" },
+];
 
 const ViewPlanning = () => {
   const { id } = useParams();
@@ -51,7 +64,6 @@ const ViewPlanning = () => {
       setPageForm("");
     }
 
-    // Fetch data dari API
     const fetchData = async () => {
       try {
         const response = await fetch(
@@ -90,22 +102,41 @@ const ViewPlanning = () => {
   }, [location.pathname, id]);
 
   const renderCardItem = (key, value) => (
-    <Box p={4} borderWidth="1px" borderRadius="lg" mb={4} key={key} w={"98%"}>
+    <Box
+      p={4}
+      borderWidth="1px"
+      borderRadius="lg"
+      mb={4}
+      key={key}
+      w={"98%"}
+      maxW="400px"
+    >
       <Text fontWeight="bold">{key}:</Text>
       <Text>{String(value)}</Text>
     </Box>
   );
 
-  const renderDetails = (title, data) => (
-    <Card mb={4} w={"full"}>
-      <CardHeader>
-        <Text fontSize="xl" fontWeight="bold">
-          {title}
-        </Text>
-      </CardHeader>
-      <CardBody>
+  const renderDetails = (title, data, index) => (
+    <AccordionItem mb={4}>
+      <h2>
+        <AccordionButton
+          _expanded={{
+            bg: accordionButtonStyles[index % accordionButtonStyles.length].bg,
+            color:
+              accordionButtonStyles[index % accordionButtonStyles.length].color,
+          }}
+        >
+          <Box as="span" flex="1" textAlign="left">
+            <Text fontSize="xl" fontWeight="bold">
+              {title}
+            </Text>
+          </Box>
+          <AccordionIcon />
+        </AccordionButton>
+      </h2>
+      <AccordionPanel>
         {data && Object.keys(data).length > 0 ? (
-          <SimpleGrid columns={2}>
+          <SimpleGrid columns={4} spacing={4}>
             {Object.entries(data).map(([key, value]) =>
               renderCardItem(key, value)
             )}
@@ -113,18 +144,29 @@ const ViewPlanning = () => {
         ) : (
           <Text>Data tidak tersedia</Text>
         )}
-      </CardBody>
-    </Card>
+      </AccordionPanel>
+    </AccordionItem>
   );
 
-  const renderPlot = (title, plotData, layout) => (
-    <Card mb={4}>
-      <CardHeader>
-        <Text fontSize="xl" fontWeight="bold">
-          {title}
-        </Text>
-      </CardHeader>
-      <CardBody>
+  const renderPlot = (title, plotData, layout, index) => (
+    <AccordionItem mb={4}>
+      <h2>
+        <AccordionButton
+          _expanded={{
+            bg: accordionButtonStyles[index % accordionButtonStyles.length].bg,
+            color:
+              accordionButtonStyles[index % accordionButtonStyles.length].color,
+          }}
+        >
+          <Box as="span" flex="1" textAlign="left">
+            <Text fontSize="xl" fontWeight="bold">
+              {title}
+            </Text>
+          </Box>
+          <AccordionIcon />
+        </AccordionButton>
+      </h2>
+      <AccordionPanel w={"full"} minW={"100%"}>
         {plotData && plotData.length > 0 ? (
           <Plot
             data={plotData}
@@ -134,13 +176,13 @@ const ViewPlanning = () => {
               autosize: true,
             }}
             useResizeHandler
-            style={{ width: "100%", height: "100%" }}
+            style={{ width: "100%", height: "400px" }}
           />
         ) : (
           <Text>Data plot tidak tersedia</Text>
         )}
-      </CardBody>
-    </Card>
+      </AccordionPanel>
+    </AccordionItem>
   );
 
   const transformJobOperationData = (tableData) => {
@@ -160,14 +202,25 @@ const ViewPlanning = () => {
     return transformedData;
   };
 
-  const renderAgGrid = (title, rowData, columnDefs) => (
-    <Card mb={4}>
-      <CardHeader>
-        <Text fontSize="xl" fontWeight="bold">
-          {title}
-        </Text>
-      </CardHeader>
-      <CardBody>
+  const renderAgGrid = (title, rowData, columnDefs, index) => (
+    <AccordionItem mb={4}>
+      <h2>
+        <AccordionButton
+          _expanded={{
+            bg: accordionButtonStyles[index % accordionButtonStyles.length].bg,
+            color:
+              accordionButtonStyles[index % accordionButtonStyles.length].color,
+          }}
+        >
+          <Box as="span" flex="1" textAlign="left">
+            <Text fontSize="xl" fontWeight="bold">
+              {title}
+            </Text>
+          </Box>
+          <AccordionIcon />
+        </AccordionButton>
+      </h2>
+      <AccordionPanel>
         {rowData && rowData.length > 0 ? (
           <div
             className="ag-theme-alpine"
@@ -181,8 +234,8 @@ const ViewPlanning = () => {
         ) : (
           <Text>Data tabel tidak tersedia</Text>
         )}
-      </CardBody>
-    </Card>
+      </AccordionPanel>
+    </AccordionItem>
   );
 
   return (
@@ -208,12 +261,11 @@ const ViewPlanning = () => {
           <Text mt={4}>ID: {id}</Text>
 
           {apiData && (
-            <>
-              {/* Row 1: Operational and Technical Cards */}
-              <Flex mb={4} justifyContent={"space-between"} gap={8}>
-                {renderDetails("Operational Details", apiData.operational)}
-                {renderDetails("Technical Details", apiData.technical)}
-              </Flex>
+            <Accordion allowToggle mt={5}>
+              {/* Row 1: Operational and Technical Details */}
+
+              {renderDetails("Operational Details", apiData.operational, 0)}
+              {renderDetails("Technical Details", apiData.technical, 1)}
 
               {/* Row 2: Job Operation Days Table and Plot */}
               {apiData.job_operation_days && (
@@ -226,12 +278,14 @@ const ViewPlanning = () => {
                         headerName: key,
                         field: key,
                       })
-                    )
+                    ),
+                    2
                   )}
                   {renderPlot(
                     "Job Operation Days Plot",
                     apiData.job_operation_days.plot.data,
-                    apiData.job_operation_days.plot.layout
+                    apiData.job_operation_days.plot.layout,
+                    3
                   )}
                 </>
               )}
@@ -247,53 +301,69 @@ const ViewPlanning = () => {
                     ).map((key) => ({
                       headerName: key,
                       field: key,
-                    }))
+                    })),
+                    4
                   )}
                   {renderPlot(
                     "Work Breakdown Structure Plot",
                     apiData.work_breakdown_structure.plot.data,
                     apiData.work_breakdown_structure.plot.layout,
-                    true
+                    5
                   )}
                 </>
               )}
 
               {/* Row 4: Well Trajectory and Well Casing */}
-              <Flex mb={8}>
-                <Box flex="1" mr={4} minW="40%">
-                  {apiData.well_trajectory && apiData.well_trajectory.plot ? (
-                    renderPlot(
-                      "Well Trajectory",
-                      apiData.well_trajectory.plot.data,
-                      apiData.well_trajectory.plot.layout
-                    )
-                  ) : (
-                    <Text>Data Well Trajectory tidak tersedia</Text>
-                  )}
-                </Box>
+              <Flex direction="column" wrap="wrap">
+                {apiData.well_trajectory && apiData.well_trajectory.plot ? (
+                  renderPlot(
+                    "Well Trajectory",
+                    apiData.well_trajectory.plot.data,
+                    apiData.well_trajectory.plot.layout,
+                    6
+                  )
+                ) : (
+                  <Text>Data Well Trajectory tidak tersedia</Text>
+                )}
 
-                <Box flex="1" minW="40%" justifyContent={"space-between"} gap={8}>
-                  {apiData.well_casing && apiData.well_casing.path ? (
-                    <Card>
-                      <CardHeader>
-                        <Text fontSize="xl" fontWeight="bold" mb={4}>
-                          Well Casing
-                        </Text>
-                      </CardHeader>
-                      <CardBody>
+                {apiData.well_casing && apiData.well_casing.path ? (
+                  <AccordionItem mb={4}>
+                    <h2>
+                      <AccordionButton
+                        _expanded={{ bg: "teal.500", color: "white" }} // Misalnya warna hijau tua saat di-expand
+                      >
+                        <Box as="span" flex="1" textAlign="left">
+                          <Text fontSize="xl" fontWeight="bold">
+                            Well Casing
+                          </Text>
+                        </Box>
+                        <AccordionIcon />
+                      </AccordionButton>
+                    </h2>
+                    <AccordionPanel>
+                      <Flex
+                        direction="column"
+                        align="center"
+                        justify="center"
+                        height="100%" // Optional: use if you need the panel to be of certain height
+                      >
                         <img
                           src={wellCasingImage}
                           alt="Well Casing"
-                          style={{ width: "100%" }}
+                          style={{
+                            width: "40%",
+                            maxWidth: "40%",
+                            height: "auto",
+                          }} // Adjust width and maxWidth as needed
                         />
-                      </CardBody>
-                    </Card>
-                  ) : (
-                    <Text>Data Well Casing tidak tersedia</Text>
-                  )}
-                </Box>
+                      </Flex>
+                    </AccordionPanel>
+                  </AccordionItem>
+                ) : (
+                  <Text>Data Well Casing tidak tersedia</Text>
+                )}
               </Flex>
-            </>
+            </Accordion>
           )}
 
           <Outlet />

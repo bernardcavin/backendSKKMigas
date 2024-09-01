@@ -4,7 +4,7 @@ import { Box, Icon, Text } from "@chakra-ui/react";
 import PropTypes from 'prop-types';
 
 // Komponen CustomCard
-const CustomCard = ({ icon, count, label, bgColor, iconColor, iconBgColor }) => {
+const CustomCard = ({ icon, count, label, bgColor, iconColor, iconBgColor,iconSize=null }) => {
   return (
     <Box
       p={6}
@@ -25,7 +25,7 @@ const CustomCard = ({ icon, count, label, bgColor, iconColor, iconBgColor }) => 
         justifyContent="center"
         alignItems="center"
       >
-        <Icon as={icon} boxSize={8} color={iconColor} />
+        <Icon as={icon}  boxSize={iconSize ? iconSize : 8} color={iconColor} />
       </Box>
       <Box>
         <Text fontSize="35px" fontWeight="bold">

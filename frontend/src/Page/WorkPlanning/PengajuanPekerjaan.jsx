@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react";
-import { Box, VStack, HStack, SimpleGrid, Button } from "@chakra-ui/react";
+import {
+  Box,
+  VStack,
+  HStack,
+  SimpleGrid,
+  Button,
+  Text,
+} from "@chakra-ui/react";
 import { FaClipboardCheck, FaTimesCircle, FaCheckCircle } from "react-icons/fa";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import CustomCard from "./../Components/Card/CustomCard"; // Path yang sesuai
 import WellTable from "./../Components/Card/WellTable"; // Path yang sesuai
 import axios from "axios";
 import { useLocation } from "react-router-dom";
+import { getDataPlanningExploration } from "../API/AllEnums";
 
 const PengajuanPekerjaan = ({ handleTambahData }) => {
   const location = useLocation();
@@ -30,8 +38,10 @@ const PengajuanPekerjaan = ({ handleTambahData }) => {
   useEffect(() => {
     if (location.pathname === "/dashboard/submission/pengajuanform") {
       setShowPengajuanPekerjaan(!showPengajuanPekerjaan);
+    } else if (location.pathname === "/dashboard/submission") {
+      setShowPengajuanPekerjaan(true);
     }
-  },[location.pathname]);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (dataDrilling?.teknisData) {
@@ -214,14 +224,34 @@ const PengajuanPekerjaan = ({ handleTambahData }) => {
   // const navigate = useNavigate();
   const warnabutton = "teal";
   // console.log(showPengajuanPekerjaan);
-  
+
   const PengajuanPekerjaanItems = () => {
+    const [dataCount, setDataCount] = useState([]);
+    
+    
+    useEffect(() => {
+      const getDataPlanning = async () => {
+        try {
+          const response = await getDataPlanningExploration();
+          setDataCount(response);
+
+        } catch (error) {
+          console.error("Error get Data Well And Start Date", error);
+        }
+      }
+      getDataPlanning();
+    }, []);
+    
+    
     return (
       <>
+        <Text fontSize={"3em"} fontWeight={"bold"} mt={5}>
+          Planning Exploration
+        </Text>
         <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4} mt={5}>
           <CustomCard
             icon={FaClipboardCheck}
-            count={12}
+            // count={dataCount.length}
             label="Diajukan"
             bgColor="white"
             iconBgColor="#ECF2FE"
@@ -229,7 +259,7 @@ const PengajuanPekerjaan = ({ handleTambahData }) => {
           />
           <CustomCard
             icon={FaTimesCircle}
-            count={5}
+            // count={dataCount.filter((item) => item.status === "REJECTED").length}
             label="Ditolak"
             bgColor="white"
             iconBgColor="#FEE2E2"
@@ -237,7 +267,7 @@ const PengajuanPekerjaan = ({ handleTambahData }) => {
           />
           <CustomCard
             icon={FaCheckCircle}
-            count={20}
+            // count={dataCount.filter((item) => item.status === "APPROVED").length}
             label="Disetujui"
             bgColor="white"
             iconBgColor="#E6FFFA"
@@ -250,7 +280,7 @@ const PengajuanPekerjaan = ({ handleTambahData }) => {
           <Button
             colorScheme="blue"
             as={Link}
-            to={"/dashboard/submission/pengajuanform"}
+            to={"/dashboard/planning/planningform"}
           >
             Tambah Data
           </Button>
@@ -269,10 +299,10 @@ const PengajuanPekerjaan = ({ handleTambahData }) => {
       <Box p={5}>
         <VStack spacing={4} align="stretch">
           {/* Section Cards */}
-          {showPengajuanPekerjaan ? <PengajuanPekerjaanItems/> : null}
+          {showPengajuanPekerjaan ? <PengajuanPekerjaanItems /> : null}
           <Outlet context={{ sendData }} />
 
-          {dataDrilling ? <ShowButtonSubmit /> : null}
+          {showPengajuanPekerjaan ? null : <ShowButtonSubmit />}
         </VStack>
       </Box>
     </>

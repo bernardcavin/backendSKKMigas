@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
+import "./PageExploitasi/Animation.css";
 import {
   Box,
   Flex,
@@ -21,10 +22,9 @@ import { FaRegClock } from "react-icons/fa";
 import { useAuth } from "../../Auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-const Navbar = ({ appName = "App",nameUser }) => {
+const Navbar = ({ appName = "Aplikasi Pengeboran Dan Sumuran", nameUser }) => {
   const { logout } = useAuth();
   const navigator = useNavigate();
-
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const logoutOnClick = () => {
@@ -64,8 +64,8 @@ const Navbar = ({ appName = "App",nameUser }) => {
           onClick={isOpen ? onClose : onOpen}
           color="#10042C"
         />
-        <Box color="#10042C" fontWeight="bold">
-          {appName}
+        <Box color="#10042C" width={"300px"} fontWeight="bold">
+          <marquee >{appName}</marquee>
         </Box>
         <Flex alignItems="center" gap={4}>
           <Menu borderRadius={"lg"}>
@@ -112,7 +112,7 @@ const Navbar = ({ appName = "App",nameUser }) => {
                 <Avatar size={"sm"} src={"https://bit.ly/sage-adebayo"} />
               </HStack>
             </MenuButton>
-            <MenuList backgroundColor={'white'} zIndex={10} >
+            <MenuList backgroundColor={"white"} zIndex={10}>
               <MenuItem>Profile</MenuItem>
               <MenuItem>Settings</MenuItem>
               <MenuDivider />

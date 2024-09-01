@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   Box,
   VStack,
-  Link as ChakraLink,
+  Button,
   Image,
   List,
   ListItem,
@@ -22,26 +22,24 @@ import {
   FaChevronRight,
 } from "react-icons/fa";
 import Logo from "../../assets/logo.png";
-import { useLocation, Link } from "react-router-dom"; // Import Link from react-router-dom
+import { useLocation, Link, useNavigate } from "react-router-dom";
 
 const Sidebar = ({ handleMenuValue }) => {
-  
   const location = useLocation();
+  const navigate = useNavigate();
   const [openMenu, setOpenMenu] = useState(null);
   const [onClickPage, setOnClickPage] = useState("");
 
   useEffect(() => {
-    if (location.pathname.includes("/dashboard/submission")) {
-      setOnClickPage("submission");
+    if (location.pathname.includes("/dashboard/planning")) {
+      setOnClickPage("Planning");
     } else if (location.pathname.includes("/dashboard/operasi")) {
       setOnClickPage("operation");
     } else if (location.pathname.includes("/dashboard/ppp")) {
       setOnClickPage("ppp");
-    } 
-    else if (location.pathname.includes("/dashboard")) {
+    } else if (location.pathname.includes("/dashboard")) {
       setOnClickPage("homeDash");
-    }
-    else if (location.pathname.includes("/development")) {
+    } else if (location.pathname.includes("/development")) {
       setOnClickPage("development");
     }
   }, [location.pathname]);
@@ -58,9 +56,9 @@ const Sidebar = ({ handleMenuValue }) => {
       p={4}
       color="#10042C"
       boxShadow="md"
-      position="sticky" // Menggunakan position: sticky
-      top={0} // Menempelkan sidebar ke bagian atas viewport
-      overflowY="auto" // Mengaktifkan scrollbar jika konten sidebar melebihi tinggi viewport
+      position="sticky"
+      top={0}
+      overflowY="auto"
     >
       <Box
         flex={1}
@@ -72,8 +70,8 @@ const Sidebar = ({ handleMenuValue }) => {
         <Image src={Logo} alt="SKK Migas" w={"120px"} />
       </Box>
       <VStack align="start" spacing={4}>
-        <ChakraLink
-          as={Link} // Use Link from react-router-dom
+        <Button
+          as={Link}
           to="/dashboard"
           px={4}
           fontSize={"20px"}
@@ -81,57 +79,58 @@ const Sidebar = ({ handleMenuValue }) => {
           rounded="md"
           _hover={{ bg: "#f5f5f5" }}
           width="full"
-          display="flex"
-          alignItems="center"
+          justifyContent="flex-start"
+          leftIcon={<Icon as={FaHome} />}
+          variant="ghost"
         >
-          <Icon as={FaHome} mr={2} />
           Dashboard
-        </ChakraLink>
+        </Button>
 
         {/* Exploration Section */}
         <Box width="full">
-          <ChakraLink
+          <Button
             px={4}
             fontSize={"20px"}
             py={4}
             rounded="md"
             _hover={{ bg: "#f5f5f5" }}
             width="full"
-            display="flex"
-            alignItems="center"
+            justifyContent="space-between"
             onClick={() => handleMenuClick("exploration")}
-          >
-            <Icon as={FaMap} mr={2} />
-            Exploration
-            <Box ml="auto">
-              {openMenu === "exploration" ? (
+            leftIcon={<Icon as={FaMap} />}
+            rightIcon={
+              openMenu === "exploration" ? (
                 <FaChevronDown />
               ) : (
                 <FaChevronRight />
-              )}
-            </Box>
-          </ChakraLink>
+              )
+            }
+            variant="ghost"
+          >
+            Exploration
+          </Button>
           <Collapse in={openMenu === "exploration"}>
             <List spacing={2} pl={4} mt={2} styleType="none">
               <ListItem>
-                <ChakraLink
+                <Button
                   as={Link}
-                  to="/dashboard/submission"
+                  to="/dashboard/planning"
                   px={3}
                   fontSize={"18px"}
                   py={2}
                   rounded="md"
                   _hover={{ bg: "#e0e0e0" }}
-                  display="flex"
-                  alignItems="center"
-                  bg={onClickPage === 'submission' ? "#e0e0e0" : "none"}
+                  width="full"
+                  justifyContent="flex-start"
+                  bg={onClickPage === "Planning" ? "#e0e0e0" : "none"}
+                  leftIcon={<Icon as={FaToolbox} />}
+                  variant="ghost"
                 >
-                  <Icon as={FaToolbox} mr={2} />
-                  <Text>Submission</Text>
-                </ChakraLink>
+                  Planning
+                </Button>
               </ListItem>
               <ListItem>
-                <ChakraLink
+                <Button
                   as={Link}
                   to="/dashboard/operasi"
                   px={3}
@@ -139,16 +138,17 @@ const Sidebar = ({ handleMenuValue }) => {
                   py={2}
                   rounded="md"
                   _hover={{ bg: "#e0e0e0" }}
-                  display="flex"
-                  alignItems="center"
-                  bg={onClickPage === 'operation' ? "#e0e0e0" : "none"}
+                  width="full"
+                  justifyContent="flex-start"
+                  bg={onClickPage === "operation" ? "#e0e0e0" : "none"}
+                  leftIcon={<Icon as={FaCog} />}
+                  variant="ghost"
                 >
-                  <Icon as={FaCog} mr={2} />
-                  <Text>Operations</Text>
-                </ChakraLink>
+                  Operations
+                </Button>
               </ListItem>
               <ListItem>
-                <ChakraLink
+                <Button
                   as={Link}
                   to="/dashboard/ppp"
                   px={3}
@@ -156,125 +156,131 @@ const Sidebar = ({ handleMenuValue }) => {
                   py={2}
                   rounded="md"
                   _hover={{ bg: "#e0e0e0" }}
-                  display="flex"
-                  alignItems="center"
-                  bg={onClickPage === 'ppp' ? "#e0e0e0" : "none"}
+                  width="full"
+                  justifyContent="flex-start"
+                  bg={onClickPage === "ppp" ? "#e0e0e0" : "none"}
+                  leftIcon={<Icon as={FaToolbox} />}
+                  variant="ghost"
                 >
-                  <Icon as={FaToolbox} mr={2} />
-                  <Text>P3</Text>
-                </ChakraLink>
+                  P3
+                </Button>
               </ListItem>
               <ListItem>
-                <ChakraLink
+                <Button
                   px={3}
                   fontSize={"18px"}
                   py={2}
                   rounded="md"
                   _hover={{ bg: "#e0e0e0" }}
-                  display="flex"
-                  alignItems="center"
+                  width="full"
+                  justifyContent="flex-start"
                   bg="#f9f9f9"
+                  leftIcon={<Icon as={FaCog} />}
+                  variant="ghost"
                 >
-                  <Icon as={FaCog} mr={2} />
-                  <Text>Close Out</Text>
-                </ChakraLink>
+                  Close Out
+                </Button>
               </ListItem>
             </List>
           </Collapse>
         </Box>
 
-        {/* development Section */}
+        {/* Development Section */}
         <Box width="full">
-          <ChakraLink
+          <Button
+            as={Link}
+            
             px={4}
             fontSize={"20px"}
             py={4}
             rounded="md"
             _hover={{ bg: "#f5f5f5" }}
             width="full"
-            display="flex"
-            alignItems="center"
+            justifyContent="space-between"
             onClick={() => handleMenuClick("development")}
-          >
-            <Icon as={FaTools} mr={2} />
-            Development
-            <Box ml="auto">
-              {openMenu === "development" ? (
+            leftIcon={<Icon as={FaTools} />}
+            rightIcon={
+              openMenu === "development" ? (
                 <FaChevronDown />
               ) : (
                 <FaChevronRight />
-              )}
-            </Box>
-          </ChakraLink>
+              )
+            }
+            variant="ghost"
+          >
+            Development
+          </Button>
           <Collapse in={openMenu === "development"}>
             <List spacing={2} pl={4} mt={2} styleType="none">
               <ListItem>
-                <ChakraLink
+                <Button
                   as={Link}
-                  to="/development"
+                  to="/dashboard/planning"
                   px={3}
                   fontSize={"18px"}
                   py={2}
                   rounded="md"
                   _hover={{ bg: "#e0e0e0" }}
-                  display="flex"
-                  alignItems="center"
-                  bg="#f9f9f9"
+                  width="full"
+                  justifyContent="flex-start"
+                  bg={onClickPage === "Planning" ? "#e0e0e0" : "none"}
+                  leftIcon={<Icon as={FaToolbox} />}
+                  variant="ghost"
                 >
-                  <Icon as={FaToolbox} mr={2} />
-                  <Text>Perencanaan</Text>
-                </ChakraLink>
+                  Planning
+                </Button>
               </ListItem>
               <ListItem>
-                <ChakraLink
+                <Button
                   as={Link}
-                  to="/dashboard/development/operations"
+                  to="/dashboard/operasi"
                   px={3}
                   fontSize={"18px"}
                   py={2}
                   rounded="md"
                   _hover={{ bg: "#e0e0e0" }}
-                  display="flex"
-                  alignItems="center"
-                  bg="#f9f9f9"
+                  width="full"
+                  justifyContent="flex-start"
+                  bg={onClickPage === "operation" ? "#e0e0e0" : "none"}
+                  leftIcon={<Icon as={FaCog} />}
+                  variant="ghost"
                 >
-                  <Icon as={FaCog} mr={2} />
-                  <Text>Operasi</Text>
-                </ChakraLink>
+                  Operations
+                </Button>
               </ListItem>
               <ListItem>
-                <ChakraLink
+                <Button
                   as={Link}
-                  to="/dashboard/development/p3"
+                  to="/dashboard/ppp"
                   px={3}
                   fontSize={"18px"}
                   py={2}
                   rounded="md"
                   _hover={{ bg: "#e0e0e0" }}
-                  display="flex"
-                  alignItems="center"
-                  bg="#f9f9f9"
+                  width="full"
+                  justifyContent="flex-start"
+                  bg={onClickPage === "ppp" ? "#e0e0e0" : "none"}
+                  leftIcon={<Icon as={FaToolbox} />}
+                  variant="ghost"
                 >
-                  <Icon as={FaToolbox} mr={2} />
-                  <Text>P3</Text>
-                </ChakraLink>
+                  P3
+                </Button>
               </ListItem>
               <ListItem>
-                <ChakraLink
-                  as={Link}
-                  to="/dashboard/development/closeout"
+                <Button
                   px={3}
                   fontSize={"18px"}
                   py={2}
                   rounded="md"
                   _hover={{ bg: "#e0e0e0" }}
-                  display="flex"
-                  alignItems="center"
+                  width="full"
+                  justifyContent="flex-start"
                   bg="#f9f9f9"
+                  leftIcon={<Icon as={FaCog} />}
+                  variant="ghost"
                 >
-                  <Icon as={FaCog} mr={2} />
-                  <Text>Close Out</Text>
-                </ChakraLink>
+                  Close Out
+                </Button>
               </ListItem>
             </List>
           </Collapse>
@@ -282,92 +288,95 @@ const Sidebar = ({ handleMenuValue }) => {
 
         {/* Work Over Section */}
         <Box width="full">
-          <ChakraLink
+          <Button
+            as={Link}
             px={4}
             fontSize={"20px"}
             py={4}
             rounded="md"
             _hover={{ bg: "#f5f5f5" }}
             width="full"
-            display="flex"
-            alignItems="center"
+            justifyContent="space-between"
             onClick={() => handleMenuClick("workover")}
+            leftIcon={<Icon as={FaHammer} />}
+            rightIcon={
+              openMenu === "workover" ? <FaChevronDown /> : <FaChevronRight />
+            }
+            variant="ghost"
           >
-            <Icon as={FaHammer} mr={2} />
             Work Over
-            <Box ml="auto">
-              {openMenu === "workover" ? <FaChevronDown /> : <FaChevronRight />}
-            </Box>
-          </ChakraLink>
+          </Button>
           <Collapse in={openMenu === "workover"}>
             <List spacing={2} pl={4} mt={2} styleType="none">
               <ListItem>
-                <ChakraLink
+                <Button
                   as={Link}
-                  to="/dashboard/workover/submission"
+                  to="/dashboard/planning"
                   px={3}
                   fontSize={"18px"}
                   py={2}
                   rounded="md"
                   _hover={{ bg: "#e0e0e0" }}
-                  display="flex"
-                  alignItems="center"
-                  bg="#f9f9f9"
+                  width="full"
+                  justifyContent="flex-start"
+                  bg={onClickPage === "Planning" ? "#e0e0e0" : "none"}
+                  leftIcon={<Icon as={FaToolbox} />}
+                  variant="ghost"
                 >
-                  <Icon as={FaToolbox} mr={2} />
-                  <Text>Submission</Text>
-                </ChakraLink>
+                  Planning
+                </Button>
               </ListItem>
               <ListItem>
-                <ChakraLink
+                <Button
                   as={Link}
-                  to="/dashboard/workover/operations"
+                  to="/dashboard/operasi"
                   px={3}
                   fontSize={"18px"}
                   py={2}
                   rounded="md"
                   _hover={{ bg: "#e0e0e0" }}
-                  display="flex"
-                  alignItems="center"
-                  bg="#f9f9f9"
+                  width="full"
+                  justifyContent="flex-start"
+                  bg={onClickPage === "operation" ? "#e0e0e0" : "none"}
+                  leftIcon={<Icon as={FaCog} />}
+                  variant="ghost"
                 >
-                  <Icon as={FaCog} mr={2} />
-                  <Text>Operations</Text>
-                </ChakraLink>
+                  Operations
+                </Button>
               </ListItem>
               <ListItem>
-                <ChakraLink
+                <Button
                   as={Link}
-                  to="/dashboard/workover/p3"
+                  to="/dashboard/ppp"
                   px={3}
                   fontSize={"18px"}
                   py={2}
                   rounded="md"
                   _hover={{ bg: "#e0e0e0" }}
-                  display="flex"
-                  alignItems="center"
-                  bg="#f9f9f9"
+                  width="full"
+                  justifyContent="flex-start"
+                  bg={onClickPage === "ppp" ? "#e0e0e0" : "none"}
+                  leftIcon={<Icon as={FaToolbox} />}
+                  variant="ghost"
                 >
-                  <Icon as={FaToolbox} mr={2} />
-                  <Text>P3</Text>
-                </ChakraLink>
+                  P3
+                </Button>
               </ListItem>
               <ListItem>
-                <ChakraLink
-                  as={Link}
-                  to="/dashboard/workover/closeout"
+                <Button
                   px={3}
                   fontSize={"18px"}
                   py={2}
                   rounded="md"
                   _hover={{ bg: "#e0e0e0" }}
-                  display="flex"
-                  alignItems="center"
+                  width="full"
+                  justifyContent="flex-start"
                   bg="#f9f9f9"
+                  leftIcon={<Icon as={FaCog} />}
+                  variant="ghost"
                 >
-                  <Icon as={FaCog} mr={2} />
-                  <Text>Close Out</Text>
-                </ChakraLink>
+                  Close Out
+                </Button>
               </ListItem>
             </List>
           </Collapse>
@@ -375,96 +384,100 @@ const Sidebar = ({ handleMenuValue }) => {
 
         {/* Well Service Section */}
         <Box width="full">
-          <ChakraLink
+          <Button
+            as={Link}
+            
             px={4}
             fontSize={"20px"}
             py={4}
             rounded="md"
             _hover={{ bg: "#f5f5f5" }}
             width="full"
-            display="flex"
-            alignItems="center"
+            justifyContent="space-between"
             onClick={() => handleMenuClick("wellservice")}
-          >
-            <Icon as={FaCogs} mr={2} />
-            Well Service
-            <Box ml="auto">
-              {openMenu === "wellservice" ? (
+            leftIcon={<Icon as={FaCogs} />}
+            rightIcon={
+              openMenu === "wellservice" ? (
                 <FaChevronDown />
               ) : (
                 <FaChevronRight />
-              )}
-            </Box>
-          </ChakraLink>
+              )
+            }
+            variant="ghost"
+          >
+            Well Service
+          </Button>
           <Collapse in={openMenu === "wellservice"}>
             <List spacing={2} pl={4} mt={2} styleType="none">
               <ListItem>
-                <ChakraLink
+                <Button
                   as={Link}
-                  to="/dashboard/wellservice/submission"
+                  to="/dashboard/planning"
                   px={3}
                   fontSize={"18px"}
                   py={2}
                   rounded="md"
                   _hover={{ bg: "#e0e0e0" }}
-                  display="flex"
-                  alignItems="center"
-                  bg="#f9f9f9"
+                  width="full"
+                  justifyContent="flex-start"
+                  bg={onClickPage === "Planning" ? "#e0e0e0" : "none"}
+                  leftIcon={<Icon as={FaToolbox} />}
+                  variant="ghost"
                 >
-                  <Icon as={FaToolbox} mr={2} />
-                  <Text>Submission</Text>
-                </ChakraLink>
+                  Planning
+                </Button>
               </ListItem>
               <ListItem>
-                <ChakraLink
+                <Button
                   as={Link}
-                  to="/dashboard/wellservice/operations"
+                  to="/dashboard/operasi"
                   px={3}
                   fontSize={"18px"}
                   py={2}
                   rounded="md"
                   _hover={{ bg: "#e0e0e0" }}
-                  display="flex"
-                  alignItems="center"
-                  bg="#f9f9f9"
+                  width="full"
+                  justifyContent="flex-start"
+                  bg={onClickPage === "operation" ? "#e0e0e0" : "none"}
+                  leftIcon={<Icon as={FaCog} />}
+                  variant="ghost"
                 >
-                  <Icon as={FaCog} mr={2} />
-                  <Text>Operations</Text>
-                </ChakraLink>
+                  Operations
+                </Button>
               </ListItem>
               <ListItem>
-                <ChakraLink
+                <Button
                   as={Link}
-                  to="/dashboard/wellservice/p3"
+                  to="/dashboard/ppp"
                   px={3}
                   fontSize={"18px"}
                   py={2}
                   rounded="md"
                   _hover={{ bg: "#e0e0e0" }}
-                  display="flex"
-                  alignItems="center"
-                  bg="#f9f9f9"
+                  width="full"
+                  justifyContent="flex-start"
+                  bg={onClickPage === "ppp" ? "#e0e0e0" : "none"}
+                  leftIcon={<Icon as={FaToolbox} />}
+                  variant="ghost"
                 >
-                  <Icon as={FaToolbox} mr={2} />
-                  <Text>P3</Text>
-                </ChakraLink>
+                  P3
+                </Button>
               </ListItem>
               <ListItem>
-                <ChakraLink
-                  as={Link}
-                  to="/dashboard/wellservice/closeout"
+                <Button
                   px={3}
                   fontSize={"18px"}
                   py={2}
                   rounded="md"
                   _hover={{ bg: "#e0e0e0" }}
-                  display="flex"
-                  alignItems="center"
+                  width="full"
+                  justifyContent="flex-start"
                   bg="#f9f9f9"
+                  leftIcon={<Icon as={FaCog} />}
+                  variant="ghost"
                 >
-                  <Icon as={FaCog} mr={2} />
-                  <Text>Close Out</Text>
-                </ChakraLink>
+                  Close Out
+                </Button>
               </ListItem>
             </List>
           </Collapse>

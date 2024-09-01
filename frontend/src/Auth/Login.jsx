@@ -11,13 +11,12 @@ import {
   Text,
   Image,
   HStack,
-  Center,
-  useRadio,
 } from "@chakra-ui/react";
 import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios"; // Pastikan axios diimpor
+import axios from "axios";
 import LoginImage from "../assets/login-images.jpg";
+import SplashScreen from "./../Page/Components/SplashScreen";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -25,11 +24,7 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [handleFormUsername, setHandleFormUsername] = useState(false);
-  const [handleFormPassword, setHandleFormPassword] = useState(false);
-
-
-
+  const [showSplashScreen, setShowSplashScreen] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -64,7 +59,9 @@ const Login = () => {
       const userDetails = userResponse.data;
       login(userDetails, token); // Kirim userDetails dan token ke fungsi login di AuthContext
 
-      navigate("/dashboard");
+      // Tampilkan splash screen
+      setShowSplashScreen(true);
+      
     } catch (error) {
       if (error.response) {
         setErrorMessage(() => {
@@ -88,6 +85,14 @@ const Login = () => {
       }
     }
   };
+
+  const handleSplashScreenComplete = () => {
+    navigate("/dashboard");
+  };
+
+  if (showSplashScreen) {
+    return <SplashScreen onAnimationComplete={handleSplashScreenComplete} />;
+  }
 
   return (
     <Box
@@ -167,7 +172,7 @@ const Login = () => {
         </Box>
         <Box w="50%" h="full" objectPosition="center">
           <Image
-            src={LoginImage} // Ganti dengan URL gambar yang diinginkan
+            src={LoginImage}
             alt="Login Image"
             objectFit="cover"
             borderRadius="md"
