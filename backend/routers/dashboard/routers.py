@@ -131,10 +131,17 @@ async def read_budget_summary_charts(db: Session = Depends(get_db)):
     
     return BudgetSummaryResponse(charts=charts)
 
-@router.get("/job-well-status-chart", response_model=Dict)
-async def read_job_well_status_chart(db: Session = Depends(get_db)):
-    data=get_job_and_well_status_summary(db)
-    return JSONResponse(content=data, media_type="application/json")
+@router.get("/job-well-status-summary", response_model=JobAndWellStatusSummary)
+async def read_job_and_well_status_summary(db: Session = Depends(get_db)):
+    """
+    Get a summary of job and well status for Exploration and Development.
+    
+    Returns:
+    - Exploration job counts and Plotly chart
+    - Development job counts and Plotly chart
+    - Overall well status distribution
+    """
+    return get_job_and_well_status_summary(db)
 
 
 @router.get("/exploration-realization", response_model=List[ExplorationRealizationItem])

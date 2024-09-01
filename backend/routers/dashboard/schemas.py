@@ -200,5 +200,18 @@ class JobTypeGroup(BaseModel):
     class Config:
         from_attributes = True
 
+class JobCounts(BaseModel):
+    total_count: int
+    post_operation_count: int
+
+class JobTypeSummaryPie(BaseModel):
+    job_counts: JobCounts
+    plotly_chart: str
+
+class JobAndWellStatusSummary(BaseModel):
+    exploration: JobTypeSummaryPie
+    development: JobTypeSummaryPie
+    well_status: Dict[str, int]
+
 
 

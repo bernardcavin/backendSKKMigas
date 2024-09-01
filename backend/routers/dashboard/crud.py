@@ -492,29 +492,6 @@ def get_budget_summary_by_job_type(db: Session) -> Dict[str, Dict]:
 
     return result
 
-def get_job_and_well_status_summary(db: Session) -> Dict:
-    # Count jobs with POST_OPERATION instance type
-    post_operation_count = db.query(func.count(Job.id)).filter(
-        Job.job_instance_type == JobInstanceType.POST_OPERATION
-    ).scalar()
-
-    # Count wells by status
-    well_status_counts = db.query(
-        WellInstance.well_status,
-        func.count(WellInstance.id).label('count')
-    ).filter(WellInstance.well_instance_type == WellInstanceType.POST_OPERATION).group_by(WellInstance.well_status).all()
-    # Prepare well status data
-    well_status_data = {status.value: count for status, count in well_status_counts}
-
-    # Combine data
-    summary = {
-        "post_operation_count": post_operation_count,
-        "well_status": well_status_data
-    }
-
-    print(well_status_counts)
-
-    return summary
 
 def calculate_exploration_realization(db: Session) -> List[ExplorationRealizationItem]:
     results = (
@@ -579,17 +556,17 @@ def get_job_counts(db: Session, job_types: List[str], statuses: List[str]) -> Li
 
 
 def get_job_and_well_status_summary(db: Session) -> Dict:
-    # Query jobs grouped by job type and instance type
+    # Query jobs for Exploration and Development types
     job_counts = db.query(
         Job.job_type,
         func.count(Job.id).label('total_count'),
         func.sum(case((Job.job_instance_type == JobInstanceType.POST_OPERATION, 1), else_=0)).label('post_operation_count')
-    ).group_by(Job.job_type).all()
+    ).filter(Job.job_type.in_([JobType.EXPLORATION, JobType.DEVELOPMENT])).group_by(Job.job_type).all()
 
     # Prepare job count data
     job_count_data = {}
     for job_type, total_count, post_operation_count in job_counts:
-        job_count_data[job_type.value] = {
+        job_count_data[job_type.value.lower()] = {
             "total_count": total_count,
             "post_operation_count": post_operation_count
         }
@@ -603,41 +580,52 @@ def get_job_and_well_status_summary(db: Session) -> Dict:
     # Prepare well status data
     well_status_data = {status.value: count for status, count in well_status_counts}
 
-    # Create Plotly figure
-    fig = make_subplots(rows=2, cols=2, specs=[[{'type':'pie'}, {'type':'pie'}],
-                                               [{'type':'pie'}, {'type':'pie'}]],
-                        subplot_titles=('Total Jobs by Type', 'Post-Operation Jobs by Type',
-                                        'Well Status Distribution', ''))
+    # Create Plotly figures for Exploration and Development
+    def create_job_chart(job_type):
+        fig = make_subplots(rows=2, cols=2, specs=[[{'type':'pie'}, {'type':'pie'}],
+                                                   [{'type':'pie'}, {'type':'pie'}]],
+                            subplot_titles=(f'{job_type} Total Jobs', f'{job_type} Post-Operation Jobs',
+                                            'Well Status Distribution', ''))
 
-    # Total Jobs Pie Chart
-    fig.add_trace(go.Pie(labels=list(job_count_data.keys()),
-                         values=[data['total_count'] for data in job_count_data.values()],
-                         name="Total Jobs"),
-                  row=1, col=1)
+        job_data = job_count_data.get(job_type.lower(), {"total_count": 0, "post_operation_count": 0})
 
-    # Post-Operation Jobs Pie Chart
-    fig.add_trace(go.Pie(labels=list(job_count_data.keys()),
-                         values=[data['post_operation_count'] for data in job_count_data.values()],
-                         name="Post-Operation Jobs"),
-                  row=1, col=2)
+        # Total Jobs Pie Chart
+        fig.add_trace(go.Pie(labels=[job_type],
+                             values=[job_data['total_count']],
+                             name=f"{job_type} Total Jobs"),
+                      row=1, col=1)
 
-    # Well Status Pie Chart
-    fig.add_trace(go.Pie(labels=list(well_status_data.keys()),
-                         values=list(well_status_data.values()),
-                         name="Well Status"),
-                  row=2, col=1)
+        # Post-Operation Jobs Pie Chart
+        fig.add_trace(go.Pie(labels=[job_type],
+                             values=[job_data['post_operation_count']],
+                             name=f"{job_type} Post-Operation Jobs"),
+                      row=1, col=2)
 
-    # Update layout
-    fig.update_layout(height=800, width=800, title_text="Job and Well Status Summary")
+        # Well Status Pie Chart
+        fig.add_trace(go.Pie(labels=list(well_status_data.keys()),
+                             values=list(well_status_data.values()),
+                             name="Well Status"),
+                      row=2, col=1)
 
-    # Convert the figure to a dict and then to JSON
-    plot_json = json.dumps(fig.to_dict(), indent=2)
+        fig.update_layout(height=800, width=800, title_text=f"{job_type} Job and Well Status Summary")
+
+        return json.dumps(fig.to_dict(), indent=2)
+
+    # Create charts for Exploration and Development
+    exploration_chart = create_job_chart("Exploration")
+    development_chart = create_job_chart("Development")
 
     # Combine data
     summary = {
-        "job_counts": job_count_data,
-        "well_status": well_status_data,
-        "plotly_chart": plot_json
+        "exploration": {
+            "job_counts": job_count_data.get('exploration', {"total_count": 0, "post_operation_count": 0}),
+            "plotly_chart": exploration_chart
+        },
+        "development": {
+            "job_counts": job_count_data.get('development', {"total_count": 0, "post_operation_count": 0}),
+            "plotly_chart": development_chart
+        },
+        "well_status": well_status_data
     }
 
     return summary
