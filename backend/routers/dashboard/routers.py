@@ -221,7 +221,7 @@ async def read_exploration_operations(db: Session = Depends(get_db)):
 
 @router.get("/data-p3")
 async def read_p3_exploration(db: Session = Depends(get_db)):
-    return get_p3_data_by_job_type(db)
+    return get_job_details(db)
 
 @router.get("/data-closeout")
 async def read_closeout_data(db: Session = Depends(get_db)):
