@@ -204,13 +204,13 @@ class JobCounts(BaseModel):
     total_count: int
     post_operation_count: int
 
-class JobTypeSummaryPie(BaseModel):
-    job_counts: JobCounts
-    plotly_chart: str
+class JobTypeSummary(BaseModel):
+    well_status: Dict[str, int]
+    chart: str
 
 class JobAndWellStatusSummary(BaseModel):
-    exploration: JobTypeSummaryPie
-    development: JobTypeSummaryPie
+    exploration: JobTypeSummary
+    development: JobTypeSummary
     well_status: Dict[str, int]
 
 
