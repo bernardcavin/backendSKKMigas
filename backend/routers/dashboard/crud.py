@@ -1,4 +1,5 @@
 from cProfile import label
+import re
 from unittest import result
 from sqlalchemy.orm import Session,aliased
 from sqlalchemy.exc import SQLAlchemyError
@@ -1181,7 +1182,7 @@ def get_p3_data_by_job_type(db: Session) -> Dict[str, Dict]:
     jobs = db.query(Job, WellInstance, KKKS, Area, Lapangan, JobInstance)\
         .filter(or_(Job.operation_status == OperationStatus.FINISHED,
                     Job.ppp_status.in_([PPPStatus.PROPOSED, PPPStatus.APPROVED])))\
-        .join(WellInstance, Job.field_id == WellInstance.field_id)\
+        .join(WellInstance, PlanJob == WellInstance.id)\
         .join(KKKS, Job.kkks_id == KKKS.id)\
         .join(Area, Job.area_id == Area.id)\
         .join(Lapangan, Job.field_id == Lapangan.id)\
@@ -1214,7 +1215,6 @@ def get_p3_data_by_job_type(db: Session) -> Dict[str, Dict]:
     for job, well, kkks, area, field, job_instance in jobs:
         job_type_key = job.job_type.value.lower()
         job_detail = {
-            "NO": job.id,
             "NAMA SUMUR": well.well_name,
             "KKKS": kkks.nama_kkks,
             "WILAYAH KERJA": area.area_name,
@@ -1237,13 +1237,13 @@ def get_p3_status(job):
     elif job.ppp_status == PPPStatus.PROPOSED:
         return "PROPOSED"
     else:
-        return job.planning_status.value if job.planning_status else "N/A"
+        return None
     
 def get_closeout_data_by_job_type(db: Session) -> Dict[str, Dict]:
     # Query untuk mengambil statistik yang akurat
     stats = db.query(
         Job.job_type,
-        func.count(distinct(Job.id)).filter(Job.operation_status == OperationStatus.FINISHED).label('selesai'),
+        func.count(distinct(Job.id)).filter(Job.ppp_status == PPPStatus.APPROVED).label('selesai'),
         func.count(distinct(Job.id)).filter(Job.closeout_status == CloseOutStatus.PROPOSED).label('diajukan_closeout'),
         func.count(distinct(Job.id)).filter(Job.closeout_status == CloseOutStatus.APPROVED).label('closeout_disetujui')
     ).group_by(Job.job_type).all()
@@ -1251,21 +1251,14 @@ def get_closeout_data_by_job_type(db: Session) -> Dict[str, Dict]:
     # Query untuk mengambil detail pekerjaan tanpa duplikasi
     jobs = db.query(Job, WellInstance, KKKS, Area, Lapangan)\
         .filter(Job.operation_status == OperationStatus.FINISHED)\
+        .join(WellInstance, Job.field_id == WellInstance.field_id)\
         .join(KKKS, Job.kkks_id == KKKS.id)\
         .join(Area, Job.area_id == Area.id)\
         .join(Lapangan, Job.field_id == Lapangan.id)\
+        .distinct(Job.id)\
         .order_by(Job.job_type, Job.date_finished.desc()).all()
 
-    result = {}
-    for job_type in JobType:
-        result[job_type.value.lower()] = {
-            "summary": {
-                "selesai": 0,
-                "diajukan_closeout": 0,
-                "closeout_disetujui": 0
-            },
-            "job_details": []
-        }
+    result = {job_type.value.lower(): {"summary": {"selesai": 0, "diajukan_closeout": 0, "closeout_disetujui": 0}, "job_details": []} for job_type in JobType}
 
     # Memasukkan data statistik
     for stat in stats:
@@ -1278,19 +1271,21 @@ def get_closeout_data_by_job_type(db: Session) -> Dict[str, Dict]:
 
     # Memasukkan detail pekerjaan
     for job, well, kkks, area, field in jobs:
-        job_type_key = job.job_type.value.lower()
-        job_detail = {
-            "NAMA SUMUR": well.well_name,
-            "KKKS": kkks.nama_kkks,
-            "WILAYAH KERJA": area.area_name,
-            "LAPANGAN": field.field_name,
-            "RENCANA MULAI": job.date_proposed.strftime("%d %b %Y") if job.date_proposed else "N/A",
-            "REALISASI MULAI": job.date_started.strftime("%d %b %Y") if job.date_started else "N/A",
-            "RENCANA SELESAI": job.job_plan.end_date.strftime("%d %b %Y") if job.job_plan and job.job_plan.end_date else "N/A",
-            "REALISASI SELESAI": job.date_finished.strftime("%d %b %Y") if job.date_finished else "N/A",
-            "STATUS": get_closeout_status(job)
-        }
-        result[job_type_key]["job_details"].append(job_detail)
+        status = get_closeout_status(job)
+        if status is not None and status != "N/A":
+            job_type_key = job.job_type.value.lower()
+            job_detail = {
+                "NAMA SUMUR": well.well_name,
+                "KKKS": kkks.nama_kkks,
+                "WILAYAH KERJA": area.area_name,
+                "LAPANGAN": field.field_name,
+                "RENCANA MULAI": job.date_proposed.strftime("%d %b %Y") if job.date_proposed else "N/A",
+                "REALISASI MULAI": job.date_started.strftime("%d %b %Y") if job.date_started else "N/A",
+                "RENCANA SELESAI": job.job_plan.end_date.strftime("%d %b %Y") if job.job_plan and job.job_plan.end_date else "N/A",
+                "REALISASI SELESAI": job.date_finished.strftime("%d %b %Y") if job.date_finished else "N/A",
+                "STATUS": status
+            }
+            result[job_type_key]["job_details"].append(job_detail)
 
     return result
 
@@ -1299,7 +1294,7 @@ def get_closeout_status(job):
         return "APPROVED"
     elif job.closeout_status == CloseOutStatus.PROPOSED:
         return "PROPOSED"
-    elif job.operation_status == OperationStatus.FINISHED:
+    elif job.operation_status == PPPStatus.APPROVED:
         return "FINISHED Ops"
     else:
-        return job.operation_status.value if job.operation_status else "N/A"
+        return None
