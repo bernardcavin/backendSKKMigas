@@ -144,9 +144,9 @@ async def read_job_and_well_status_summary(db: Session = Depends(get_db)):
     return get_job_and_well_status_summary(db)
 
 
-@router.get("/exploration-realization", response_model=List[ExplorationRealizationItem])
+@router.get("/exploration-realization", response_model=Dict[str, List[RealizationItem]])
 def read_exploration_realization(db: Session = Depends(get_db)):
-    return calculate_exploration_realization(db)
+    return calculate_realization_by_kkks_and_job_type(db)
 
 # DETAIL KKS 
 @router.get("/kkks/{kkks_id}/job-data", response_model=KKKSJobDataChart)
@@ -213,3 +213,16 @@ async def read_all_job_stats(db: Session = Depends(get_db)):
         return all_stats
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+    
+
+@router.get("/data-operations")
+async def read_exploration_operations(db: Session = Depends(get_db)):
+    return get_all_job_types_data(db)    
+
+@router.get("/data-p3")
+async def read_p3_exploration(db: Session = Depends(get_db)):
+    return get_p3_data_by_job_type(db)
+
+@router.get("/data-closeout")
+async def read_closeout_data(db: Session = Depends(get_db)):
+    return get_closeout_data_by_job_type(db)

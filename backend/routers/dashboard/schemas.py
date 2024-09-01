@@ -60,15 +60,17 @@ class JobTypeSummary(BaseModel):
     realisasi: int
     selesai: int
 
-class ExplorationRealizationItem(BaseModel):
+class RealizationItem(BaseModel):
     kkks_id: str
     kkks_name: str
+    job_type: str
     approved_plans: int
     completed_operations: int
     realization_percentage: float
 
+
 class ExplorationRealizationResponse(BaseModel):
-    data: List[ExplorationRealizationItem]
+    data: List[RealizationItem]
 
 
 class ChartData(BaseModel):
@@ -141,7 +143,7 @@ class JobWellStatusSummary(BaseModel):
 class DashboardData(BaseModel):
     budget_summary: BudgetSummary
     job_well_status: JobWellStatusSummary
-    exploration_realization: List[ExplorationRealizationItem]
+    exploration_realization: List[RealizationItem]
 
 class JobTypeDataKKKS(BaseModel):
     approved_plans: int

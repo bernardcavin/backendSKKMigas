@@ -527,36 +527,6 @@ def get_budget_summary_by_job_type(db: Session) -> Dict[str, Dict]:
 
     return result
 
-
-def calculate_exploration_realization(db: Session) -> List[ExplorationRealizationItem]:
-    results = (
-        db.query(
-            KKKS.id.label('kkks_id'),
-            KKKS.name.label('kkks_name'),
-            func.count(case((Job.planning_status == PlanningStatus.APPROVED, Job.id))).label('approved_plans'),
-            func.count(case((Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]), Job.id))).label('completed_operations')
-        )
-        .join(Job, KKKS.id == Job.kkks_id)
-        .filter(Job.job_type == JobType.EXPLORATION)
-        .group_by(KKKS.id, KKKS.name)
-        .all()
-    )
-
-    realization_data = []
-    for result in results:
-        realization_percentage = (result.completed_operations / result.approved_plans * 100) if result.approved_plans > 0 else 0
-        realization_data.append(ExplorationRealizationItem(
-            kkks_id=result.kkks_id,
-            kkks_name=result.kkks_name,
-            approved_plans=result.approved_plans,
-            completed_operations=result.completed_operations,
-            realization_percentage=round(realization_percentage, 2)
-        ))
-    print(realization_data)
-
-    return realization_data
-
-
 def get_job_counts(db: Session, job_types: List[str], statuses: List[str]) -> List[JobCountResponse]:
     try:
         query = (
@@ -654,32 +624,38 @@ def get_job_and_well_status_summary(db: Session) -> Dict:
         "well_status": all_well_status
     }
 
-def calculate_exploration_realization(db: Session) -> List[ExplorationRealizationItem]:
+def calculate_realization_by_kkks_and_job_type(db: Session) -> Dict[str, List[RealizationItem]]:
     results = (
         db.query(
             KKKS.id.label('kkks_id'),
             KKKS.nama_kkks.label('kkks_name'),
+            Job.job_type,
             func.count(case((Job.planning_status == PlanningStatus.APPROVED, Job.id))).label('approved_plans'),
             func.count(case((Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]), Job.id))).label('completed_operations')
         )
         .join(Job, KKKS.id == Job.kkks_id)
-        .filter(Job.job_type == JobType.EXPLORATION)
-        .group_by(KKKS.id, KKKS.nama_kkks)
+        .group_by(KKKS.id, KKKS.nama_kkks, Job.job_type)
         .all()
     )
 
-    realization_data = []
+    realization_data = {}
+    for job_type in JobType:
+        realization_data[job_type.value.lower()] = []
+
     for result in results:
         realization_percentage = (result.completed_operations / result.approved_plans * 100) if result.approved_plans > 0 else 0
-        realization_data.append(ExplorationRealizationItem(
+        job_type_key = result.job_type.value.lower()
+        
+        realization_item = RealizationItem(
             kkks_id=result.kkks_id,
             kkks_name=result.kkks_name,
+            job_type=job_type_key,
             approved_plans=result.approved_plans,
             completed_operations=result.completed_operations,
             realization_percentage=round(realization_percentage, 2)
-        ))
-    print(realization_data)
-
+        )
+        
+        realization_data[job_type_key].append(realization_item)
     return realization_data
 
 def get_kkks_monthly_data(db: Session, kkks_id: str) -> Dict[str, List[TimeSeriesData]]:
@@ -1016,7 +992,6 @@ def get_kkks_job_data(db: Session, kkks_id: str) -> KKKSJobDataChart:
 def get_dashboard_data(db: Session):
     budget_summary = get_budget_summary_by_job_type(db)
     job_well_status = get_job_and_well_status_summary(db)
-    exploration_realization = calculate_exploration_realization(db)
 
     return {
         "budget_summary": budget_summary,
@@ -1141,3 +1116,201 @@ def get_jobs(db: Session) -> Dict[str, List[Dict]]:
         result[job.job_type.value].append(job_data)
     
     return dict(result)
+
+
+def get_all_job_types_data(db: Session) -> Dict[str, Dict]:
+    # Query untuk mengambil semua data yang diperlukan
+    jobs_data = db.query(
+        Job, WellInstance, KKKS, Area, Lapangan, JobInstance,
+        func.count(Job.id).over(partition_by=Job.job_type).label('total_jobs'),
+        func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).over(partition_by=Job.job_type).label('approved_jobs'),
+        func.count(Job.id).filter(Job.operation_status == OperationStatus.OPERATING).over(partition_by=Job.job_type).label('operating_jobs'),
+        func.count(Job.id).filter(Job.operation_status == OperationStatus.FINISHED).over(partition_by=Job.job_type).label('finished_jobs')
+    ).outerjoin(WellInstance, Job.field_id == WellInstance.field_id)\
+     .outerjoin(KKKS, Job.kkks_id == KKKS.id)\
+     .outerjoin(Area, Job.area_id == Area.id)\
+     .outerjoin(Lapangan, Job.field_id == Lapangan.id)\
+     .outerjoin(JobInstance, or_(Job.job_plan_id == JobInstance.id, Job.actual_job_id == JobInstance.id))\
+     .order_by(Job.job_type, Job.date_proposed).all()
+
+    result = {}
+    for job_type in JobType:
+        result[job_type.value.lower()] = {
+            "summary": {
+                "disetujui": 0,
+                "beroperasi": 0,
+                "selesai": 0
+            },
+            "job_details": []
+        }
+
+    for job, well, kkks, area, field, job_instance, total, approved, operating, finished in jobs_data:
+        job_type_key = job.job_type.value.lower()
+        
+        # Update summary
+        result[job_type_key]["summary"]["disetujui"] = approved
+        result[job_type_key]["summary"]["beroperasi"] = operating
+        result[job_type_key]["summary"]["selesai"] = finished
+
+        # Add job details
+        is_plan = job_instance.job_phase_type == 'plan' if job_instance else True
+        job_detail = {
+            "NO": job.id,
+            "NAMA SUMUR": well.well_name if well else "N/A",
+            "KKKS": kkks.nama_kkks if kkks else "N/A",
+            "WILAYAH KERJA": area.area_name if area else "N/A",
+            "LAPANGAN": field.field_name if field else "N/A",
+            "RENCANA MULAI": job_instance.start_date.strftime("%d %b %Y") if is_plan and job_instance and job_instance.start_date else "N/A",
+            "REALISASI MULAI": job_instance.start_date.strftime("%d %b %Y") if not is_plan and job_instance and job_instance.start_date else "N/A",
+            "RENCANA SELESAI": job_instance.end_date.strftime("%d %b %Y") if is_plan and job_instance and job_instance.end_date else "N/A",
+            "REALISASI SELESAI": job_instance.end_date.strftime("%d %b %Y") if not is_plan and job_instance and job_instance.end_date else "N/A",
+            "STATUS": job.operation_status.value if job.operation_status else job.planning_status.value
+        }
+        result[job_type_key]["job_details"].append(job_detail)
+
+    return result
+
+def get_p3_data_by_job_type(db: Session) -> Dict[str, Dict]:
+    # Query untuk mengambil statistik untuk semua job types
+    stats = db.query(
+        Job.job_type,
+        func.count(Job.id).filter(Job.operation_status == OperationStatus.FINISHED).label('selesai'),
+        func.count(Job.id).filter(Job.ppp_status == PPPStatus.PROPOSED).label('diajukan_p3'),
+        func.count(Job.id).filter(Job.ppp_status == PPPStatus.APPROVED).label('p3_disetujui')
+    ).group_by(Job.job_type).all()
+
+    # Query untuk mengambil detail pekerjaan
+    jobs = db.query(Job, WellInstance, KKKS, Area, Lapangan, JobInstance)\
+        .filter(or_(Job.operation_status == OperationStatus.FINISHED,
+                    Job.ppp_status.in_([PPPStatus.PROPOSED, PPPStatus.APPROVED])))\
+        .join(WellInstance, Job.field_id == WellInstance.field_id)\
+        .join(KKKS, Job.kkks_id == KKKS.id)\
+        .join(Area, Job.area_id == Area.id)\
+        .join(Lapangan, Job.field_id == Lapangan.id)\
+        .outerjoin(JobInstance, Job.actual_job_id == JobInstance.id)\
+        .order_by(Job.job_type, Job.date_ppp_proposed.desc()).all()
+
+    result = {}
+    
+    # Inisialisasi struktur data untuk setiap job type
+    for job_type in JobType:
+        result[job_type.value.lower()] = {
+            "summary": {
+                "selesai": 0,
+                "diajukan_p3": 0,
+                "p3_disetujui": 0
+            },
+            "job_details": []
+        }
+
+    # Memasukkan data statistik
+    for stat in stats:
+        job_type_key = stat.job_type.value.lower()
+        result[job_type_key]["summary"] = {
+            "selesai": stat.selesai,
+            "diajukan_p3": stat.diajukan_p3,
+            "p3_disetujui": stat.p3_disetujui
+        }
+
+    # Memasukkan detail pekerjaan
+    for job, well, kkks, area, field, job_instance in jobs:
+        job_type_key = job.job_type.value.lower()
+        job_detail = {
+            "NO": job.id,
+            "NAMA SUMUR": well.well_name,
+            "KKKS": kkks.nama_kkks,
+            "WILAYAH KERJA": area.area_name,
+            "LAPANGAN": field.field_name,
+            "RENCANA MULAI": job.date_proposed.strftime("%d %b %Y") if job.date_proposed else "N/A",
+            "REALISASI MULAI": job.date_started.strftime("%d %b %Y") if job.date_started else "N/A",
+            "RENCANA SELESAI": job_instance.end_date.strftime("%d %b %Y") if job_instance and job_instance.end_date else "N/A",
+            "REALISASI SELESAI": job.date_finished.strftime("%d %b %Y") if job.date_finished else "N/A",
+            "STATUS": get_p3_status(job)
+        }
+        result[job_type_key]["job_details"].append(job_detail)
+
+    return result
+
+def get_p3_status(job):
+    if job.operation_status == OperationStatus.FINISHED:
+        if job.ppp_status == PPPStatus.APPROVED:
+            return "APPROVED"
+        elif job.ppp_status == PPPStatus.PROPOSED:
+            return "PROPOSED"
+        else:
+            return "FINISHED Ops"
+    elif job.operation_status == OperationStatus.OPERATING:
+        return "OPERATING"
+    else:
+        return job.planning_status.value if job.planning_status else "N/A"
+    
+def get_closeout_data_by_job_type(db: Session) -> Dict[str, Dict]:
+    # Query untuk mengambil statistik untuk semua job types
+    stats = db.query(
+        Job.job_type,
+        func.count(Job.id).filter(Job.ppp_status == PPPStatus.APPROVED).label('selesai_p3'),
+        func.count(Job.id).filter(Job.closeout_status == CloseOutStatus.PROPOSED).label('diajukan_closeout'),
+        func.count(Job.id).filter(Job.closeout_status == CloseOutStatus.APPROVED).label('closeout_disetujui')
+    ).group_by(Job.job_type).all()
+
+    # Query untuk mengambil detail pekerjaan
+    jobs = db.query(Job, WellInstance, KKKS, Area, Lapangan, JobInstance)\
+        .filter(or_(Job.ppp_status == PPPStatus.APPROVED,
+                    Job.closeout_status.in_([CloseOutStatus.PROPOSED, CloseOutStatus.APPROVED])))\
+        .join(WellInstance, Job.field_id == WellInstance.field_id)\
+        .join(KKKS, Job.kkks_id == KKKS.id)\
+        .join(Area, Job.area_id == Area.id)\
+        .join(Lapangan, Job.field_id == Lapangan.id)\
+        .outerjoin(JobInstance, Job.actual_job_id == JobInstance.id)\
+        .order_by(Job.job_type, Job.date_ppp_approved.desc()).all()
+
+    result = {}
+    
+    # Inisialisasi struktur data untuk setiap job type
+    for job_type in JobType:
+        result[job_type.value.lower()] = {
+            "summary": {
+                "selesai_p3": 0,
+                "diajukan_closeout": 0,
+                "closeout_disetujui": 0
+            },
+            "job_details": []
+        }
+
+    # Memasukkan data statistik
+    for stat in stats:
+        job_type_key = stat.job_type.value.lower()
+        result[job_type_key]["summary"] = {
+            "selesai_p3": stat.selesai_p3,
+            "diajukan_closeout": stat.diajukan_closeout,
+            "closeout_disetujui": stat.closeout_disetujui
+        }
+
+    # Memasukkan detail pekerjaan
+    for job, well, kkks, area, field, job_instance in jobs:
+        job_type_key = job.job_type.value.lower()
+        job_detail = {
+            "NO": job.id,
+            "NAMA SUMUR": well.well_name,
+            "KKKS": kkks.nama_kkks,
+            "WILAYAH KERJA": area.area_name,
+            "LAPANGAN": field.field_name,
+            "RENCANA MULAI": job.date_proposed.strftime("%d %b %Y") if job.date_proposed else "N/A",
+            "REALISASI MULAI": job.date_started.strftime("%d %b %Y") if job.date_started else "N/A",
+            "RENCANA SELESAI": job_instance.end_date.strftime("%d %b %Y") if job_instance and job_instance.end_date else "N/A",
+            "REALISASI SELESAI": job.date_finished.strftime("%d %b %Y") if job.date_finished else "N/A",
+            "STATUS": get_closeout_status(job)
+        }
+        result[job_type_key]["job_details"].append(job_detail)
+
+    return result
+
+def get_closeout_status(job):
+    if job.closeout_status == CloseOutStatus.APPROVED:
+        return "APPROVED"
+    elif job.closeout_status == CloseOutStatus.PROPOSED:
+        return "PROPOSED"
+    elif job.ppp_status == PPPStatus.APPROVED:
+        return "FINISHED P3"
+    else:
+        return job.operation_status.value if job.operation_status else "N/A"
