@@ -298,40 +298,32 @@ def generate_job_summary_chart_data_json(db: Session) -> Dict:
     return {"data": data, "layout": layout}
 
 # Ini DATA COUNT CARD SKK
-def get_job_type_summary(db: Session) -> List[Dict]:
+def get_job_type_summary(db: Session) -> Dict[str, Dict[str, int]]:
     job_types = ['exploration', 'development', 'workover', 'wellservice']
     
-    summary = []
+    summary = {}
     for job_type in job_types:
         job_type_enum = JobType.WELLSERVICE if job_type == 'wellservice' else JobType[job_type.upper()]
         
-        total = db.query(Job).filter(Job.job_type == job_type_enum).count()
-        print("initotal", total)
-        
-        rencana = db.query(Job).filter(
-            Job.job_type == job_type_enum,
-            Job.planning_status == PlanningStatus.APPROVED
-        ).count()
-        print(rencana)
-        
-        realisasi = db.query(Job).filter(
-            Job.job_type == job_type_enum,
-            Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])
-        ).count()
-        
-        selesai = db.query(Job).filter(
-            Job.job_type == job_type_enum,
-            Job.operation_status == OperationStatus.FINISHED
-        ).count()
-        
-        summary.append({
-            "job_type": job_type,
-            "total": total,
-            "rencana": rencana,
-            "realisasi": realisasi,
-            "selesai": selesai
-        })
-    
+        result = db.query(
+            func.count(Job.id).label('total'),
+            func.count(case((Job.planning_status == PlanningStatus.APPROVED, Job.id))).label('approved'),
+             func.count(case((Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]), Job.id))).label('operating'),
+            func.count(case((Job.operation_status == OperationStatus.FINISHED, Job.id))).label('finished')
+        ).filter(Job.job_type == job_type_enum)\
+         .first()
+
+        job_type_key = job_type.capitalize()
+        if job_type == 'wellservice':
+            job_type_key = 'Well_Service'  # Ubah ke underscore untuk sesuai dengan Pydantic model
+
+        summary[job_type_key] = {
+            "total": result.total,
+            "approved": result.approved,
+            "operating": result.operating,
+            "finished": result.finished
+        }
+
     return summary
 
 

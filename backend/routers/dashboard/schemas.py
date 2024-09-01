@@ -223,7 +223,17 @@ class JobAndWellStatusSummary(BaseModel):
     development: JobTypeSummaryPie
     well_status: Dict[str, int]
 
-    
+class JobTypeSummaryAll(BaseModel):
+    total: int
+    approved: int
+    operating: int
+    finished: int
+
+class JobTypeSummaries(BaseModel):
+    Exploration: JobTypeSummaryAll
+    Development: JobTypeSummaryAll
+    Workover: JobTypeSummaryAll
+    Well_Service: JobTypeSummaryAll
 
 
 

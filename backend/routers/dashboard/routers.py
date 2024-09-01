@@ -91,7 +91,7 @@ async def get_job_summary_chart(db: Session = Depends(get_db)):
     chart_data = generate_job_summary_chart_data_json(db)
     return chart_data
 
-@router.get("/job-type-summary-skk", response_model=List[JobTypeSummary])
+@router.get("/job-type-summary-skk", response_model=JobTypeSummaries)
 async def read_job_type_summary(db: Session = Depends(get_db)):
     """
     Get summary of job counts for each job type.
