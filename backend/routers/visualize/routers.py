@@ -50,7 +50,7 @@ def request_visualize_casing(casing: schemas.VisualizeCasing):
 @router.post("/visualize-casing")
 @authorize(role=[Role.Admin, Role.KKKS])
 async def visualize_casing_request(casing: schemas.VisualizeCasing, user: GetUser = Depends(get_current_user)):
-    return visualize_casing(casing)
+    return request_visualize_casing(casing)
 
 @router.get("/casing-visualization/{session_id}")
 @authorize(role=[Role.Admin, Role.KKKS])
