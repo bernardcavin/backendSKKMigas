@@ -133,6 +133,21 @@ def get_status_counts_by_job_type(db: Session) -> Dict[str, Dict[str, Any]]:
 # def get_all_data(db: Session):
 #     return get_combined_data(db)
 
+# Data Card ATAS PER JOB TYPE
+def get_simplified_job_stats_by_type(db: Session, job_type: str) -> Dict:
+    # Query untuk mendapatkan statistik
+    stats = db.query(
+        func.count(Job.id).filter(Job.planning_status != None).label('rencana'),
+        func.count(Job.id).filter(Job.operation_status == OperationStatus.OPERATING).label('realisasi'),
+        func.count(Job.id).filter(Job.operation_status == OperationStatus.FINISHED).label('selesai')
+    ).filter(Job.job_type == job_type).first()
+
+    return {
+        "rencana": stats.rencana,
+        "realisasi": stats.realisasi,
+        "selesai": stats.selesai
+    }
+
 
 # AMBIL DATA KKS ITUNG PERSENTASE DASHBOARD SKK
 def get_kkks_job_data_P(db: Session) -> List[KKKSJobData]:

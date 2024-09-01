@@ -203,3 +203,13 @@ async def read_rig_type_pie_chart(db: Session = Depends(get_db)):
 async def read_jobs_grouped(db: Session = Depends(get_db)):
     jobs = get_jobs(db)
     return JobTypeGroup(root=jobs)
+
+@router.get("/all-job-stats")
+async def read_all_job_stats(db: Session = Depends(get_db)):
+    try:
+        all_stats = {}
+        for job_type in JobType:
+            all_stats[job_type.value] = get_simplified_job_stats_by_type(db, job_type)
+        return all_stats
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
