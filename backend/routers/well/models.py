@@ -4,7 +4,7 @@ from enum import Enum as PyEnum
 from backend.database import Base
 import uuid
 from typing import Optional, List,ClassVar
-
+from backend.routers.spatial.models import StratUnit
 
 from backend.utils.constants import uom
 
