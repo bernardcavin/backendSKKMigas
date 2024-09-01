@@ -25,7 +25,7 @@ from datetime import date, timedelta
 import itertools
 from typing import Union
 import logging
-from collections import defaultdict
+from collections import defaultdict,Counter
 
 
 def count_job_data(db: Session) -> Dict[str, int]:
@@ -54,64 +54,79 @@ def get_job_data(db: Session) -> List[JobData]:
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=f"Database error in jobs: {str(e)}")
 
-def get_status_counts(db: Session) -> List[Dict[str, Any]]:
+def get_status_counts_by_job_type(db: Session) -> Dict[str, Dict[str, Any]]:
     try:
-        # Query to get well names along with relevant status counts and dates
+        # Query to get well names and job types along with relevant status and dates
         results = (
             db.query(
+                Job.job_type.label('job_type'),
                 WellInstance.well_name.label('well_name'),
-                func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).label('approved_planning_count'),
-                func.count(Job.id).filter(Job.operation_status == OperationStatus.OPERATING).label('operating_count'),
-                func.count(Job.id).filter(Job.operation_status == OperationStatus.FINISHED).label('finished_count'),
-                func.count(Job.id).filter(Job.ppp_status == PPPStatus.APPROVED).label('approved_ppp_count'),
-                func.count(Job.id).filter(Job.closeout_status == CloseOutStatus.APPROVED).label('approved_closeout_count'),
-                func.min(Job.planning_status).label('planning_status'),
-                func.min(Job.date_approved).label('date_approved'),
-                func.min(Job.date_proposed).label('date_proposed'),
-                func.min(Job.date_returned).label('date_returned'),
-                func.min(Job.date_started).label('date_started'),
-                func.max(Job.date_finished).label('date_finished'),
-                func.min(Job.operation_status).label('operation_status'),
-                func.min(Job.date_ppp_proposed).label('date_ppp_proposed'),
-                func.min(Job.date_ppp_approved).label('date_ppp_approved'),
-                func.min(Job.ppp_status).label('ppp_status'),
-                func.min(Job.closeout_status).label('closeout_status')
+                Job.planning_status.label('planning_status'),
+                Job.operation_status.label('operation_status'),
+                Job.ppp_status.label('ppp_status'),
+                Job.closeout_status.label('closeout_status'),
+                Job.date_approved.label('date_approved'),
+                Job.date_proposed.label('date_proposed'),
+                Job.date_returned.label('date_returned'),
+                Job.date_started.label('date_started'),
+                Job.date_finished.label('date_finished'),
+                Job.date_ppp_proposed.label('date_ppp_proposed'),
+                Job.date_ppp_approved.label('date_ppp_approved')
             )
-            .join(Job, (Job.field_id == WellInstance.field_id))
-            .group_by(WellInstance.well_name)
+            .join(WellInstance, Job.field_id == WellInstance.field_id)
             .all()
         )
 
-        print(results)
+        # Initialize data structure
+        data = {}
+        
+        # Process results and count statuses
+        for r in results:
+            job_type = r.job_type.value if r.job_type else 'Unknown'
+            if job_type not in data:
+                data[job_type] = {
+                    'wells': [],
+                    'planning_status_counts': Counter(),
+                    'operation_status_counts': Counter(),
+                    'ppp_status_counts': Counter(),
+                    'closeout_status_counts': Counter()
+                }
+            
+            # Count statuses
+            data[job_type]['planning_status_counts'][r.planning_status.value if r.planning_status else 'None'] += 1
+            data[job_type]['operation_status_counts'][r.operation_status.value if r.operation_status else 'None'] += 1
+            data[job_type]['ppp_status_counts'][r.ppp_status.value if r.ppp_status else 'None'] += 1
+            data[job_type]['closeout_status_counts'][r.closeout_status.value if r.closeout_status else 'None'] += 1
 
-        # Convert the results into a list of dictionaries
-        data = [
-            {
+            # Prepare well data
+            well_data = {
                 "well_name": r.well_name,
-                "approved_planning_count": r.approved_planning_count,
-                "operating_count": r.operating_count,
-                "finished_count": r.finished_count,
-                "approved_ppp_count": r.approved_ppp_count,
-                "approved_closeout_count": r.approved_closeout_count,
                 "planning_status": r.planning_status.value if r.planning_status else None,
-                "date_approved": r.date_approved,
-                "date_proposed": r.date_proposed,
-                "date_returned": r.date_returned,
-                "date_started": r.date_started,
-                "date_finished": r.date_finished,
+                "date_approved": r.date_approved.isoformat() if r.date_approved else None,
+                "date_proposed": r.date_proposed.isoformat() if r.date_proposed else None,
+                "date_returned": r.date_returned.isoformat() if r.date_returned else None,
+                "date_started": r.date_started.isoformat() if r.date_started else None,
+                "date_finished": r.date_finished.isoformat() if r.date_finished else None,
                 "operation_status": r.operation_status.value if r.operation_status else None,
-                "date_ppp_proposed": r.date_ppp_proposed,
-                "date_ppp_approved": r.date_ppp_approved,
+                "date_ppp_proposed": r.date_ppp_proposed.isoformat() if r.date_ppp_proposed else None,
+                "date_ppp_approved": r.date_ppp_approved.isoformat() if r.date_ppp_approved else None,
                 "ppp_status": r.ppp_status.value if r.ppp_status else None,
                 "closeout_status": r.closeout_status.value if r.closeout_status else None
             }
-            for r in results
-        ]
+            
+            data[job_type]['wells'].append(well_data)
+
+        # Convert Counter objects to regular dictionaries
+        for job_type in data:
+            data[job_type]['planning_status_counts'] = dict(data[job_type]['planning_status_counts'])
+            data[job_type]['operation_status_counts'] = dict(data[job_type]['operation_status_counts'])
+            data[job_type]['ppp_status_counts'] = dict(data[job_type]['ppp_status_counts'])
+            data[job_type]['closeout_status_counts'] = dict(data[job_type]['closeout_status_counts'])
 
         return data
     except Exception as e:
         print(f"Error fetching data: {e}")
-        return []
+        return {}
 
 
 # # Penggunaan fungsi
@@ -120,20 +135,21 @@ def get_status_counts(db: Session) -> List[Dict[str, Any]]:
 
 
 # AMBIL DATA KKS ITUNG PERSENTASE DASHBOARD SKK
-def get_kkks_job_data(db: Session) -> List[Dict]:
+def get_kkks_job_data_P(db: Session) -> List[KKKSJobData]:
     job_types = ['exploration', 'development', 'workover', 'wellservice']
-
+    
     query = db.query(
         KKKS.id,
         KKKS.nama_kkks.label('nama_kkks'),
         Job.job_type,
         func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).label('approved_plans'),
-        func.count(Job.id).filter(Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])).label('active_operations')
+        func.count(Job.id).filter(Job.operation_status == OperationStatus.OPERATING).label('active_operations'),
+        func.count(Job.id).filter(Job.operation_status == OperationStatus.FINISHED).label('finished_jobs')
     ).outerjoin(Job, KKKS.id == Job.kkks_id) \
      .group_by(KKKS.id, KKKS.nama_kkks, Job.job_type)
-
+    
     results = query.all()
-
+    
     kkks_data = {}
     for result in results:
         kkks_id = result.id
@@ -144,24 +160,28 @@ def get_kkks_job_data(db: Session) -> List[Dict]:
                 "nama_kkks": result.nama_kkks
             }
             for jt in job_types:
-                kkks_data[kkks_id][jt] = {
-                    "approved_plans": 0,
-                    "active_operations": 0,
-                    "percentage": 0
-                }
-
+                kkks_data[kkks_id][jt] = JobTypeDataP(
+                    approved_plans=0,
+                    active_operations=0,
+                    finished_jobs=0,
+                    percentage=0
+                )
+        
         if job_type in job_types:
             approved_plans = result.approved_plans or 0
             active_operations = result.active_operations or 0
-            percentage = (active_operations / approved_plans * 100) if approved_plans > 0 else 0
-
-            kkks_data[kkks_id][job_type] = {
-                "approved_plans": approved_plans,
-                "active_operations": active_operations,
-                "percentage": round(percentage, 2)
-            }
-
-    return list(kkks_data.values())
+            finished_jobs = result.finished_jobs or 0
+            total_operations = active_operations + finished_jobs
+            percentage = (total_operations / approved_plans * 100) if approved_plans > 0 else 0
+            
+            kkks_data[kkks_id][job_type] = JobTypeDataP(
+                approved_plans=approved_plans,
+                active_operations=active_operations,
+                finished_jobs=finished_jobs,
+                percentage=round(percentage, 2)
+            )
+    
+    return [KKKSJobData(**data) for data in kkks_data.values()]
 # DASHBOARD BAGIAN ATAS YANG ADA PANAH HIJAU
 def get_job_data_change(db: Session) -> Dict:
     job_types = ['exploration', 'development', 'workover', 'wellservice']

@@ -38,13 +38,21 @@ class JobTypeData(BaseModel):
     finished_jobs: int
     percentage: float
 
+
+class JobTypeDataP(BaseModel):
+    approved_plans: int
+    active_operations: int
+    finished_jobs: int
+    percentage: float
+
+
 class KKKSJobData(BaseModel):
     id: str
     nama_kkks: str
-    exploration: JobTypeData
-    development: JobTypeData
-    workover: JobTypeData
-    wellservice: JobTypeData
+    exploration: JobTypeDataP
+    development: JobTypeDataP
+    workover: JobTypeDataP
+    wellservice: JobTypeDataP
 
 class JobTypeSummary(BaseModel):
     job_type: str

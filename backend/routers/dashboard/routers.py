@@ -45,11 +45,11 @@ async def read_job_and_well_data(db: Session = Depends(get_db)):
 
 @router.get("/combined-data")
 def read_combined_data(db: Session = Depends(get_db)):
-    return get_status_counts(db)
+    return get_status_counts_by_job_type(db)
 
 @router.get("/kkks-job-data", response_model=List[KKKSJobData])
 def read_kkks_job_data(db: Session = Depends(get_db)):
-    return get_kkks_job_data(db)
+    return get_kkks_job_data_P(db)
 
 @router.get("/aggregate-job-data", response_model=AggregateJobData)
 def read_aggregate_job_data(db: Session = Depends(get_db)):
