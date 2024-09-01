@@ -604,22 +604,22 @@ def get_job_and_well_status_summary(db: Session) -> Dict:
 
         job_data = job_count_data.get(job_type.lower(), {"total_count": 0, "post_operation_count": 0})
 
-        # Total Jobs Pie Chart
-        fig.add_trace(go.Pie(labels=[job_type, 'Other'],
-                             values=[job_data['total_count'], sum(d['total_count'] for d in job_count_data.values()) - job_data['total_count']],
-                             name=f"{job_type} Total Jobs"),
-                      row=1, col=1)
+        # # Total Jobs Pie Chart
+        # fig.add_trace(go.Pie(labels=[job_type, 'Other'],
+        #                      values=[job_data['total_count'], sum(d['total_count'] for d in job_count_data.values()) - job_data['total_count']],
+        #                      name=f"{job_type} Total Jobs"),
+        #               row=1, col=1)
 
-        # Finished Jobs Pie Chart
-        fig.add_trace(go.Pie(labels=[job_type, 'Other'],
-                             values=[job_data['post_operation_count'], sum(d['post_operation_count'] for d in job_count_data.values()) - job_data['post_operation_count']],
-                             name=f"{job_type} Finished Jobs"),
-                      row=1, col=2)
+        # # Finished Jobs Pie Chart
+        # fig.add_trace(go.Pie(labels=[job_type, 'Other'],
+        #                      values=[job_data['post_operation_count'], sum(d['post_operation_count'] for d in job_count_data.values()) - job_data['post_operation_count']],
+        #                      name=f"{job_type} Finished Jobs"),
+        #               row=1, col=2)
 
         # Well Status Pie Chart
         fig.add_trace(go.Pie(labels=list(well_status_data.keys()),
                              values=list(well_status_data.values()),
-                             name="Well Status for Finished Jobs"),
+                             name="Well Status"),
                       row=1, col=3)
 
         fig.update_layout(height=400, width=1200, title_text=f"{job_type} Job and Well Status Summary")
