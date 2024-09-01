@@ -61,6 +61,8 @@ def get_status_counts_by_job_type(db: Session) -> Dict[str, Dict[str, Any]]:
             db.query(
                 Job.job_type.label('job_type'),
                 WellInstance.well_name.label('well_name'),
+                Area.area_name.label('wilayah_kerja'),
+                Lapangan.field_name.label('lapangan'),
                 Job.planning_status.label('planning_status'),
                 Job.operation_status.label('operation_status'),
                 Job.ppp_status.label('ppp_status'),
@@ -74,6 +76,8 @@ def get_status_counts_by_job_type(db: Session) -> Dict[str, Dict[str, Any]]:
                 Job.date_ppp_approved.label('date_ppp_approved')
             )
             .join(WellInstance, Job.field_id == WellInstance.field_id)
+            .join(Area, Job.area_id == Area.id)
+            .join(Lapangan, Job.field_id == Lapangan.id)
             .all()
         )
 
@@ -101,6 +105,8 @@ def get_status_counts_by_job_type(db: Session) -> Dict[str, Dict[str, Any]]:
             # Prepare well data
             well_data = {
                 "well_name": r.well_name,
+                "wilayah_kerja": r.wilayah_kerja,
+                "lapangan": r.lapangan,
                 "planning_status": r.planning_status.value if r.planning_status else None,
                 "date_approved": r.date_approved.isoformat() if r.date_approved else None,
                 "date_proposed": r.date_proposed.isoformat() if r.date_proposed else None,
