@@ -23,9 +23,9 @@ export function Dashboard() {
 
   useEffect(() => {
     const path = location.pathname;
-    if (path.includes("/dashboard/submission")) {
-      setPageForm("submission");
-      setSelectedNav("submission");
+    if (path.includes("/dashboard/planning")) {
+      setPageForm("planning");
+      setSelectedNav("planning");
     } else if (path.includes("/dashboard/operasi")) {
       setPageForm("operations");
       setSelectedNav("operations");
@@ -109,9 +109,9 @@ export function Dashboard() {
           </Breadcrumb> */}
 
           <Box>
-            {/* {selectedNav === "homeDash" && (
+            {selectedNav === "homeDash" && (
               <HomePage handleTambahData={setPageForm} />
-            )} */}
+            )}
             <Outlet />
           </Box>
         </Box>

@@ -204,14 +204,16 @@ class JobCounts(BaseModel):
     total_count: int
     post_operation_count: int
 
-class JobTypeSummary(BaseModel):
+class JobTypeSummaryPie(BaseModel):
     well_status: Dict[str, int]
     chart: str
 
 class JobAndWellStatusSummary(BaseModel):
-    exploration: JobTypeSummary
-    development: JobTypeSummary
+    exploration: JobTypeSummaryPie
+    development: JobTypeSummaryPie
     well_status: Dict[str, int]
+
+    
 
 
 
