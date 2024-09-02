@@ -170,4 +170,19 @@ class CreatePlanWell(WellBase):
     class Meta:
         orm_model = PlanWell
 
+class CreateActualWell(WellBase):
+    
+    well_documents: Optional[List[WellDocumentBase]]
+    well_summary: Optional[List[WellSummaryBase]]
+    well_test: Optional[List[WellTestBase]]
+    well_trajectory: Optional[WellTrajectoryBase]
+    well_ppfg: Optional[WellPPFGBase]
+    well_logs: Optional[List[WellLogBase]]
+    well_drilling_parameter: Optional[WellDrillingParameterBase]
+    well_casing: Optional[List[WellCasingBase]]
+    well_stratigraphy: Optional[List[WellStratigraphyBase]]
+    
+    class Meta:
+        orm_model = ActualWell
+
 
