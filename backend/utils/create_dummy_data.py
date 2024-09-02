@@ -490,7 +490,7 @@ def generate_dummy_data(n: int):
                     
                     db.add(
                         ActualWell(
-                            **job_crud.parse_schema(CreatePlanWell(**well_dict))
+                            **job_crud.parse_schema(CreateActualWell(**well_dict))
                         )
                     )
                     
