@@ -63,14 +63,15 @@ def get_planning_data_by_job_type(db: Session) -> Dict[str, Dict]:
     PlanDevelopmentAlias = aliased(PlanDevelopment)
     PlanWorkoverAlias = aliased(PlanWorkover)
     PlanWellServiceAlias = aliased(PlanWellService)
+    ActualWellAlias = aliased(ActualWell)
     
     well_id_case = case(
         (JobInstanceAlias.id == PlanExplorationAlias.id, PlanExplorationAlias.well_plan_id),
         (JobInstanceAlias.id == PlanDevelopmentAlias.id, PlanDevelopmentAlias.well_plan_id),
-        (JobInstanceAlias.id == PlanWorkoverAlias.id, PlanWorkoverAlias.well_id),
-        (JobInstanceAlias.id == PlanWellServiceAlias.id, PlanWellServiceAlias.well_id),
+        (JobInstanceAlias.id == PlanWorkoverAlias.id, ActualWellAlias.id),
+        (JobInstanceAlias.id == PlanWellServiceAlias.id, ActualWellAlias.id),
     ).label('well_id')
-
+    
     jobs_query = (
         db.query(
             Job.id,
@@ -90,7 +91,14 @@ def get_planning_data_by_job_type(db: Session) -> Dict[str, Dict]:
         .outerjoin(PlanDevelopmentAlias, JobInstanceAlias.id == PlanDevelopmentAlias.id)
         .outerjoin(PlanWorkoverAlias, JobInstanceAlias.id == PlanWorkoverAlias.id)
         .outerjoin(PlanWellServiceAlias, JobInstanceAlias.id == PlanWellServiceAlias.id)
-        .outerjoin(WellInstance, well_id_case == WellInstance.id)
+        .outerjoin(ActualWellAlias, or_(
+            PlanWorkoverAlias.well_id == ActualWellAlias.id,
+            PlanWellServiceAlias.well_id == ActualWellAlias.id
+        ))
+        .outerjoin(WellInstance, or_(
+            well_id_case == WellInstance.id,
+            ActualWellAlias.id == WellInstance.id
+        ))
         .outerjoin(Area, Job.area_id == Area.id)
         .outerjoin(Lapangan, Job.field_id == Lapangan.id)
         .outerjoin(KKKS, Job.kkks_id == KKKS.id)
@@ -98,12 +106,12 @@ def get_planning_data_by_job_type(db: Session) -> Dict[str, Dict]:
         .order_by(Job.job_type, Job.date_proposed)
         .all()
     )
-
+    
     result = {}
-
+    
     for job in jobs_query:
         job_type_key = job.job_type.value.lower()
-
+        
         if job_type_key not in result:
             result[job_type_key] = {
                 "job_details": [],
@@ -113,7 +121,7 @@ def get_planning_data_by_job_type(db: Session) -> Dict[str, Dict]:
                     "dikembalikan": 0
                 }
             }
-
+        
         job_detail = {
             "NO": job.id,
             "NAMA SUMUR": job.well_name if job.well_name else "N/A",
@@ -127,7 +135,7 @@ def get_planning_data_by_job_type(db: Session) -> Dict[str, Dict]:
             "STATUS": get_planning_status(job.planning_status)
         }
         result[job_type_key]["job_details"].append(job_detail)
-
+        
         # Update summary
         if job.planning_status == PlanningStatus.APPROVED:
             result[job_type_key]["summary"]["disetujui"] += 1
@@ -135,7 +143,7 @@ def get_planning_data_by_job_type(db: Session) -> Dict[str, Dict]:
             result[job_type_key]["summary"]["diusulkan"] += 1
         elif job.planning_status == PlanningStatus.RETURNED:
             result[job_type_key]["summary"]["dikembalikan"] += 1
-
+    
     return result
 
 def get_planning_status(status):
@@ -170,53 +178,38 @@ def get_simplified_job_stats_by_type(db: Session, job_type: str) -> Dict:
 
 
 # AMBIL DATA KKS ITUNG PERSENTASE DASHBOARD SKK
-def get_kkks_job_data_P(db: Session) -> List[KKKSJobData]:
-    job_types = ['exploration', 'development', 'workover', 'wellservice']
-    
+def get_kkks_job_data_P(db: Session) -> List[KKKSJobDataCombined]:
     query = db.query(
         KKKS.id,
         KKKS.nama_kkks.label('nama_kkks'),
-        Job.job_type,
         func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).label('approved_plans'),
-        func.count(Job.id).filter(Job.operation_status == OperationStatus.OPERATING).label('active_operations'),
+        func.count(Job.id).filter(or_(
+            Job.operation_status == OperationStatus.OPERATING,
+            Job.operation_status == OperationStatus.FINISHED
+        )).label('active_operations'),
         func.count(Job.id).filter(Job.operation_status == OperationStatus.FINISHED).label('finished_jobs')
     ).outerjoin(Job, KKKS.id == Job.kkks_id) \
-     .group_by(KKKS.id, KKKS.nama_kkks, Job.job_type)
-    
+     .group_by(KKKS.id, KKKS.nama_kkks)
+
     results = query.all()
-    
-    kkks_data = {}
+
+    kkks_data = []
     for result in results:
-        kkks_id = result.id
-        job_type = result.job_type.value.lower() if result.job_type else None
-        if kkks_id not in kkks_data:
-            kkks_data[kkks_id] = {
-                "id": kkks_id,
-                "nama_kkks": result.nama_kkks
-            }
-            for jt in job_types:
-                kkks_data[kkks_id][jt] = JobTypeDataP(
-                    approved_plans=0,
-                    active_operations=0,
-                    finished_jobs=0,
-                    percentage=0
-                )
-        
-        if job_type in job_types:
-            approved_plans = result.approved_plans or 0
-            active_operations = result.active_operations or 0
-            finished_jobs = result.finished_jobs or 0
-            total_operations = active_operations + finished_jobs
-            percentage = (total_operations / approved_plans * 100) if approved_plans > 0 else 0
-            
-            kkks_data[kkks_id][job_type] = JobTypeDataP(
-                approved_plans=approved_plans,
-                active_operations=active_operations,
-                finished_jobs=finished_jobs,
-                percentage=round(percentage, 2)
-            )
-    
-    return [KKKSJobData(**data) for data in kkks_data.values()]
+        approved_plans = result.approved_plans or 0
+        active_operations = result.active_operations or 0
+        finished_jobs = result.finished_jobs or 0
+        percentage = (active_operations / approved_plans * 100) if approved_plans > 0 else 0
+
+        kkks_data.append(KKKSJobDataCombined(
+            id=result.id,
+            nama_kkks=result.nama_kkks,
+            approved_plans=approved_plans,
+            active_operations=active_operations,
+            finished_jobs=finished_jobs,
+            percentage=round(percentage, 2)
+        ))
+
+    return kkks_data
 # DASHBOARD BAGIAN ATAS YANG ADA PANAH HIJAU
 def get_job_data_change(db: Session) -> Dict:
     job_types = ['exploration', 'development', 'workover', 'wellservice']

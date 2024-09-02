@@ -253,4 +253,12 @@ class JobTypeSummaryResponse(BaseModel):
     job_type_summary: JobTypeSummaryCard
 
 
+class KKKSJobDataCombined(BaseModel):
+    id: str
+    nama_kkks: str
+    approved_plans: int
+    active_operations: int
+    finished_jobs: int
+    percentage: float
+
 
