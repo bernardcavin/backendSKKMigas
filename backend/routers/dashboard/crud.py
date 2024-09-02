@@ -1176,7 +1176,8 @@ def get_job_details(db: Session) -> Dict[str, Dict]:
     JobInstancePlanDev = aliased(JobInstance)
     JobInstancePlanWork = aliased(JobInstance)
     JobInstancePlanWell = aliased(JobInstance)
-    ActualWella=aliased(ActualWell)
+    ActualWellAlias = aliased(ActualWell)
+    WellInstanceAlias = aliased(WellInstance)
     
     # Query untuk mengambil data pekerjaan sesuai kondisi
     jobs_query = db.query(
@@ -1189,8 +1190,8 @@ def get_job_details(db: Session) -> Dict[str, Dict]:
         JobInstancePlanWork.end_date.label('work_end_date'),
         JobInstancePlanWell.start_date.label('well_start_date'),
         JobInstancePlanWell.end_date.label('well_end_date'),
-        WellInstance.well_name,
-        ActualWell.id
+        WellInstanceAlias.well_name,
+        ActualWellAlias.id.label('actual_well_id')
     ).outerjoin(JobInstancePlanExp, Job.job_plan_id == JobInstancePlanExp.id) \
      .outerjoin(PlanExploration, JobInstancePlanExp.id == PlanExploration.id) \
      .outerjoin(JobInstancePlanDev, Job.job_plan_id == JobInstancePlanDev.id) \
@@ -1199,11 +1200,13 @@ def get_job_details(db: Session) -> Dict[str, Dict]:
      .outerjoin(PlanWorkover, JobInstancePlanWork.id == PlanWorkover.id) \
      .outerjoin(JobInstancePlanWell, Job.job_plan_id == JobInstancePlanWell.id) \
      .outerjoin(PlanWellService, JobInstancePlanWell.id == PlanWellService.id) \
-     .outerjoin(WellInstance, or_(
-         PlanExploration.well_plan_id == WellInstance.id,
-         PlanDevelopment.well_plan_id == WellInstance.id,
-         PlanWorkover.well_id == ActualWell.id,
-         PlanWellService.well_id == ActualWell.id
+     .outerjoin(WellInstanceAlias, or_(
+         PlanExploration.well_plan_id == WellInstanceAlias.id,
+         PlanDevelopment.well_plan_id == WellInstanceAlias.id
+     )) \
+     .outerjoin(ActualWellAlias, or_(
+         PlanWorkover.well_id == ActualWellAlias.id,
+         PlanWellService.well_id == ActualWellAlias.id
      )) \
      .filter(
         or_(
@@ -1217,7 +1220,8 @@ def get_job_details(db: Session) -> Dict[str, Dict]:
     result = {}
     
     # Proses hasil query
-    for job, exp_start, exp_end, dev_start, dev_end, work_start, work_end, well_start, well_end, well_name in jobs_query:
+    for (job, exp_start, exp_end, dev_start, dev_end, work_start, work_end, 
+         well_start, well_end, well_name, actual_well_id) in jobs_query:
         job_type_key = job.job_type.value.lower()
         
         # Inisialisasi dictionary untuk job_type jika belum ada
@@ -1238,13 +1242,14 @@ def get_job_details(db: Session) -> Dict[str, Dict]:
             "well_start_date": well_start.strftime("%d %b %Y") if well_start else "N/A",
             "well_end_date": well_end.strftime("%d %b %Y") if well_end else "N/A",
             "well_name": well_name if well_name else "N/A",
+            "actual_well_id": actual_well_id if actual_well_id else "N/A",
             "status": get_p3_status(job)
         }
         result[job_type_key]["job_details"].append(job_detail)
     
     # Tambahkan summary per job_type
     for job_type_key in result.keys():
-        jobs_of_type = [job for job, _, _, _, _, _, _, _, _, _ in jobs_query if job.job_type.value.lower() == job_type_key]
+        jobs_of_type = [job for (job, *_) in jobs_query if job.job_type.value.lower() == job_type_key]
         result[job_type_key]["summary"] = {
             "selesai": sum(1 for job in jobs_of_type if job.operation_status == OperationStatus.FINISHED),
             "diajukan_p3": sum(1 for job in jobs_of_type if job.ppp_status == PPPStatus.PROPOSED),
@@ -1294,8 +1299,6 @@ def get_closeout_data_by_job_type(db: Session) -> Dict[str, Dict]:
      .outerjoin(WellInstance, or_(
          PlanExploration.well_plan_id == WellInstance.id,
          PlanDevelopment.well_plan_id == WellInstance.id,
-         PlanWorkover.well_id == WellInstance.id,
-         PlanWellService.well_id == WellInstance.id
      )) \
      .filter(
         or_(
@@ -1303,6 +1306,10 @@ def get_closeout_data_by_job_type(db: Session) -> Dict[str, Dict]:
             Job.closeout_status.in_([CloseOutStatus.APPROVED, CloseOutStatus.PROPOSED])
         )
     ) \
+    .outerjoin(ActualWella, or_(
+         PlanWorkover.well_id == ActualWella.id,
+         PlanWellService.well_id == ActualWella.id
+     )) \
      .order_by(Job.job_type) \
      .all()
     
