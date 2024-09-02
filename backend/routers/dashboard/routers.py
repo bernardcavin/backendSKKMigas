@@ -45,7 +45,7 @@ async def read_job_and_well_data(db: Session = Depends(get_db)):
 
 @router.get("/combined-data")
 def read_combined_data(db: Session = Depends(get_db)):
-    return get_status_counts_by_job_type(db)
+    return get_planning_data_by_job_type(db)
 
 @router.get("/kkks-job-data", response_model=List[KKKSJobData])
 def read_kkks_job_data(db: Session = Depends(get_db)):
@@ -91,12 +91,16 @@ async def get_job_summary_chart(db: Session = Depends(get_db)):
     chart_data = generate_job_summary_chart_data_json(db)
     return chart_data
 
-@router.get("/job-type-summary-skk", response_model=JobTypeSummaries)
+@router.get("/job-type-summary-skk", response_model=JobTypeSummaryResponse)
 async def read_job_type_summary(db: Session = Depends(get_db)):
-    """
-    Get summary of job counts for each job type.
-    """
-    return get_job_type_summary(db)
+    summary_dict = get_job_type_summary(db)
+    job_type_summary = JobTypeSummaryCard(
+        job_type=summary_dict,
+        rencana=summary_dict,  # Anda mungkin perlu menyesuaikan ini
+        realisasi=summary_dict,  # Anda mungkin perlu menyesuaikan ini
+        selesai=summary_dict  # Anda mungkin perlu menyesuaikan ini
+    )
+    return JobTypeSummaryResponse(job_type_summary=job_type_summary)
 
 
 # REALIASI KEGIATAN CHART DASHBOARD SKK

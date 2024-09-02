@@ -56,85 +56,97 @@ def get_job_data(db: Session) -> List[JobData]:
     except SQLAlchemyError as e:
         raise HTTPException(status_code=500, detail=f"Database error in jobs: {str(e)}")
 
-def get_status_counts_by_job_type(db: Session) -> Dict[str, Dict[str, Any]]:
-    try:
-        # Query to get well names and job types along with relevant status and dates
-        results = (
-            db.query(
-                Job.job_type.label('job_type'),
-                WellInstance.well_name.label('well_name'),
-                Area.area_name.label('wilayah_kerja'),
-                Lapangan.field_name.label('lapangan'),
-                Job.planning_status.label('planning_status'),
-                Job.operation_status.label('operation_status'),
-                Job.ppp_status.label('ppp_status'),
-                Job.closeout_status.label('closeout_status'),
-                Job.date_approved.label('date_approved'),
-                Job.date_proposed.label('date_proposed'),
-                Job.date_returned.label('date_returned'),
-                Job.date_started.label('date_started'),
-                Job.date_finished.label('date_finished'),
-                Job.date_ppp_proposed.label('date_ppp_proposed'),
-                Job.date_ppp_approved.label('date_ppp_approved')
-            )
-            .join(WellInstance, Job.field_id == WellInstance.field_id)
-            .join(Area, Job.area_id == Area.id)
-            .join(Lapangan, Job.field_id == Lapangan.id)
-            .all()
+
+def get_planning_data_by_job_type(db: Session) -> Dict[str, Dict]:
+    JobInstanceAlias = aliased(JobInstance)
+    PlanExplorationAlias = aliased(PlanExploration)
+    PlanDevelopmentAlias = aliased(PlanDevelopment)
+    PlanWorkoverAlias = aliased(PlanWorkover)
+    PlanWellServiceAlias = aliased(PlanWellService)
+    
+    well_id_case = case(
+        (JobInstanceAlias.id == PlanExplorationAlias.id, PlanExplorationAlias.well_plan_id),
+        (JobInstanceAlias.id == PlanDevelopmentAlias.id, PlanDevelopmentAlias.well_plan_id),
+        (JobInstanceAlias.id == PlanWorkoverAlias.id, PlanWorkoverAlias.well_id),
+        (JobInstanceAlias.id == PlanWellServiceAlias.id, PlanWellServiceAlias.well_id),
+    ).label('well_id')
+
+    jobs_query = (
+        db.query(
+            Job.id,
+            Job.job_type,
+            Job.planning_status,
+            Job.date_proposed,
+            well_id_case,
+            WellInstance.well_name,
+            Area.area_name.label('wilayah_kerja'),
+            Lapangan.field_name.label('lapangan'),
+            KKKS.nama_kkks.label('kkks'),
+            JobInstanceAlias.start_date,
+            JobInstanceAlias.end_date
         )
+        .outerjoin(JobInstanceAlias, Job.job_plan_id == JobInstanceAlias.id)
+        .outerjoin(PlanExplorationAlias, JobInstanceAlias.id == PlanExplorationAlias.id)
+        .outerjoin(PlanDevelopmentAlias, JobInstanceAlias.id == PlanDevelopmentAlias.id)
+        .outerjoin(PlanWorkoverAlias, JobInstanceAlias.id == PlanWorkoverAlias.id)
+        .outerjoin(PlanWellServiceAlias, JobInstanceAlias.id == PlanWellServiceAlias.id)
+        .outerjoin(WellInstance, well_id_case == WellInstance.id)
+        .outerjoin(Area, Job.area_id == Area.id)
+        .outerjoin(Lapangan, Job.field_id == Lapangan.id)
+        .outerjoin(KKKS, Job.kkks_id == KKKS.id)
+        .filter(Job.planning_status.in_([PlanningStatus.APPROVED, PlanningStatus.PROPOSED, PlanningStatus.RETURNED]))
+        .order_by(Job.job_type, Job.date_proposed)
+        .all()
+    )
 
-        # Initialize data structure
-        data = {}
-        
-        # Process results and count statuses
-        for r in results:
-            job_type = r.job_type.value if r.job_type else 'Unknown'
-            if job_type not in data:
-                data[job_type] = {
-                    'wells': [],
-                    'planning_status_counts': Counter(),
-                    'operation_status_counts': Counter(),
-                    'ppp_status_counts': Counter(),
-                    'closeout_status_counts': Counter()
+    result = {}
+
+    for job in jobs_query:
+        job_type_key = job.job_type.value.lower()
+
+        if job_type_key not in result:
+            result[job_type_key] = {
+                "job_details": [],
+                "summary": {
+                    "disetujui": 0,
+                    "diusulkan": 0,
+                    "dikembalikan": 0
                 }
-            
-            # Count statuses
-            data[job_type]['planning_status_counts'][r.planning_status.value if r.planning_status else 'None'] += 1
-            data[job_type]['operation_status_counts'][r.operation_status.value if r.operation_status else 'None'] += 1
-            data[job_type]['ppp_status_counts'][r.ppp_status.value if r.ppp_status else 'None'] += 1
-            data[job_type]['closeout_status_counts'][r.closeout_status.value if r.closeout_status else 'None'] += 1
-
-            # Prepare well data
-            well_data = {
-                "well_name": r.well_name,
-                "wilayah_kerja": r.wilayah_kerja,
-                "lapangan": r.lapangan,
-                "planning_status": r.planning_status.value if r.planning_status else None,
-                "date_approved": r.date_approved.isoformat() if r.date_approved else None,
-                "date_proposed": r.date_proposed.isoformat() if r.date_proposed else None,
-                "date_returned": r.date_returned.isoformat() if r.date_returned else None,
-                "date_started": r.date_started.isoformat() if r.date_started else None,
-                "date_finished": r.date_finished.isoformat() if r.date_finished else None,
-                "operation_status": r.operation_status.value if r.operation_status else None,
-                "date_ppp_proposed": r.date_ppp_proposed.isoformat() if r.date_ppp_proposed else None,
-                "date_ppp_approved": r.date_ppp_approved.isoformat() if r.date_ppp_approved else None,
-                "ppp_status": r.ppp_status.value if r.ppp_status else None,
-                "closeout_status": r.closeout_status.value if r.closeout_status else None
             }
-            
-            data[job_type]['wells'].append(well_data)
 
-        # Convert Counter objects to regular dictionaries
-        for job_type in data:
-            data[job_type]['planning_status_counts'] = dict(data[job_type]['planning_status_counts'])
-            data[job_type]['operation_status_counts'] = dict(data[job_type]['operation_status_counts'])
-            data[job_type]['ppp_status_counts'] = dict(data[job_type]['ppp_status_counts'])
-            data[job_type]['closeout_status_counts'] = dict(data[job_type]['closeout_status_counts'])
+        job_detail = {
+            "NO": job.id,
+            "NAMA SUMUR": job.well_name if job.well_name else "N/A",
+            "WILAYAH KERJA": job.wilayah_kerja if job.wilayah_kerja else "N/A",
+            "LAPANGAN": job.lapangan if job.lapangan else "N/A",
+            "KKKS": job.kkks if job.kkks else "N/A",
+            "JENIS PEKERJAAN": job.job_type.value,
+            "RENCANA MULAI": job.start_date.strftime("%d %b %Y") if job.start_date else "N/A",
+            "RENCANA SELESAI": job.end_date.strftime("%d %b %Y") if job.end_date else "N/A",
+            "TANGGAL DIAJUKAN": job.date_proposed.strftime("%d %b %Y") if job.date_proposed else "N/A",
+            "STATUS": get_planning_status(job.planning_status)
+        }
+        result[job_type_key]["job_details"].append(job_detail)
 
-        return data
-    except Exception as e:
-        print(f"Error fetching data: {e}")
-        return {}
+        # Update summary
+        if job.planning_status == PlanningStatus.APPROVED:
+            result[job_type_key]["summary"]["disetujui"] += 1
+        elif job.planning_status == PlanningStatus.PROPOSED:
+            result[job_type_key]["summary"]["diusulkan"] += 1
+        elif job.planning_status == PlanningStatus.RETURNED:
+            result[job_type_key]["summary"]["dikembalikan"] += 1
+
+    return result
+
+def get_planning_status(status):
+    if status == PlanningStatus.APPROVED:
+        return "APPROVED"
+    elif status == PlanningStatus.PROPOSED:
+        return "PROPOSED"
+    elif status == PlanningStatus.RETURNED:
+        return "RETURNED"
+    else:
+        return "N/A"
 
 
 # # Penggunaan fungsi
@@ -309,23 +321,32 @@ def get_job_type_summary(db: Session) -> Dict[str, Dict[str, int]]:
         
         result = db.query(
             func.count(Job.id).label('total'),
-            func.count(case((Job.planning_status == PlanningStatus.APPROVED, Job.id))).label('approved'),
-             func.count(case((Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]), Job.id))).label('operating'),
+            func.count(case((
+                (Job.planning_status == PlanningStatus.APPROVED) |
+                (Job.ppp_status == PPPStatus.APPROVED) |
+                (Job.closeout_status == CloseOutStatus.APPROVED),
+                Job.id
+            ))).label('all_approved'),
+            func.count(case((
+                (Job.operation_status == OperationStatus.OPERATING) |
+                (Job.operation_status == OperationStatus.FINISHED),
+                Job.id
+            ))).label('operating_and_finished'),
             func.count(case((Job.operation_status == OperationStatus.FINISHED, Job.id))).label('finished')
         ).filter(Job.job_type == job_type_enum)\
          .first()
-
+        
         job_type_key = job_type.capitalize()
         if job_type == 'wellservice':
             job_type_key = 'Well_Service'  # Ubah ke underscore untuk sesuai dengan Pydantic model
-
+        
         summary[job_type_key] = {
             "total": result.total,
-            "approved": result.approved,
-            "operating": result.operating,
+            "all_approved": result.all_approved,
+            "operating_and_finished": result.operating_and_finished,
             "finished": result.finished
         }
-
+    
     return summary
 
 

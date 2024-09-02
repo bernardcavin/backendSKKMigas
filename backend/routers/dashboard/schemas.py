@@ -236,4 +236,21 @@ class JobTypeSummaries(BaseModel):
     Well_Service: JobTypeSummaryAll
 
 
+class JobTypeCounts(BaseModel):
+    total: int
+    all_approved: int
+    operating_and_finished: int
+    finished: int
+
+class JobTypeSummaryCard(BaseModel):
+    job_type: Dict[str, JobTypeCounts]
+    rencana: Dict[str, JobTypeCounts]
+    realisasi: Dict[str, JobTypeCounts]
+    selesai: Dict[str, JobTypeCounts]
+
+# Opsional: Model untuk respons API jika diperlukan
+class JobTypeSummaryResponse(BaseModel):
+    job_type_summary: JobTypeSummaryCard
+
+
 
