@@ -1,6 +1,6 @@
 from re import T
 from backend.routers.auth.models import KKKS, User, Role
-from backend.routers.auth.crud import pwd_context
+from backend.routers.auth.crud import pwd_context 
 from backend.routers.spatial import models as spatial_models
 from datetime import datetime, timedelta
 from backend.routers.job import crud as job_crud
@@ -490,7 +490,7 @@ def generate_dummy_data(n: int):
                     
                     db.add(
                         ActualWell(
-                            **job_crud.parse_schema(CreateActualWell(**well_dict))
+                            **job_crud.parse_schema(CreateActualWell(**well_dict)), id=well_id
                         )
                     )
                     
