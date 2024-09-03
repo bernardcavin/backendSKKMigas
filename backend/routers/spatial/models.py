@@ -60,12 +60,12 @@ class Area(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
 
     label = Column(String, unique=True)
-    area_name = Column(String, unique=True, index=True)
-    area_phase = Column(Enum(AreaPhase))
-    area_type = Column(Enum(AreaType))
-    area_position = Column(Enum(AreaPosition))
-    area_production_status = Column(Enum(AreaProductionStatus))
-    area_region = Column(Enum(AreaRegion))
+    name = Column(String, unique=True, index=True)
+    phase = Column(Enum(AreaPhase))
+    type = Column(Enum(AreaType))
+    position = Column(Enum(AreaPosition))
+    production_status = Column(Enum(AreaProductionStatus))
+    region = Column(Enum(AreaRegion))
     
     kkks_id = Column(String(36), ForeignKey('kkks.id'))
     kkks = relationship("KKKS", back_populates='area')
@@ -82,7 +82,7 @@ class Lapangan(Base):
     __tablename__ = 'fields'
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    field_name = Column(String)
+    name = Column(String)
     area_id = Column(String(36), ForeignKey('area.id'))
     area = relationship("Area", back_populates="fields")
     geojson = Column(JSON)

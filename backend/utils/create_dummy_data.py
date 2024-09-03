@@ -273,9 +273,6 @@ def generate_dummy_data(n: int):
                     ),
                 ]
             )
-            
-            
-            
 
             for j in range(random.randint(0,10)):
 
@@ -532,7 +529,7 @@ def generate_dummy_data(n: int):
                         db_job.operation_status = OperationStatus.FINISHED
                         db_job.date_started = (plan_start+timedelta(days=random.randint(0, 5))).date()
                         db_job.date_finished = (plan_start+timedelta(days=25)).date()
-                    
+
                 elif random_approval_status == 2:
                     db_job.planning_status = PlanningStatus.RETURNED
                     db_job.date_returned = datetime.now().date()

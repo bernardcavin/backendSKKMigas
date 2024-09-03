@@ -1,6 +1,7 @@
+from os import close
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, Enum, Text, Boolean, Float, Date, func
 from backend.routers.well.models import DepthDatum
-from sqlalchemy.orm import relationship, declared_attr
+from sqlalchemy.orm import relationship, declared_attr, hybrid_property
 from backend.database import Base
 from enum import Enum as PyEnum
 import uuid
@@ -125,15 +126,15 @@ class PlanningStatus(PyEnum):
 
 class OperationStatus(PyEnum):
     OPERATING = 'OPERATING'
-    FINISHED = 'FINISHED'
+    FINISHED = 'FINISHED OPS'
 
 class PPPStatus(PyEnum):
-    PROPOSED = 'PROPOSED'
-    APPROVED = 'APPROVED'
+    PROPOSED = 'P3 PROPOSED'
+    APPROVED = 'P3 APPROVED'
 
 class CloseOutStatus(PyEnum):
-    PROPOSED = 'PROPOSED'
-    APPROVED = 'APPROVED'
+    PROPOSED = 'CO PROPOSED'
+    APPROVED = 'CO APPROVED'
 
 class JobType(PyEnum):
     EXPLORATION = 'Exploration'
@@ -192,17 +193,32 @@ class Job(Base, CreateBase, ValidationBase):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
     
     job_type = Column(Enum(JobType))
-    job_instance_type = Column(Enum(JobInstanceType))
     
     #kkks information
     kkks_id = Column(String(36), ForeignKey('kkks.id'))
     kkks = relationship('KKKS', back_populates='jobs')
     
+    @hybrid_property
+    def kkks_name(self):
+        return self.kkks.name if self.kkks else None
+    
     area_id = Column(String(36), ForeignKey('area.id'))
     area = relationship('Area', back_populates='jobs')
     
+    @hybrid_property
+    def area_name(self):
+        return self.area.name if self.area else None
+    
+    @hybrid_property
+    def area_region(self):
+        return self.area.region if self.area else None
+    
     field_id = Column(String(36), ForeignKey('fields.id'))
     field = relationship('Lapangan', back_populates='jobs')
+    
+    @hybrid_property
+    def field_name(self):
+        return self.field.name if self.field else None
     
     #contract information
     contract_type = Column(Enum(ContractType))
@@ -213,6 +229,10 @@ class Job(Base, CreateBase, ValidationBase):
     #Planning
     job_plan_id = Column(String(36), ForeignKey('job_instances.id'))
     job_plan = relationship('JobInstance', foreign_keys=[job_plan_id])
+    
+    @hybrid_property
+    def well_name(self):
+        return self.job_plan.well_plan.well_name if self.job_plan else None
     
     date_proposed = Column(Date)
     date_returned = Column(Date)
@@ -226,8 +246,21 @@ class Job(Base, CreateBase, ValidationBase):
     
     daily_operations_report = relationship('DailyOperationsReport', back_populates='job')
     
-    date_started = Column(Date)
-    date_finished = Column(Date)
+    @hybrid_property
+    def plan_start_date(self):
+        return self.job_plan.start_date if self.job_plan else None
+    
+    @hybrid_property
+    def plan_end_date(self):
+        return self.job_plan.end_date if self.job_plan else None
+    
+    @hybrid_property
+    def actual_start_date(self):
+        return self.actual_job.start_date if self.actual_job else None
+    
+    @hybrid_property
+    def actual_end_date(self):
+        return self.actual_job.end_date if self.actual_job else None
     
     job_issues = relationship('JobIssue', back_populates='job')
     
@@ -244,6 +277,17 @@ class Job(Base, CreateBase, ValidationBase):
     date_approved = Column(Date)
     
     closeout_status = Column(Enum(CloseOutStatus))
+    
+    @hybrid_property
+    def job_current_status(self):
+        if self.closeout_status:
+            return self.closeout_status
+        elif self.ppp_status:
+            return self.ppp_status
+        elif self.operation_status:
+            return self.operation_status
+        else:
+            return self.planning_status
     
 class JobInstance(Base):
     
@@ -369,6 +413,10 @@ class PlanWorkover(PlanJob):
     target_oil = Column(Float)
     target_gas = Column(Float)
     target_water_cut = Column(Float)
+
+    # #completion string
+    # completion_id = Column(String(36), ForeignKey('job_workover_completion_plans.id'))
+    # completion = relationship('PlanWorkoverCompletion', foreign_keys=[completion_id])
     
     __mapper_args__ = {
         "polymorphic_identity": 'plan_workover',
@@ -398,7 +446,7 @@ class PlanWellService(PlanJob):
     target_oil = Column(Float)
     target_gas = Column(Float)
     target_water_cut = Column(Float)
-    
+        
     __mapper_args__ = {
         "polymorphic_identity": 'plan_wellservice',
     }
@@ -481,6 +529,10 @@ class ActualWorkover(ActualJob):
     onstream_oil = Column(Float)
     onstream_gas = Column(Float)
     onstream_water_cut = Column(Float)
+    
+    # #completion string
+    # completion_id = Column(String(36), ForeignKey('job_workover_completion_actuals.id'))
+    # completion = relationship('ActualWorkoverCompletion', foreign_keys=[completion_id])
     
     __mapper_args__ = {
         "polymorphic_identity": 'actual_workover',
@@ -592,8 +644,7 @@ class JobOperationDay(Base):
         self.depth_uom = uom_map.get('Length', 'm')  # Default to meters if not found
 
         super().__init__(*args, **kwargs)
-        
-        
+
 class JobIssue(Base):
     
     __tablename__ = 'job_issues'
