@@ -4,7 +4,7 @@ from typing import Optional
 
 #KKKS
 class KKKSBase(BaseModel):
-    nama_kkks : str
+    name : str
 
 class CreateKKKS(KKKSBase):
     pass

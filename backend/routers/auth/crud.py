@@ -24,7 +24,7 @@ def get_users_by_kkks(db: Session, kkks_id: int):
     return db.query(models.User).filter(models.User.kkks_id == kkks_id).all()
 
 def create_kkks(db: Session, kkks: schemas.CreateKKKS):
-    db_kkks = models.KKKS(nama_kkks = kkks.nama_kkks)
+    db_kkks = models.KKKS(name = kkks.name)
     db.add(db_kkks)
     db.commit()
     db.refresh(db_kkks)

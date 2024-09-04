@@ -48,7 +48,7 @@ class JobTypeDataP(BaseModel):
 
 class KKKSJobData(BaseModel):
     id: str
-    nama_kkks: str
+    name: str
     exploration: JobTypeDataP
     development: JobTypeDataP
     workover: JobTypeDataP
@@ -187,7 +187,7 @@ class ChartDataKKKS(BaseModel):
 
 class KKKSJobDataChart(BaseModel):
     id: str
-    nama_kkks: str
+    name: str
     job_data: JobTypeData
     monthly_data: Dict[str, List[TimeSeriesData]]
     weekly_data: Dict[str, List[TimeSeriesData]]
@@ -197,8 +197,8 @@ class KKKSJobDataChart(BaseModel):
 class JobResponse(BaseModel):
     id: str
     well_name: str
-    area_name: str
-    field_name: str
+    name: str
+    name: str
     date_proposed: Optional[str]
     date_approved: Optional[str]
     date_started: Optional[str]
@@ -255,7 +255,7 @@ class JobTypeSummaryResponse(BaseModel):
 
 class KKKSJobDataCombined(BaseModel):
     id: str
-    nama_kkks: str
+    name: str
     approved_plans: int
     active_operations: int
     finished_jobs: int

@@ -53,11 +53,11 @@ async def read_tabular_file(file: UploadFile = File(...), user: GetUser = Depend
 enum_map = {
     "roles": Role,
     "depth_datum": DepthDatum,
-    "area_phase": AreaPhase,
-    "area_type": AreaType,
-    "area_position": AreaPosition,
-    "area_production_status": AreaProductionStatus,
-    "area_region": AreaRegion,
+    "phase": AreaPhase,
+    "type": AreaType,
+    "position": AreaPosition,
+    "production_status": AreaProductionStatus,
+    "region": AreaRegion,
     "strat_type": StratType,
     "strat_unit_type": StratUnitType,
     "petroleum_system": PetroleumSystem,
@@ -95,7 +95,7 @@ async def get_all_enum_values():
 obj_map = {
     'kkks': {
         'obj':KKKS,
-        'key':'nama_kkks',
+        'key':'name',
         'value':'id'
     },
     'area': {
@@ -105,7 +105,7 @@ obj_map = {
     },
     'field': {
         'obj':OilField,
-        'key':'field_name',
+        'key':'name',
         'value':'id'
     },
     'strat_unit': {

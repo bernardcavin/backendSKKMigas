@@ -1,12 +1,13 @@
 from os import close
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, Enum, Text, Boolean, Float, Date, func
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, Enum, Text, Boolean, Float, Date, func, select
 from backend.routers.well.models import DepthDatum
-from sqlalchemy.orm import relationship, declared_attr, hybrid_property
+from sqlalchemy.orm import relationship, declared_attr
 from backend.database import Base
 from enum import Enum as PyEnum
 import uuid
 from backend.utils.enum_operations import extend_enum
 from backend.utils.constants import uom
+from sqlalchemy.ext.hybrid import hybrid_property
 
 class Percentage(PyEnum):
     P0 = "0%"
@@ -198,25 +199,25 @@ class Job(Base, CreateBase, ValidationBase):
     kkks_id = Column(String(36), ForeignKey('kkks.id'))
     kkks = relationship('KKKS', back_populates='jobs')
     
-    @hybrid_property
+    @property
     def kkks_name(self):
         return self.kkks.name if self.kkks else None
     
     area_id = Column(String(36), ForeignKey('area.id'))
     area = relationship('Area', back_populates='jobs')
     
-    @hybrid_property
+    @property
     def area_name(self):
         return self.area.name if self.area else None
     
-    @hybrid_property
-    def area_region(self):
+    @property
+    def region(self):
         return self.area.region if self.area else None
     
     field_id = Column(String(36), ForeignKey('fields.id'))
     field = relationship('Lapangan', back_populates='jobs')
     
-    @hybrid_property
+    @property
     def field_name(self):
         return self.field.name if self.field else None
     
@@ -230,10 +231,14 @@ class Job(Base, CreateBase, ValidationBase):
     job_plan_id = Column(String(36), ForeignKey('job_instances.id'))
     job_plan = relationship('JobInstance', foreign_keys=[job_plan_id])
     
-    @hybrid_property
+    @property
     def well_name(self):
-        return self.job_plan.well_plan.well_name if self.job_plan else None
-    
+        
+        if self.job_type in [JobType.WORKOVER,JobType.WELLSERVICE]:
+            return self.job_plan.well.well_name if self.job_plan else None
+        else:
+            return self.job_plan.well_plan.well_name if self.job_plan else None
+
     date_proposed = Column(Date)
     date_returned = Column(Date)
     date_approved = Column(Date)
@@ -250,7 +255,11 @@ class Job(Base, CreateBase, ValidationBase):
     def plan_start_date(self):
         return self.job_plan.start_date if self.job_plan else None
     
-    @hybrid_property
+    @plan_start_date.expression
+    def plan_start_date(cls):
+        return select(PlanJob.start_date).where(cls.job_plan_id == PlanJob.id).as_scalar()
+    
+    @property
     def plan_end_date(self):
         return self.job_plan.end_date if self.job_plan else None
     
@@ -258,7 +267,11 @@ class Job(Base, CreateBase, ValidationBase):
     def actual_start_date(self):
         return self.actual_job.start_date if self.actual_job else None
     
-    @hybrid_property
+    @actual_start_date.expression
+    def actual_start_date(cls):
+        return select(ActualJob.start_date).where(cls.actual_job_id == ActualJob.id).as_scalar()
+    
+    @property
     def actual_end_date(self):
         return self.actual_job.end_date if self.actual_job else None
     
@@ -273,12 +286,12 @@ class Job(Base, CreateBase, ValidationBase):
     ppp_status = Column(Enum(PPPStatus))
     
     #CloseOut
-    date_proposed = Column(Date)
-    date_approved = Column(Date)
+    date_co_proposed = Column(Date)
+    date_co_approved = Column(Date)
     
     closeout_status = Column(Enum(CloseOutStatus))
     
-    @hybrid_property
+    @property
     def job_current_status(self):
         if self.closeout_status:
             return self.closeout_status

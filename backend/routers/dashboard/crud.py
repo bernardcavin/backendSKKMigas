@@ -28,319 +28,423 @@ import itertools
 from typing import Union
 import logging
 from collections import defaultdict,Counter
+from sqlalchemy import func, cast, Float
+import plotly.graph_objects as go
+import calendar
+import numpy as np
+import pandas as pd
 
+job_type_map = {
+    'Exploration': JobType.EXPLORATION,
+    'Development': JobType.DEVELOPMENT,
+    'Workover': JobType.WORKOVER,
+    'Well Service': JobType.WELLSERVICE
+}
 
-def count_job_data(db: Session) -> Dict[str, int]:
-    operations_count = db.query(func.count(Job.id)).filter(Job.job_type == JobType.DEVELOPMENT).scalar()
-    ppp_count = db.query(func.count(Job.id)).filter(Job.job_type == JobType.WORKOVER).scalar()
-    closeout_count = db.query(func.count(Job.id)).filter(Job.job_type == JobType.WELLSERVICE).scalar()
-
-    return {
-        "job_operations": operations_count,
-        "job_ppp": ppp_count,
-        "job_closeout": closeout_count
-    }
-
-
-def get_well_names(db: Session) -> List[WellData]:
-    try:
-        wells = db.query(WellInstance.well_name).all()
-        return [WellData(well_name=well.well_name) for well in wells]
-    except SQLAlchemyError as e:
-        raise HTTPException(status_code=500, detail=f"Database error in wells: {str(e)}")
-
-def get_job_data(db: Session) -> List[JobData]:
-    try:
-        jobs = db.query(Job.start_date).all()
-        return [JobData(start_date=job.start_date) for job in jobs]
-    except SQLAlchemyError as e:
-        raise HTTPException(status_code=500, detail=f"Database error in jobs: {str(e)}")
-
-
-def get_planning_data_by_job_type(db: Session) -> Dict[str, Dict]:
-    JobInstanceAlias = aliased(JobInstance)
-    PlanExplorationAlias = aliased(PlanExploration)
-    PlanDevelopmentAlias = aliased(PlanDevelopment)
-    PlanWorkoverAlias = aliased(PlanWorkover)
-    PlanWellServiceAlias = aliased(PlanWellService)
-    ActualWellAlias = aliased(ActualWell)
+#dashboard per job
+def get_plans_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
     
-    well_id_case = case(
-        (JobInstanceAlias.id == PlanExplorationAlias.id, PlanExplorationAlias.well_plan_id),
-        (JobInstanceAlias.id == PlanDevelopmentAlias.id, PlanDevelopmentAlias.well_plan_id),
-        (JobInstanceAlias.id == PlanWorkoverAlias.id, ActualWellAlias.id),
-        (JobInstanceAlias.id == PlanWellServiceAlias.id, ActualWellAlias.id),
-    ).label('well_id')
-    
-    jobs_query = (
-        db.query(
-            Job.id,
-            Job.job_type,
-            Job.planning_status,
-            Job.date_proposed,
-            well_id_case,
-            WellInstance.well_name,
-            Area.area_name.label('wilayah_kerja'),
-            Lapangan.field_name.label('lapangan'),
-            KKKS.nama_kkks.label('kkks'),
-            JobInstanceAlias.start_date,
-            JobInstanceAlias.end_date
-        )
-        .outerjoin(JobInstanceAlias, Job.job_plan_id == JobInstanceAlias.id)
-        .outerjoin(PlanExplorationAlias, JobInstanceAlias.id == PlanExplorationAlias.id)
-        .outerjoin(PlanDevelopmentAlias, JobInstanceAlias.id == PlanDevelopmentAlias.id)
-        .outerjoin(PlanWorkoverAlias, JobInstanceAlias.id == PlanWorkoverAlias.id)
-        .outerjoin(PlanWellServiceAlias, JobInstanceAlias.id == PlanWellServiceAlias.id)
-        .outerjoin(ActualWellAlias, or_(
-            PlanWorkoverAlias.well_id == ActualWellAlias.id,
-            PlanWellServiceAlias.well_id == ActualWellAlias.id
-        ))
-        .outerjoin(WellInstance, or_(
-            well_id_case == WellInstance.id,
-            ActualWellAlias.id == WellInstance.id
-        ))
-        .outerjoin(Area, Job.area_id == Area.id)
-        .outerjoin(Lapangan, Job.field_id == Lapangan.id)
-        .outerjoin(KKKS, Job.kkks_id == KKKS.id)
-        .filter(Job.planning_status.in_([PlanningStatus.APPROVED, PlanningStatus.PROPOSED, PlanningStatus.RETURNED]))
-        .order_by(Job.job_type, Job.date_proposed)
-        .all()
-    )
-    
+    plans = db.query(Job).filter(Job.job_type == job_type).all()
     result = {}
     
-    for job in jobs_query:
-        job_type_key = job.job_type.value.lower()
-        
-        if job_type_key not in result:
-            result[job_type_key] = {
-                "job_details": [],
-                "summary": {
-                    "disetujui": 0,
-                    "diusulkan": 0,
-                    "dikembalikan": 0
-                }
+    for i, job in enumerate(plans):
+
+        result = {
+            "job_details": [],
+            "summary": {
+                "disetujui": 0,
+                "diusulkan": 0,
+                "dikembalikan": 0
             }
+        }
         
         job_detail = {
-            "NO": job.id,
+            "id": job.id,
+            'NO':i+1,
             "NAMA SUMUR": job.well_name if job.well_name else "N/A",
-            "WILAYAH KERJA": job.wilayah_kerja if job.wilayah_kerja else "N/A",
-            "LAPANGAN": job.lapangan if job.lapangan else "N/A",
-            "KKKS": job.kkks if job.kkks else "N/A",
-            "JENIS PEKERJAAN": job.job_type.value,
-            "RENCANA MULAI": job.start_date.strftime("%d %b %Y") if job.start_date else "N/A",
-            "RENCANA SELESAI": job.end_date.strftime("%d %b %Y") if job.end_date else "N/A",
+            "WILAYAH KERJA": job.area_name if job.area_name else "N/A",
+            "LAPANGAN": job.field_name if job.field_name else "N/A",
+            "KKKS": job.kkks_name if job.kkks_name else "N/A",
+            "RENCANA MULAI": job.plan_start_date.strftime("%d %b %Y") if job.plan_start_date else "N/A",
+            "RENCANA SELESAI": job.plan_end_date.strftime("%d %b %Y") if job.plan_end_date else "N/A",
             "TANGGAL DIAJUKAN": job.date_proposed.strftime("%d %b %Y") if job.date_proposed else "N/A",
-            "STATUS": get_planning_status(job.planning_status)
+            "STATUS": job.current_status.value
         }
-        result[job_type_key]["job_details"].append(job_detail)
+        
+        if job.job_type in [JobType.WELLSERVICE, JobType.WORKOVER]:
+            job_detail['JENIS PEKERJAAN'] = job.job_plan.job_category.value
+        
+        result["job_details"].append(job_detail)
         
         # Update summary
         if job.planning_status == PlanningStatus.APPROVED:
-            result[job_type_key]["summary"]["disetujui"] += 1
+            result["summary"]["disetujui"] += 1
         elif job.planning_status == PlanningStatus.PROPOSED:
-            result[job_type_key]["summary"]["diusulkan"] += 1
+            result["summary"]["diusulkan"] += 1
         elif job.planning_status == PlanningStatus.RETURNED:
-            result[job_type_key]["summary"]["dikembalikan"] += 1
+            result["summary"]["dikembalikan"] += 1
     
     return result
 
-def get_planning_status(status):
-    if status == PlanningStatus.APPROVED:
-        return "APPROVED"
-    elif status == PlanningStatus.PROPOSED:
-        return "PROPOSED"
-    elif status == PlanningStatus.RETURNED:
-        return "RETURNED"
-    else:
-        return "N/A"
+def get_operations_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
+    
+    jobs = db.query(Job).filter(Job.planning_status == PlanningStatus.APPROVED).filter(Job.job_type == job_type).all()
+    result = {}
+    
+    for i, job in enumerate(jobs):
 
+        result = {
+            "job_details": [],
+            "summary": {
+                "disetujui": 0,
+                "beroperasi": 0,
+                "selesai beroperasi": 0
+            }
+        }
+        
+        job_detail = {
+            "id": job.id,
+            'NO':i+1,
+            "NAMA SUMUR": job.well_name if job.well_name else "N/A",
+            "WILAYAH KERJA": job.area_name if job.area_name else "N/A",
+            "LAPANGAN": job.field_name if job.field_name else "N/A",
+            "KKKS": job.kkks_name if job.kkks_name else "N/A",
+            "RENCANA MULAI": job.plan_start_date.strftime("%d %b %Y") if job.plan_start_date else "N/A",
+            "RENCANA SELESAI": job.plan_end_date.strftime("%d %b %Y") if job.plan_end_date else "N/A",
+            "REALISASI MULAI": job.actual_start_date.strftime("%d %b %Y") if job.actual_start_date else "N/A",
+            "REALISASI SELESAI": job.actual_end_date.strftime("%d %b %Y") if job.actual_end_date else "N/A",
+            "STATUS": job.current_status.value
+        }
+        
+        if job.job_type in [JobType.WELLSERVICE, JobType.WORKOVER]:
+            job_detail['JENIS PEKERJAAN'] = job.job_plan.job_category.value
+        
+        result["job_details"].append(job_detail)
+        
+        # Update summary
+        if job.planning_status == PlanningStatus.APPROVED:
+            result["summary"]["disetujui"] += 1
+        elif job.planning_status == PlanningStatus.PROPOSED:
+            result["summary"]["beroperasi"] += 1
+        elif job.planning_status == PlanningStatus.RETURNED:
+            result["summary"]["selesai beroperasi"] += 1
+    
+    return result
 
-# # Penggunaan fungsi
-# def get_all_data(db: Session):
-#     return get_combined_data(db)
+def get_ppp_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
+    
+    jobs = db.query(Job).filter(Job.planning_status == OperationStatus.FINISHED).filter(Job.job_type == job_type).all()
+    result = {}
+    
+    for i, job in enumerate(jobs):
 
-# Data Card ATAS PER JOB TYPE
-def get_simplified_job_stats_by_type(db: Session, job_type: str) -> Dict:
-    # Query untuk mendapatkan statistik
-    stats = db.query(
-        func.count(Job.id).filter(Job.planning_status != None).label('rencana'),
-        func.count(Job.id).filter(Job.operation_status == OperationStatus.OPERATING).label('realisasi'),
-        func.count(Job.id).filter(Job.operation_status == OperationStatus.FINISHED).label('selesai')
-    ).filter(Job.job_type == job_type).first()
+        result = {
+            "job_details": [],
+            "summary": {
+                "selesai beroperasi": 0,
+                "diajukan": 0,
+                "disetujui": 0
+            }
+        }
+        
+        job_detail = {
+            "id": job.id,
+            'NO':i+1,
+            "NAMA SUMUR": job.well_name if job.well_name else "N/A",
+            "WILAYAH KERJA": job.area_name if job.area_name else "N/A",
+            "LAPANGAN": job.field_name if job.field_name else "N/A",
+            "KKKS": job.kkks_name if job.kkks_name else "N/A",
+            "REALISASI MULAI": job.actual_start_date.strftime("%d %b %Y") if job.actual_start_date else "N/A",
+            "REALISASI SELESAI": job.actual_end_date.strftime("%d %b %Y") if job.actual_end_date else "N/A",
+            "TANGGAL P3 DIAJUKAN": job.date_ppp_proposed.strftime("%d %b %Y") if job.date_ppp_proposed else "N/A",
+            "TANGGAL P3 DISETUJUI": job.date_ppp_approved.strftime("%d %b %Y") if job.date_ppp_approved else "N/A",
+            "STATUS": job.current_status.value
+        }
+        
+        if job.job_type in [JobType.WELLSERVICE, JobType.WORKOVER]:
+            job_detail['JENIS PEKERJAAN'] = job.job_plan.job_category.value
+        
+        result["job_details"].append(job_detail)
+        
+        # Update summary
+        if job.planning_status == PlanningStatus.APPROVED:
+            result["summary"]["selesai beroperasi"] += 1
+        elif job.planning_status == PlanningStatus.PROPOSED:
+            result["summary"]["diajukan"] += 1
+        elif job.planning_status == PlanningStatus.RETURNED:
+            result["summary"]["disetujui"] += 1
+    
+    return result
 
+def get_co_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
+    
+    jobs = db.query(Job).filter(Job.planning_status == PPPStatus.APPROVED).filter(Job.job_type == job_type).all()
+    result = {}
+    
+    for i, job in enumerate(jobs):
+
+        result = {
+            "job_details": [],
+            "summary": {
+                "selesai p3": 0,
+                "diajukan": 0,
+                "disetujui": 0
+            }
+        }
+        
+        job_detail = {
+            "id": job.id,
+            'NO':i+1,
+            "NAMA SUMUR": job.well_name if job.well_name else "N/A",
+            "WILAYAH KERJA": job.area_name if job.area_name else "N/A",
+            "LAPANGAN": job.field_name if job.field_name else "N/A",
+            "KKKS": job.kkks_name if job.kkks_name else "N/A",
+            "REALISASI MULAI": job.actual_start_date.strftime("%d %b %Y") if job.actual_start_date else "N/A",
+            "REALISASI SELESAI": job.actual_end_date.strftime("%d %b %Y") if job.actual_end_date else "N/A",
+            "TANGGAL CO DIAJUKAN": job.date_co_proposed.strftime("%d %b %Y") if job.date_co_proposed else "N/A",
+            "TANGGAL CO DISETUJUI": job.date_co_approved.strftime("%d %b %Y") if job.date_co_approved else "N/A",
+            "STATUS": job.current_status.value
+        }
+        
+        if job.job_type in [JobType.WELLSERVICE, JobType.WORKOVER]:
+            job_detail['JENIS PEKERJAAN'] = job.job_plan.job_category.value
+        
+        result["job_details"].append(job_detail)
+        
+        # Update summary
+        if job.planning_status == PlanningStatus.APPROVED:
+            result["summary"]["selesai p3"] += 1
+        elif job.planning_status == PlanningStatus.PROPOSED:
+            result["summary"]["diajukan"] += 1
+        elif job.planning_status == PlanningStatus.RETURNED:
+            result["summary"]["disetujui"] += 1
+    
+    return result
+
+#home dashboard
+def get_dashboard_progress_tablechart(db: Session) -> Dict:
+
+    results = db.query(
+        Job.job_type,
+        func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).label('rencana'),
+        func.count(Job.id).filter(Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])).label('realisasi'),
+        func.count(Job.id).filter(Job.actual_start_date == datetime.now().date()).label('change'),
+    ).group_by(Job.job_type).all()
+
+    dashboard_table_data = {}
+    
+    for result in results:
+        job_type = result.job_type.value.lower()
+        dashboard_table_data[job_type] = {}
+        dashboard_table_data[job_type]["rencana"] = result.rencana
+        dashboard_table_data[job_type]["realisasi"] = result.realisasi
+    
+    job_types = list(job_type_map.keys())
+    
+    fig = go.Figure(data=[
+        go.Bar(name='Rencana', x=job_types, y=[dashboard_table_data[job_type_map[job_type].value.lower()]["rencana"] for job_type in job_types]),
+        go.Bar(name='Realisasi', x=job_types, y=[dashboard_table_data[job_type_map[job_type].value.lower()]["realisasi"] for job_type in job_types])
+    ])
+
+    fig.update_layout(barmode='group')
+    fig.update_layout(template='plotly_white')
+    fig_json = fig.to_json(pretty=True, engine="json")
+    fig_data = json.loads(fig_json)
+    
     return {
-        "rencana": stats.rencana,
-        "realisasi": stats.realisasi,
-        "selesai": stats.selesai
+        'table':dashboard_table_data,
+        'plot':fig_data
     }
 
-
-# AMBIL DATA KKS ITUNG PERSENTASE DASHBOARD SKK
-def get_kkks_job_data_P(db: Session) -> List[KKKSJobDataCombined]:
-    query = db.query(
+def get_dashboard_kkks_table(db: Session) -> Dict:
+    
+    columns = [
         KKKS.id,
-        KKKS.nama_kkks.label('nama_kkks'),
-        func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).label('approved_plans'),
-        func.count(Job.id).filter(or_(
-            Job.operation_status == OperationStatus.OPERATING,
-            Job.operation_status == OperationStatus.FINISHED
-        )).label('active_operations'),
-        func.count(Job.id).filter(Job.operation_status == OperationStatus.FINISHED).label('finished_jobs')
-    ).outerjoin(Job, KKKS.id == Job.kkks_id) \
-     .group_by(KKKS.id, KKKS.nama_kkks)
+        KKKS.name.label('name')
+        ] + [
+        (cast(func.count(Job.id).filter(
+            or_(
+                Job.operation_status == OperationStatus.OPERATING,
+                Job.operation_status == OperationStatus.FINISHED
+            )
+        ), Float) / 
+        cast(func.count(Job.id).filter(
+            and_(
+                Job.planning_status == PlanningStatus.APPROVED,
+                Job.job_type == job_type
+            )
+        ), Float) * 100).label(f'{job_type.value.lower().replace(" ", "")}_percentage') for job_type in JobType ]
+
+    query = db.query(
+        *columns
+        ).outerjoin(Job, KKKS.id == Job.kkks_id).group_by(KKKS.id, KKKS.name)
 
     results = query.all()
 
     kkks_data = []
     for result in results:
-        approved_plans = result.approved_plans or 0
-        active_operations = result.active_operations or 0
-        finished_jobs = result.finished_jobs or 0
-        percentage = (active_operations / approved_plans * 100) if approved_plans > 0 else 0
 
-        kkks_data.append(KKKSJobDataCombined(
-            id=result.id,
-            nama_kkks=result.nama_kkks,
-            approved_plans=approved_plans,
-            active_operations=active_operations,
-            finished_jobs=finished_jobs,
-            percentage=round(percentage, 2)
-        ))
+        kkks_data.append(
+            dict(
+                id=result.id,
+                name=result.name,
+                exploration_percentage=f'{round(result.exploration_percentage, 2)}%' if result.exploration_percentage else 0,
+                development_percentage=f'{round(result.development_percentage, 2)}%' if result.development_percentage else 0,
+                workover_percentage=f'{round(result.workover_percentage, 2)}%' if result.workover_percentage else 0,
+                wellservice_percentage=f'{round(result.wellservice_percentage, 2)}%' if result.wellservice_percentage else 0,
+            )  
+        )
 
     return kkks_data
-# DASHBOARD BAGIAN ATAS YANG ADA PANAH HIJAU
-def get_job_data_change(db: Session) -> Dict:
-    job_types = ['exploration', 'development', 'workover', 'wellservice']
-    today = date.today()
-    yesterday = today - timedelta(days=1)
 
-    def get_data_for_date(target_date):
-        return db.query(
-            *[func.count(case((and_(
-                Job.job_type == (JobType.WELLSERVICE if job_type == 'wellservice' else JobType[job_type.upper()]),
-                Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]),
-                func.date(Job.date_started) <= target_date
-            ), 1))).label(f'{job_type}_realization')
-              for job_type in job_types]
-        ).first()
-
-    today_data = get_data_for_date(today)
-    yesterday_data = get_data_for_date(yesterday)
-
-    changes = {}
-    for job_type in job_types:
-        today_count = getattr(today_data, f'{job_type}_realization')
-        yesterday_count = getattr(yesterday_data, f'{job_type}_realization')
-        change = today_count - yesterday_count
-        changes[job_type] = change
-
-    return changes
-def get_aggregate_job_data(db: Session) -> Dict:
-    job_types = [job_type.value.lower() for job_type in JobType]
+#make graph
+def make_job_graph(db: Session, job_type: JobType, periods: list) -> Dict[str, Dict]:
     
-    results = db.query(
-        Job.job_type,
-        func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).label('plan'),
-        func.count(Job.id).filter(Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])).label('realization')
-    ).group_by(Job.job_type).all()
+    current_year = datetime.now().year ##todo: sync with wpnb year
 
-    aggregate_data = {job_type: {"plan": 0, "realization": 0} for job_type in job_types}
+    # Query for planned jobs
+    rencana = db.query(
+        (Job.plan_start_date).label('plan_start_date'),
+    ).filter(
+        Job.job_type == job_type,
+        Job.planning_status == PlanningStatus.APPROVED,
+        Job.wpb_year == current_year).all()
+
+    # Query for realized jobs
+    realisasi = db.query(
+        (Job.actual_start_date).label('actual_start_date'),
+    ).filter(
+        Job.job_type == job_type,
+        Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]),
+        Job.wpb_year == current_year).all()
     
-    for result in results:
-        job_type = result.job_type.value.lower()
-        aggregate_data[job_type]["plan"] = result.plan
-        aggregate_data[job_type]["realization"] = result.realization
+    list_rencana = [date.plan_start_date for date in rencana]
+    list_realisasi = [date.actual_start_date for date in realisasi]
+    
+    output = {}
+    
+    if 'month' in periods:
+        
+        months_rencana = [date.strftime("%B") if date is not None else None for date in list_rencana]
+        months_realisasi = [date.strftime("%B") if date is not None else None for date in list_realisasi]
 
-    return aggregate_data
+        m=[]
+        j_rencana=[]
+        j_realisasi=[]
 
-def generate_job_summary_chart_data_json(db: Session) -> Dict:
-    aggregate_data = get_aggregate_job_data(db)
-    changes = get_job_data_change(db)
+        month_counts_rencana = Counter(months_rencana)
+        month_counts_realisasi = Counter(months_realisasi)
+        month_names = calendar.month_name[1:]
 
-    job_types = list(aggregate_data.keys())
+        for month in month_names:
+            m.append(f'{month} {current_year}')
+            j_rencana.append(month_counts_rencana.get(month, 0))
+            j_realisasi.append(month_counts_realisasi.get(month, 0))
 
-    data = [
-        {
-            "x": job_types,
-            "y": [aggregate_data[job_type]["plan"] for job_type in job_types],
-            "type": "bar",
-            "name": "Rencana",
-            "marker": {"color": "rgba(55, 83, 109, 0.7)"}
-        },
-        {
-            "x": job_types,
-            "y": [aggregate_data[job_type]["realization"] for job_type in job_types],
-            "type": "bar",
-            "name": "Realisasi",
-            "marker": {"color": "rgba(26, 118, 255, 0.7)"}
-        }
-    ]
+        rencanasum = np.cumsum(j_rencana)
+        realisasisum = np.cumsum(j_realisasi)
 
-    annotations = []
-    for i, job_type in enumerate(job_types):
-        change = changes.get(job_type, 0)
-        if change != 0:
-            annotations.append({
-                "x": job_type,
-                "y": aggregate_data[job_type]["realization"],
-                "text": f"{change:+d}",
-                "showarrow": True,
-                "arrowhead": 4,
-                "arrowsize": 0.5,
-                "arrowcolor": "green" if change > 0 else "red",
-                "ax": 0,
-                "ay": -40 if change > 0 else 40
-            })
+        # Graph components
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig.add_trace(go.Bar(y=j_rencana, x=m, name="Rencana", marker_color="#eb2427"),secondary_y=False)
+        fig.add_trace(go.Bar(y=j_realisasi, x=m, name="Realisasi", marker_color="#bcd42c"),secondary_y=False)
+        fig.add_trace(go.Scatter(y=rencanasum, x=m, name="Outlook Kumulatif", marker_color="#eb2427"),secondary_y=True)
+        fig.add_trace(go.Scatter(y=realisasisum, x=m, name="Realisasi Kumulatif", marker_color="#bcd42c"),secondary_y=True)
+        fig.update_layout(hovermode='x unified')
+        fig.update_layout(template='plotly_white')
+        fig['layout']['margin'] = {'l': 10, 'r': 10, 'b': 10, 't': 10}
+        fig['layout']['xaxis']['type'] = 'category'
+        fig['layout']['yaxis2']['showgrid'] = False
+        
+        fig_json = fig.to_json(pretty=True, engine="json")
+        fig_data = json.loads(fig_json)
+        
+        output['month'] = fig_data
+    
+    if 'week' in periods:
+        
+        def get_week(date):
+            week_num = (date.day - 1) // 7 + 1
+            return f'M{week_num} {date.strftime("%B %Y")}'
+        
+        rencana = pd.to_datetime(pd.Series(list_rencana)).apply(get_week)
+        ralisasi = pd.to_datetime(pd.Series(list_realisasi)).apply(get_week)
+        
+        current_year = 2024
 
-    layout = {
-        "title": "Perbandingan Rencana dan Realisasi per Jenis Pekerjaan",
-        "xaxis": {"title": "Jenis Pekerjaan"},
-        "yaxis": {"title": "Jumlah"},
-        "barmode": "group",
-        "annotations": annotations
+        start_date = datetime(current_year, 1, 1).date()
+        end_date = datetime(current_year, 12, 31).date()
+
+        week_list = []
+        current_date = start_date
+        while current_date <= end_date:
+            week_number = (current_date.day - 1) // 7 + 1
+            label = f"M{week_number} {current_date.strftime('%B')} {current_date.year}"
+            week_list.append(label)
+            current_date += timedelta(days=7)
+        
+        w=week_list
+        j_rencana=[]
+        j_realisasi=[]
+
+        week_counts_rencana = Counter(rencana)
+        week_counts_realisasi = Counter(ralisasi)
+        
+        for week in week_list:
+            try:
+                j_rencana.append(week_counts_rencana[week])
+            except:
+                j_rencana.append(0)
+            try:
+                j_realisasi.append(week_counts_realisasi[week])
+            except:
+                j_realisasi.append(0)
+
+        rencanasum = np.cumsum(j_rencana)
+        realisasisum = np.cumsum(j_realisasi)
+
+        # Graph components
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig.add_trace(go.Bar(y=j_rencana, x=w, name="Rencana", marker_color="#eb2427"),secondary_y=False)
+        fig.add_trace(go.Bar(y=j_realisasi, x=w, name="Realisasi", marker_color="#bcd42c"),secondary_y=False)
+        fig.add_trace(go.Scatter(y=rencanasum, x=w, name="Outlook Kumulatif", marker_color="#eb2427"),secondary_y=True)
+        fig.add_trace(go.Scatter(y=realisasisum, x=w, name="Realisasi Kumulatif", marker_color="#bcd42c"),secondary_y=True)
+        fig.update_layout(hovermode='x unified')
+        fig.update_layout(template='plotly_white')
+        fig['layout']['xaxis']['type'] = 'category'
+        fig['layout']['margin'] = {'l': 10, 'r': 10, 'b': 10, 't': 10}
+        fig['layout']['yaxis2']['showgrid'] = False
+        
+        fig_json = fig.to_json(pretty=True, engine="json")
+        fig_data = json.loads(fig_json)
+        
+        output['week'] = fig_data
+
+    return output
+
+def get_job_type_summary(db: Session, job_type: JobType) -> Dict:
+   
+    result = db.query(
+        func.count(case((
+            (Job.planning_status == PlanningStatus.APPROVED)
+        ))).label('rencana'),
+        func.count(case((
+            (Job.operation_status == OperationStatus.OPERATING) |
+            (Job.operation_status == OperationStatus.FINISHED),
+            Job.id
+        ))).label('realisasi'),
+        func.count(case((Job.operation_status == OperationStatus.FINISHED, Job.id))).label('selesai')
+    ).filter(Job.job_type == job_type).first()
+    
+    return {
+        'rencana': result.rencana,
+        'realisasi': result.realisasi,
+        'selesai': result.selesai
     }
 
-    return {"data": data, "layout": layout}
 
-# Ini DATA COUNT CARD SKK
-def get_job_type_summary(db: Session) -> Dict[str, Dict[str, int]]:
-    job_types = ['exploration', 'development', 'workover', 'wellservice']
-    
-    summary = {}
-    for job_type in job_types:
-        job_type_enum = JobType.WELLSERVICE if job_type == 'wellservice' else JobType[job_type.upper()]
-        
-        result = db.query(
-            func.count(Job.id).label('total'),
-            func.count(case((
-                (Job.planning_status == PlanningStatus.APPROVED) |
-                (Job.ppp_status == PPPStatus.APPROVED) |
-                (Job.closeout_status == CloseOutStatus.APPROVED),
-                Job.id
-            ))).label('all_approved'),
-            func.count(case((
-                (Job.operation_status == OperationStatus.OPERATING) |
-                (Job.operation_status == OperationStatus.FINISHED),
-                Job.id
-            ))).label('operating_and_finished'),
-            func.count(case((Job.operation_status == OperationStatus.FINISHED, Job.id))).label('finished')
-        ).filter(Job.job_type == job_type_enum)\
-         .first()
-        
-        job_type_key = job_type.capitalize()
-        if job_type == 'wellservice':
-            job_type_key = 'Well_Service'  # Ubah ke underscore untuk sesuai dengan Pydantic model
-        
-        summary[job_type_key] = {
-            "total": result.total,
-            "all_approved": result.all_approved,
-            "operating_and_finished": result.operating_and_finished,
-            "finished": result.finished
-        }
-    
-    return summary
+
+
 
 
 # Graphic dibawah CARD SKK
@@ -642,13 +746,13 @@ def calculate_realization_by_kkks_and_job_type(db: Session) -> Dict[str, List[Re
     results = (
         db.query(
             KKKS.id.label('kkks_id'),
-            KKKS.nama_kkks.label('kkks_name'),
+            KKKS.name.label('kkks_name'),
             Job.job_type,
             func.count(case((Job.planning_status == PlanningStatus.APPROVED, Job.id))).label('approved_plans'),
             func.count(case((Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]), Job.id))).label('completed_operations')
         )
         .join(Job, KKKS.id == Job.kkks_id)
-        .group_by(KKKS.id, KKKS.nama_kkks, Job.job_type)
+        .group_by(KKKS.id, KKKS.name, Job.job_type)
         .all()
     )
 
@@ -751,8 +855,8 @@ def get_well_job_data(db: Session, kkks_id: str) -> Dict[str, List[WellJobData]]
     query = (
         select(
             WellInstance.well_name.label('well_name'),
-            Area.area_name.label('wilayah_kerja'),
-            Lapangan.field_name.label('lapangan'),
+            Area.name.label('wilayah_kerja'),
+            Lapangan.name.label('lapangan'),
             Job.date_proposed.label('tanggal_mulai'),
             Job.date_approved.label('tanggal_selesai'),
             Job.date_started.label('tanggal_realisasi'),
@@ -928,7 +1032,7 @@ def get_kkks_job_data(db: Session, kkks_id: str) -> KKKSJobDataChart:
     weekly_data = get_kkks_weekly_data(db, kkks_id)
     well_job_data = get_well_job_data(db, kkks_id)
 
-    chart_data = create_charts(monthly_data, weekly_data, kkks.nama_kkks)
+    chart_data = create_charts(monthly_data, weekly_data, kkks.name)
 
     # Calculate job type data with null checks
     approved_plans = job_counts.get('approved_jobs', 0) or 0
@@ -995,7 +1099,7 @@ def get_kkks_job_data(db: Session, kkks_id: str) -> KKKSJobDataChart:
 
     return KKKSJobDataChart(
         id=kkks.id,
-        nama_kkks=kkks.nama_kkks,
+        name=kkks.name,
         job_data=job_type_data,
         monthly_data=monthly_data,
         weekly_data=weekly_data,
@@ -1104,8 +1208,8 @@ def get_jobs(db: Session) -> Dict[str, List[Dict]]:
         Job.id,
         Job.job_type,
         WellInstance.well_name,
-        Area.area_name,
-        Lapangan.field_name,
+        Area.name,
+        Lapangan.name,
         Job.date_proposed,
         Job.date_approved,
         Job.date_started,
@@ -1120,8 +1224,8 @@ def get_jobs(db: Session) -> Dict[str, List[Dict]]:
         job_data = {
             "id": job.id,
             "well_name": job.well_name,
-            "area_name": job.area_name,
-            "field_name": job.field_name,
+            "name": job.name,
+            "name": job.name,
             "date_proposed": job.date_proposed.strftime("%d %B %Y") if job.date_proposed else None,
             "date_approved": job.date_approved.strftime("%d %B %Y") if job.date_approved else None,
             "date_started": job.date_started.strftime("%d %B %Y") if job.date_started else None,
@@ -1134,18 +1238,8 @@ def get_jobs(db: Session) -> Dict[str, List[Dict]]:
 
 def get_all_job_types_data(db: Session) -> Dict[str, Dict]:
     # Query untuk mengambil semua data yang diperlukan
-    jobs_data = db.query(
-        Job, WellInstance, KKKS, Area, Lapangan, JobInstance,
-        func.count(Job.id).over(partition_by=Job.job_type).label('total_jobs'),
-        func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).over(partition_by=Job.job_type).label('approved_jobs'),
-        func.count(Job.id).filter(Job.operation_status == OperationStatus.OPERATING).over(partition_by=Job.job_type).label('operating_jobs'),
-        func.count(Job.id).filter(Job.operation_status == OperationStatus.FINISHED).over(partition_by=Job.job_type).label('finished_jobs')
-    ).outerjoin(WellInstance, Job.field_id == WellInstance.field_id)\
-     .outerjoin(KKKS, Job.kkks_id == KKKS.id)\
-     .outerjoin(Area, Job.area_id == Area.id)\
-     .outerjoin(Lapangan, Job.field_id == Lapangan.id)\
-     .outerjoin(JobInstance, or_(Job.job_plan_id == JobInstance.id, Job.actual_job_id == JobInstance.id))\
-     .order_by(Job.job_type, Job.date_proposed).all()
+    jobs = db.query(Job).filter(Job.planning_status == PlanningStatus.APPROVED).filter(Job.job_type == job_type).all()
+    result = {}
 
     result = {}
     for job_type in JobType:
@@ -1158,7 +1252,7 @@ def get_all_job_types_data(db: Session) -> Dict[str, Dict]:
             "job_details": []
         }
 
-    for job, well, kkks, area, field, job_instance, total, approved, operating, finished in jobs_data:
+    for job in jobs:
         job_type_key = job.job_type.value.lower()
         
         # Update summary
@@ -1171,9 +1265,9 @@ def get_all_job_types_data(db: Session) -> Dict[str, Dict]:
         job_detail = {
             "NO": job.id,
             "NAMA SUMUR": well.well_name if well else "N/A",
-            "KKKS": kkks.nama_kkks if kkks else "N/A",
-            "WILAYAH KERJA": area.area_name if area else "N/A",
-            "LAPANGAN": field.field_name if field else "N/A",
+            "KKKS": kkks.name if kkks else "N/A",
+            "WILAYAH KERJA": area.name if area else "N/A",
+            "LAPANGAN": field.name if field else "N/A",
             "RENCANA MULAI": job_instance.start_date.strftime("%d %b %Y") if is_plan and job_instance and job_instance.start_date else "N/A",
             "REALISASI MULAI": job_instance.start_date.strftime("%d %b %Y") if not is_plan and job_instance and job_instance.start_date else "N/A",
             "RENCANA SELESAI": job_instance.end_date.strftime("%d %b %Y") if is_plan and job_instance and job_instance.end_date else "N/A",

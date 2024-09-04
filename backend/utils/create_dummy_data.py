@@ -199,7 +199,7 @@ def generate_dummy_data(n: int):
             db.add(
                 KKKS(
                     id = kkks_id,
-                    nama_kkks = f'KKKS0{i}'
+                    name = f'KKKS0{i}'
                 )
             )
 
@@ -210,12 +210,12 @@ def generate_dummy_data(n: int):
                     id = area_id,
                     kkks_id = kkks_id,
                     label = f'AREA0{i}',
-                    area_name = f'AREA0{i}',
-                    area_phase = random_enum_value(AreaPhase),
-                    area_type = random_enum_value(AreaType),
-                    area_position = random_enum_value(AreaPosition),
-                    area_production_status = random_enum_value(AreaProductionStatus),
-                    area_region = random_enum_value(AreaRegion),
+                    name = f'AREA0{i}',
+                    phase = random_enum_value(AreaPhase),
+                    type = random_enum_value(AreaType),
+                    position = random_enum_value(AreaPosition),
+                    production_status = random_enum_value(AreaProductionStatus),
+                    region = random_enum_value(AreaRegion),
                 )
             )
 
@@ -224,7 +224,7 @@ def generate_dummy_data(n: int):
             db.add(
                 spatial_models.Lapangan(
                     id = field_id,
-                    field_name = f'FIELD0{i}',
+                    name = f'FIELD0{i}',
                     area_id = area_id,
                 )
             )

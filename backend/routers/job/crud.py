@@ -83,9 +83,9 @@ def get_job_plan(id: str, db: Session) -> Job:
     
     view_plan['operational'] = {
         "Tipe Pekerjaan": db_job.job_type,
-        "KKKS": db_job.kkks.nama_kkks,
-        "Wilayah Kerja": db_job.area.area_name,
-        "Lapangan": db_job.field.field_name,
+        "KKKS": db_job.kkks.name,
+        "Wilayah Kerja": db_job.area.name,
+        "Lapangan": db_job.field.name,
         "Jenis Kontrak": db_job.contract_type.value,
         "Nomor AFE": db_job.afe_number,
         "Tahun WP&B": db_job.wpb_year,

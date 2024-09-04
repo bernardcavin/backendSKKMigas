@@ -5,7 +5,7 @@ from typing import List
 
 class CreateFieldSchema(BaseModel):
 
-    field_name: str
+    name: str
     area_id: str
     geojson: str
 
@@ -23,12 +23,12 @@ class CreateStratUnitSchema(BaseModel):
 class CreateAreaSchema(BaseModel):
     
     label: str
-    area_name: str
-    area_phase: AreaPhase
-    area_type: AreaType
-    area_position: AreaPosition
-    area_production_status: AreaProductionStatus
-    area_region: AreaRegion
+    name: str
+    phase: AreaPhase
+    type: AreaType
+    position: AreaPosition
+    production_status: AreaProductionStatus
+    region: AreaRegion
     geojson: str
     
 class GetFieldSchema(CreateFieldSchema):
