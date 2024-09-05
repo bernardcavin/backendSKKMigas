@@ -49,13 +49,29 @@ async def create_planning_wellservice(plan: schemas.WellServiceJobPlan, db: Sess
         id=job_id
     )
 
-@router.patch('/planning/approve/{plan_id}')
+@router.delete('/planning/delete/{job_id}')
 @authorize(role=[Role.Admin])
-async def approve_planning_exploration(plan_id: str, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
-    return crud.approve_job_plan(plan_id, db, user)
+async def delete_planning_exploration(job_id: str, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
+    return crud.delete_job_plan(job_id, db, user)
 
-@router.get('/planning/view/{plan_id}')
+@router.patch('/planning/approve/{job_id}')
+@authorize(role=[Role.Admin])
+async def approve_planning_exploration(job_id: str, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
+    return crud.approve_job_plan(job_id, db, user)
+
+@router.patch('/planning/return/{job_id}')
+@authorize(role=[Role.Admin])
+async def approve_planning_exploration(job_id: str, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
+    return crud.return_job_plan(job_id, db, user)
+
+@router.get('/planning/view/{job_id}')
 @authorize(role=[Role.Admin, Role.KKKS])
-async def view_plan(plan_id: str, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
-    return crud.get_job_plan(plan_id, db)
+async def view_plan(job_id: str, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
+    return crud.get_job_plan(job_id, db)
+
+@router.patch('/operations/operate/{job_id}')
+@authorize(role=[Role.Admin])
+async def operate_job(job_id: str, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
+    return crud.operate_job(job_id, db, user)
+
 

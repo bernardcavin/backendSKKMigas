@@ -1,5 +1,6 @@
 from fastapi.exceptions import ValidationException
 from sqlalchemy.orm import Session
+from fastapi import UploadFile, HTTPException
 
 from backend.routers.job.models import *
 from backend.routers.job.schemas import *
@@ -34,6 +35,20 @@ def create_job_plan(db: Session, job_type: JobType, plan: object, user: GetUser)
 
     return db_job.id
 
+def delete_job_plan(id: str, db: Session, user: GetUser):
+
+    db_job = db.query(Job).filter_by(id=id).one()
+    
+    if db_job.planning_status == PlanningStatus.APPROVED:
+        raise HTTPException(status_code=400, detail="Job is already approved")
+    
+    db.delete(db_job)
+    db.commit()
+    
+    return {
+        'status': 'success',
+    }
+
 def approve_job_plan(id: str, db: Session, user: GetUser):
 
     db_job = db.query(Job).filter_by(id=id).one()
@@ -63,7 +78,20 @@ def return_job_plan(id: str, remarks: str, db: Session, user: GetUser):
     return {
         'status': 'success',
     }
+
+def operate_job(id: str, db: Session, user: GetUser):
+
+    db_job = db.query(Job).filter_by(id=id).one()
     
+    db_job.operation_status = OperationStatus.OPERATING
+    db_job.date_started = datetime.now().date()
+    
+    db.commit()
+    
+    return {
+        'status': 'success',
+    }
+
 def _get_well_from_plan(job: Union[PlanExploration, PlanDevelopment]) -> PlanWell:
     
     return job.well
@@ -205,5 +233,7 @@ def get_job_plan(id: str, db: Session) -> Job:
     view_plan['operational']['job_operation_days'] = operation_days
     
     return view_plan
-    
-    
+
+
+
+
