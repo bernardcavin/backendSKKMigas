@@ -1,23 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status,Query
-from sqlalchemy import func, extract, and_, cast, Integer,text,or_
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from typing import Dict,List
-from backend.routers.auth.models import Role
+from typing import Dict
 from backend.routers.job.models import *
 from backend.routers.well.schemas import *
 from backend.routers.well.models import *
 from backend.routers.spatial.models import *
-from backend.routers.auth.schemas import GetUser
 from backend.routers.dashboard.crud import *
-from calendar import monthrange, month_name as calendar_month_name
-from datetime import datetime,timedelta
-import plotly.graph_objects as go
-import numpy as np
-from fastapi.responses import JSONResponse
 
 
-from backend.routers.auth.utils import authorize, get_db, get_current_user
-from backend.routers.job import crud, schemas, models
+from backend.routers.auth.utils import get_db
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -30,12 +21,12 @@ job_type_map = {
 
 job_phase_map = {
     'plan': get_plans_dashboard,
-    'actual': get_operations_dashboard,
+    'operation': get_operations_dashboard,
     'ppp': get_ppp_dashboard,
     'co': get_co_dashboard,
 }
 
-@router.get("job-phase/{job_type}/{job_phase}", response_model=Dict[str, Dict])
+@router.get("/job-phase/{job_type}/{job_phase}")
 async def get_job_dashboard(job_type: str, job_phase: str, db: Session = Depends(get_db)):
     return job_phase_map[job_phase](db, job_type_map[job_type])
 
@@ -46,11 +37,11 @@ async def get_home_dashboard(db: Session = Depends(get_db)):
         'plot': get_dashboard_kkks_table(db)
     }
 
-@router.get("/job/view/{job_type}/", response_model=Dict[str, Dict])
+@router.get("/view-job/{job_type}/")
 async def view_job_progress(job_type: str, db: Session = Depends(get_db)):
     return make_job_graph(db, job_type_map[job_type], ['month','week'])
 
-@router.get("/job/dashboard/{job_type}")
+@router.get("/job/{job_type}")
 async def test(job_type: str, db: Session = Depends(get_db)):
     return get_job_type_dashboard(db, job_type_map[job_type])
 

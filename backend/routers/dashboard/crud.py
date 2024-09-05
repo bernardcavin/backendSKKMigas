@@ -30,22 +30,21 @@ job_type_map = {
 }
 
 #dashboard per job
-def get_plans_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
+def get_plans_dashboard(db: Session, job_type: JobType):
     
     plans = db.query(Job).filter(Job.job_type == job_type).all()
-    result = {}
     
-    for i, job in enumerate(plans):
-
-        result = {
+    result = {
             "job_details": [],
             "summary": {
                 "disetujui": 0,
-                "diusulkan": 0,
+                "diajukan": 0,
                 "dikembalikan": 0
             }
         }
-        
+    
+    for i, job in enumerate(plans):
+
         job_detail = {
             "id": job.id,
             'NO':i+1,
@@ -56,7 +55,7 @@ def get_plans_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
             "RENCANA MULAI": job.plan_start_date.strftime("%d %b %Y") if job.plan_start_date else "N/A",
             "RENCANA SELESAI": job.plan_end_date.strftime("%d %b %Y") if job.plan_end_date else "N/A",
             "TANGGAL DIAJUKAN": job.date_proposed.strftime("%d %b %Y") if job.date_proposed else "N/A",
-            "STATUS": job.current_status.value
+            "STATUS": job.job_current_status.value
         }
         
         if job.job_type in [JobType.WELLSERVICE, JobType.WORKOVER]:
@@ -68,7 +67,7 @@ def get_plans_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
         if job.planning_status == PlanningStatus.APPROVED:
             result["summary"]["disetujui"] += 1
         elif job.planning_status == PlanningStatus.PROPOSED:
-            result["summary"]["diusulkan"] += 1
+            result["summary"]["diajukan"] += 1
         elif job.planning_status == PlanningStatus.RETURNED:
             result["summary"]["dikembalikan"] += 1
     
@@ -77,11 +76,8 @@ def get_plans_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
 def get_operations_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
     
     jobs = db.query(Job).filter(Job.planning_status == PlanningStatus.APPROVED).filter(Job.job_type == job_type).all()
-    result = {}
     
-    for i, job in enumerate(jobs):
-
-        result = {
+    result = {
             "job_details": [],
             "summary": {
                 "disetujui": 0,
@@ -89,6 +85,8 @@ def get_operations_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
                 "selesai beroperasi": 0
             }
         }
+    
+    for i, job in enumerate(jobs):
         
         job_detail = {
             "id": job.id,
@@ -101,7 +99,7 @@ def get_operations_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
             "RENCANA SELESAI": job.plan_end_date.strftime("%d %b %Y") if job.plan_end_date else "N/A",
             "REALISASI MULAI": job.actual_start_date.strftime("%d %b %Y") if job.actual_start_date else "N/A",
             "REALISASI SELESAI": job.actual_end_date.strftime("%d %b %Y") if job.actual_end_date else "N/A",
-            "STATUS": job.current_status.value
+            "STATUS": job.job_current_status.value
         }
         
         if job.job_type in [JobType.WELLSERVICE, JobType.WORKOVER]:
@@ -122,11 +120,8 @@ def get_operations_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
 def get_ppp_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
     
     jobs = db.query(Job).filter(Job.planning_status == OperationStatus.FINISHED).filter(Job.job_type == job_type).all()
-    result = {}
     
-    for i, job in enumerate(jobs):
-
-        result = {
+    result = {
             "job_details": [],
             "summary": {
                 "selesai beroperasi": 0,
@@ -134,7 +129,9 @@ def get_ppp_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
                 "disetujui": 0
             }
         }
-        
+    
+    for i, job in enumerate(jobs):
+
         job_detail = {
             "id": job.id,
             'NO':i+1,
@@ -146,7 +143,7 @@ def get_ppp_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
             "REALISASI SELESAI": job.actual_end_date.strftime("%d %b %Y") if job.actual_end_date else "N/A",
             "TANGGAL P3 DIAJUKAN": job.date_ppp_proposed.strftime("%d %b %Y") if job.date_ppp_proposed else "N/A",
             "TANGGAL P3 DISETUJUI": job.date_ppp_approved.strftime("%d %b %Y") if job.date_ppp_approved else "N/A",
-            "STATUS": job.current_status.value
+            "STATUS": job.job_current_status.value
         }
         
         if job.job_type in [JobType.WELLSERVICE, JobType.WORKOVER]:
@@ -167,11 +164,8 @@ def get_ppp_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
 def get_co_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
     
     jobs = db.query(Job).filter(Job.planning_status == PPPStatus.APPROVED).filter(Job.job_type == job_type).all()
-    result = {}
     
-    for i, job in enumerate(jobs):
-
-        result = {
+    result = {
             "job_details": [],
             "summary": {
                 "selesai p3": 0,
@@ -179,7 +173,9 @@ def get_co_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
                 "disetujui": 0
             }
         }
-        
+    
+    for i, job in enumerate(jobs):
+
         job_detail = {
             "id": job.id,
             'NO':i+1,
@@ -191,7 +187,7 @@ def get_co_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
             "REALISASI SELESAI": job.actual_end_date.strftime("%d %b %Y") if job.actual_end_date else "N/A",
             "TANGGAL CO DIAJUKAN": job.date_co_proposed.strftime("%d %b %Y") if job.date_co_proposed else "N/A",
             "TANGGAL CO DISETUJUI": job.date_co_approved.strftime("%d %b %Y") if job.date_co_approved else "N/A",
-            "STATUS": job.current_status.value
+            "STATUS": job.job_current_status.value
         }
         
         if job.job_type in [JobType.WELLSERVICE, JobType.WORKOVER]:
