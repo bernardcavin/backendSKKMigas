@@ -35,7 +35,7 @@ job_phase_map = {
     'co': get_co_dashboard,
 }
 
-@router.get("/{job_type}/{job_phase}", response_model=Dict[str, Dict])
+@router.get("job-phase/{job_type}/{job_phase}", response_model=Dict[str, Dict])
 async def get_job_dashboard(job_type: str, job_phase: str, db: Session = Depends(get_db)):
     return job_phase_map[job_phase](db, job_type_map[job_type])
 
@@ -46,11 +46,13 @@ async def get_home_dashboard(db: Session = Depends(get_db)):
         'plot': get_dashboard_kkks_table(db)
     }
 
-@router.get("/view/{job_type}/", response_model=Dict[str, Dict])
+@router.get("/job/view/{job_type}/", response_model=Dict[str, Dict])
 async def view_job_progress(job_type: str, db: Session = Depends(get_db)):
     return make_job_graph(db, job_type_map[job_type], ['month','week'])
 
-
+@router.get("/job/dashboard/{job_type}")
+async def test(job_type: str, db: Session = Depends(get_db)):
+    return get_job_type_dashboard(db, job_type_map[job_type])
 
 
 

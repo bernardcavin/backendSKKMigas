@@ -415,7 +415,7 @@ def generate_dummy_data(n: int):
                                 "remark": "string"
                             }
                             ],
-                            "well_plan": well_dict,
+                            "well": well_dict,
                             "wrm_pembebasan_lahan": True,
                             "wrm_ippkh": True,
                             "wrm_ukl_upl": True,

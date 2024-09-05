@@ -1,13 +1,15 @@
 from os import close
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, Enum, Text, Boolean, Float, Date, func, select
-from backend.routers.well.models import DepthDatum
-from sqlalchemy.orm import relationship, declared_attr
+from backend.routers.well.models import ActualWell, DepthDatum, PlanWell, WellInstance
+from sqlalchemy.orm import relationship, declared_attr, with_polymorphic, aliased
 from backend.database import Base
 from enum import Enum as PyEnum
 import uuid
 from backend.utils.enum_operations import extend_enum
 from backend.utils.constants import uom
 from sqlalchemy.ext.hybrid import hybrid_property
+from backend.routers.spatial.models import Area,Lapangan
+from backend.routers.auth.models import KKKS
 
 class Percentage(PyEnum):
     P0 = "0%"
@@ -199,27 +201,43 @@ class Job(Base, CreateBase, ValidationBase):
     kkks_id = Column(String(36), ForeignKey('kkks.id'))
     kkks = relationship('KKKS', back_populates='jobs')
     
-    @property
-    def kkks_name(self):
-        return self.kkks.name if self.kkks else None
-    
     area_id = Column(String(36), ForeignKey('area.id'))
     area = relationship('Area', back_populates='jobs')
-    
-    @property
-    def area_name(self):
-        return self.area.name if self.area else None
-    
-    @property
-    def region(self):
-        return self.area.region if self.area else None
     
     field_id = Column(String(36), ForeignKey('fields.id'))
     field = relationship('Lapangan', back_populates='jobs')
     
-    @property
+    @hybrid_property
+    def kkks_name(self):
+        return self.kkks.name if self.kkks else None
+    
+    @kkks_name.expression
+    def kkks_name(cls):
+        return select(KKKS.name).where(cls.kkks_id == KKKS.id).as_scalar()
+
+    @hybrid_property
+    def area_name(self):
+        return self.area.name if self.area else None
+    
+    @area_name.expression
+    def area_name(cls):
+        return select(Area.name).where(cls.area_id == Area.id).as_scalar()
+
+    @hybrid_property
+    def region(self):
+        return self.area.region if self.area else None
+    
+    @region.expression
+    def region(cls):
+        return select(Area.region).where(cls.area_id == Area.id).as_scalar()
+
+    @hybrid_property
     def field_name(self):
         return self.field.name if self.field else None
+    
+    @field_name.expression
+    def field_name(cls):
+        return select(Lapangan.name).where(cls.field_id == Lapangan.id).as_scalar()
     
     #contract information
     contract_type = Column(Enum(ContractType))
@@ -228,16 +246,15 @@ class Job(Base, CreateBase, ValidationBase):
     wpb_year = Column(Integer)
     
     #Planning
-    job_plan_id = Column(String(36), ForeignKey('job_instances.id'))
+    job_plan_id = Column(String(36), ForeignKey('job_instances.job_instance_id'))
     job_plan = relationship('JobInstance', foreign_keys=[job_plan_id])
     
     @property
     def well_name(self):
-        
         if self.job_type in [JobType.WORKOVER,JobType.WELLSERVICE]:
             return self.job_plan.well.well_name if self.job_plan else None
         else:
-            return self.job_plan.well_plan.well_name if self.job_plan else None
+            return self.job_plan.well.well_name if self.job_plan else None
 
     date_proposed = Column(Date)
     date_returned = Column(Date)
@@ -246,7 +263,7 @@ class Job(Base, CreateBase, ValidationBase):
     planning_status = Column(Enum(PlanningStatus))
     
     #Operation
-    actual_job_id = Column(String(36), ForeignKey('job_instances.id'))
+    actual_job_id = Column(String(36), ForeignKey('job_instances.job_instance_id'))
     actual_job = relationship('JobInstance', foreign_keys=[actual_job_id])
     
     daily_operations_report = relationship('DailyOperationsReport', back_populates='job')
@@ -257,24 +274,48 @@ class Job(Base, CreateBase, ValidationBase):
     
     @plan_start_date.expression
     def plan_start_date(cls):
-        return select(PlanJob.start_date).where(cls.job_plan_id == PlanJob.id).as_scalar()
+        return select(JobInstance.start_date).where(cls.job_plan_id == JobInstance.job_instance_id).as_scalar()
+
+    @hybrid_property
+    def plan_total_budget(self):
+        return self.job_plan.total_budget if self.job_plan else None
     
-    @property
+    @plan_total_budget.expression
+    def plan_total_budget(cls):
+        return select(JobInstance.total_budget).where(cls.job_plan_id == JobInstance.job_instance_id).as_scalar()
+    
+    @hybrid_property
     def plan_end_date(self):
         return self.job_plan.end_date if self.job_plan else None
     
+    @plan_end_date.expression
+    def plan_end_date(cls):
+        return select(JobInstance.end_date).where(cls.job_plan_id == JobInstance.job_instance_id).as_scalar()
+
     @hybrid_property
     def actual_start_date(self):
         return self.actual_job.start_date if self.actual_job else None
     
     @actual_start_date.expression
     def actual_start_date(cls):
-        return select(ActualJob.start_date).where(cls.actual_job_id == ActualJob.id).as_scalar()
+        return select(JobInstance.start_date).where(cls.actual_job_id == JobInstance.job_instance_id).as_scalar()
+
+    @hybrid_property
+    def actual_total_budget(self):
+        return self.actual_job.total_budget if self.actual_job else None
     
-    @property
+    @actual_total_budget.expression
+    def actual_total_budget(cls):
+        return select(JobInstance.total_budget).where(cls.actual_job_id == JobInstance.job_instance_id).as_scalar()
+
+    @hybrid_property
     def actual_end_date(self):
         return self.actual_job.end_date if self.actual_job else None
     
+    @actual_end_date.expression
+    def actual_end_date(cls):
+        return select(JobInstance.end_date).where(cls.actual_job_id == JobInstance.job_instance_id).as_scalar()
+        
     job_issues = relationship('JobIssue', back_populates='job')
     
     operation_status = Column(Enum(OperationStatus))
@@ -306,7 +347,9 @@ class JobInstance(Base):
     
     __tablename__ = 'job_instances'
     
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    job_instance_id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    
+    well_id = Column(String(36), ForeignKey('well_instances.well_instance_id'))
     
     job_phase_type = Column(String)
     
@@ -323,40 +366,19 @@ class JobInstance(Base):
         "polymorphic_on": "job_phase_type",
     }
 
-class PlanJob(JobInstance):
-    
-    __tablename__ = 'job_plans'
-
-    id = Column(String(36), ForeignKey('job_instances.id'), primary_key=True)
-    
-    __mapper_args__ = {
-        "polymorphic_identity": "plan",
-    }
-
-class ActualJob(JobInstance):
-    
-    __tablename__ = 'job_actuals'
-
-    id = Column(String(36), ForeignKey('job_instances.id'), primary_key=True)
-    
-    __mapper_args__ = {
-        "polymorphic_identity": "actual",
-    }
-
-class PlanExploration(PlanJob):
+class PlanExploration(JobInstance):
     
     __tablename__ = 'job_plan_exploration'
     
-    id = Column(String(36), ForeignKey('job_plans.id'), primary_key=True)
+    id = Column(String(36), ForeignKey('job_instances.job_instance_id'), primary_key=True)
+    
+    well = relationship('PlanWell', foreign_keys=[JobInstance.well_id])
     
     # rig information
     rig_name = Column(String)
     rig_type = Column(Enum(RigType))
     rig_horse_power = Column(Float)
 
-    well_plan_id = Column(String(36), ForeignKey('well_plans.id'))
-    well_plan = relationship('PlanWell', foreign_keys=[well_plan_id])
-    
     wrm_pembebasan_lahan = Column(Boolean)
     wrm_ippkh = Column(Boolean)
     wrm_ukl_upl = Column(Boolean)
@@ -372,20 +394,19 @@ class PlanExploration(PlanJob):
         "polymorphic_identity": 'plan_exploration',
     }
 
-class PlanDevelopment(PlanJob):
+class PlanDevelopment(JobInstance):
     
     __tablename__ = 'job_plan_development'
     
-    id = Column(String(36), ForeignKey('job_plans.id'), primary_key=True)
+    id = Column(String(36), ForeignKey('job_instances.job_instance_id'), primary_key=True)
+    
+    well = relationship('PlanWell', foreign_keys=[JobInstance.well_id])
 
     # rig information
     rig_name = Column(String)
     rig_type = Column(Enum(RigType))
     rig_horse_power = Column(Float)
-    
-    well_plan_id = Column(String(36), ForeignKey('well_plans.id'))
-    well_plan = relationship('PlanWell', foreign_keys=[well_plan_id])
-    
+   
     wrm_pembebasan_lahan = Column(Boolean)
     wrm_ippkh = Column(Boolean)
     wrm_ukl_upl = Column(Boolean)
@@ -402,17 +423,16 @@ class PlanDevelopment(PlanJob):
         "polymorphic_identity": 'plan_development',
     }
 
-class PlanWorkover(PlanJob):
+class PlanWorkover(JobInstance):
     
     __tablename__ = 'job_plan_workover'
     
-    id = Column(String(36), ForeignKey('job_plans.id'), primary_key=True)
+    id = Column(String(36), ForeignKey('job_instances.job_instance_id'), primary_key=True)
+    
+    well = relationship('ActualWell', foreign_keys=[JobInstance.well_id])
     
     equipment = Column(String)
     equipment_sepesifications = Column(Text)
-    
-    well_id = Column(String(36), ForeignKey('well_actuals.id'))
-    well = relationship('ActualWell', foreign_keys=[well_id])
     
     job_category = Column(Enum(WOWSJobType))
     job_description = Column(Text)
@@ -435,17 +455,16 @@ class PlanWorkover(PlanJob):
         "polymorphic_identity": 'plan_workover',
     }
 
-class PlanWellService(PlanJob):
+class PlanWellService(JobInstance):
     
     __tablename__ = 'job_plan_well_service'
     
-    id = Column(String(36), ForeignKey('job_plans.id'), primary_key=True)
+    id = Column(String(36), ForeignKey('job_instances.job_instance_id'), primary_key=True)
+    
+    well = relationship('ActualWell', foreign_keys=[JobInstance.well_id])
     
     equipment = Column(String)
     equipment_sepesifications = Column(Text)
-    
-    well_id = Column(String(36), ForeignKey('well_actuals.id'))
-    well = relationship('ActualWell', foreign_keys=[well_id])
     
     job_category = Column(Enum(WOWSJobType))
     job_description = Column(Text)
@@ -464,20 +483,19 @@ class PlanWellService(PlanJob):
         "polymorphic_identity": 'plan_wellservice',
     }
 
-class ActualExploration(ActualJob):
+class ActualExploration(JobInstance):
     
     __tablename__ = 'job_actual_exploration'
     
-    id = Column(String(36), ForeignKey('job_actuals.id'), primary_key=True)
+    id = Column(String(36), ForeignKey('job_instances.job_instance_id'), primary_key=True)
+    
+    well = relationship('ActualWell', foreign_keys=[JobInstance.well_id])
     
     # rig information
     rig_name = Column(String)
     rig_type = Column(Enum(RigType))
     rig_horse_power = Column(Float)
 
-    well_id = Column(String(36), ForeignKey('well_actuals.id'))
-    well = relationship('ActualWell', foreign_keys=[well_id])
-    
     wrm_pembebasan_lahan = Column(Enum(Percentage))
     wrm_ippkh = Column(Enum(Percentage))
     wrm_ukl_upl = Column(Enum(Percentage))
@@ -493,19 +511,17 @@ class ActualExploration(ActualJob):
         "polymorphic_identity": 'actual_exploration',
     }
 
-class ActualDevelopment(ActualJob):
+class ActualDevelopment(JobInstance):
     
     __tablename__ = 'job_actual_development'
     
-    id = Column(String(36), ForeignKey('job_actuals.id'), primary_key=True)
+    id = Column(String(36), ForeignKey('job_instances.job_instance_id'), primary_key=True)
+    well = relationship('ActualWell', foreign_keys=[JobInstance.well_id])
 
     # rig information
     rig_name = Column(String)
     rig_type = Column(Enum(RigType))
     rig_horse_power = Column(Float)
-    
-    well_id = Column(String(36), ForeignKey('well_actuals.id'))
-    well = relationship('ActualWell', foreign_keys=[well_id])
     
     wrm_pembebasan_lahan = Column(Enum(Percentage))
     wrm_ippkh = Column(Enum(Percentage))
@@ -523,17 +539,16 @@ class ActualDevelopment(ActualJob):
         "polymorphic_identity": 'actual_development',
     }
 
-class ActualWorkover(ActualJob):
+class ActualWorkover(JobInstance):
     
     __tablename__ = 'job_actual_workover'
     
-    id = Column(String(36), ForeignKey('job_actuals.id'), primary_key=True)
+    id = Column(String(36), ForeignKey('job_instances.job_instance_id'), primary_key=True)
+    
+    well = relationship('ActualWell', foreign_keys=[JobInstance.well_id])
     
     equipment = Column(String)
     equipment_sepesifications = Column(Text)
-    
-    well_id = Column(String(36), ForeignKey('well_actuals.id'))
-    well = relationship('ActualWell', foreign_keys=[well_id])
     
     job_category = Column(Enum(WOWSJobType))
     job_description = Column(Text)
@@ -551,17 +566,16 @@ class ActualWorkover(ActualJob):
         "polymorphic_identity": 'actual_workover',
     }
 
-class ActualWellService(ActualJob):
+class ActualWellService(JobInstance):
     
     __tablename__ = 'job_actual_well_service'
     
-    id = Column(String(36), ForeignKey('job_actuals.id'), primary_key=True)
+    id = Column(String(36), ForeignKey('job_instances.job_instance_id'), primary_key=True)
+    
+    well = relationship('ActualWell', foreign_keys=[JobInstance.well_id])
     
     equipment = Column(String)
     equipment_sepesifications = Column(Text)
-    
-    well_id = Column(String(36), ForeignKey('well_actuals.id'))
-    well = relationship('ActualWell', foreign_keys=[well_id])
     
     job_category = Column(Enum(WOWSJobType))
     job_description = Column(Text)
@@ -579,7 +593,7 @@ class WorkBreakdownStructure(Base):
     __tablename__ = 'job_wbs'
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    job_instance_id = Column(String(36), ForeignKey('job_instances.id'))
+    job_instance_id = Column(String(36), ForeignKey('job_instances.job_instance_id'))
     job_instance = relationship('JobInstance', back_populates='work_breakdown_structure')
     
     event = Column(String)
@@ -592,7 +606,7 @@ class JobHazard(Base):
     __tablename__ = 'job_hazards'
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    job_instance_id = Column(String(36), ForeignKey('job_instances.id'))
+    job_instance_id = Column(String(36), ForeignKey('job_instances.job_instance_id'))
     job_instance = relationship('JobInstance', back_populates='job_hazards')
     
     hazard_type = Column(Enum(HazardType))
@@ -623,7 +637,7 @@ class JobDocument(Base):
     __tablename__ = 'job_documents'
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    job_instance_id = Column(String(36), ForeignKey('job_instances.id'))
+    job_instance_id = Column(String(36), ForeignKey('job_instances.job_instance_id'))
     job_instance = relationship('JobInstance', back_populates='job_documents')
 
     file_id = Column(String(36), ForeignKey('files.id'))
@@ -648,7 +662,7 @@ class JobOperationDay(Base):
     
     operation_days = Column(Float)
     
-    job_instance_id = Column(String(36), ForeignKey('job_instances.id'))
+    job_instance_id = Column(String(36), ForeignKey('job_instances.job_instance_id'))
     job_instance = relationship('JobInstance', back_populates='job_operation_days')
 
     def __init__(self, unit_type, *args, **kwargs):

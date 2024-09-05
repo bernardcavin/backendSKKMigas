@@ -66,7 +66,7 @@ def return_job_plan(id: str, remarks: str, db: Session, user: GetUser):
     
 def _get_well_from_plan(job: Union[PlanExploration, PlanDevelopment]) -> PlanWell:
     
-    return job.well_plan
+    return job.well
 
 def _get_plan_from_job(plan: Job) -> Union[PlanExploration, PlanDevelopment]:
     

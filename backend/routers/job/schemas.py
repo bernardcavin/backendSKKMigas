@@ -74,7 +74,7 @@ class CreatePlanExploration(JobPlanInstanceBase):
     rig_type: RigType
     rig_horse_power: Decimal
 
-    well_plan: CreatePlanWell
+    well: CreatePlanWell
     
     wrm_pembebasan_lahan: bool
     wrm_ippkh: bool
@@ -96,7 +96,7 @@ class CreatePlanDevelopment(JobPlanInstanceBase):
     rig_type: RigType
     rig_horse_power: Decimal
 
-    well_plan: CreatePlanWell
+    well: CreatePlanWell
     
     wrm_pembebasan_lahan: bool
     wrm_ippkh: bool
