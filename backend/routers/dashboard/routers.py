@@ -34,7 +34,7 @@ async def get_job_dashboard(job_type: str, job_phase: str, db: Session = Depends
 async def get_home_dashboard(db: Session = Depends(get_db)):
     return {
         'tablechart': get_dashboard_progress_tablechart(db),
-        'plot': get_dashboard_kkks_table(db)
+        'tablekkks': get_dashboard_kkks_table(db)
     }
 
 @router.get("/view-job/{job_type}/")
