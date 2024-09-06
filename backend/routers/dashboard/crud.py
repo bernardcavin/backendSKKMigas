@@ -604,6 +604,7 @@ def get_job_type_dashboard(db: Session, job_type: JobType):
         'summary': get_job_type_summary(db, job_type),
         'job_graph': make_job_graph(db, job_type, ['month']),
         'cost_graph': cost_graph,
+        'tablekkks': get_kkks_table_by_job_type(db, job_type)
     }
     
     if job_type in [JobType.WELLSERVICE, JobType.WORKOVER]:
