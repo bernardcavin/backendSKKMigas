@@ -66,14 +66,28 @@ async def upload_trajectory_file(file: UploadFile = File(...), db: Session = Dep
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"File cannot be processed.")
     
-    fig = go.Figure()
+    fig = go.Figure(
+        data=[go.Scatter3d(x=well_profile_df['east'],
+                            y=well_profile_df['north'],
+                            z=well_profile_df['tvd'],
+                            mode='markers',
+                            marker=dict(
+                                showscale=True,
+                                opacity=0.8),
+                            legendgroup=True,
+                            hovertemplate='%{text}<extra></extra><br>' + '<b>North</b>: %{y:.2f}<br>' +
+                                            '<b>East</b>: %{x}<br>' + '<b>TVD</b>: %{z}<br>',
+                           )])
 
-    # Plot planned well trajectory
-    x = well_profile_df['east']
-    y = well_profile_df['md']
-    z = well_profile_df['north']
+    fig.update_layout(scene=dict(
+        xaxis_title='East',
+        yaxis_title='North',
+        zaxis_title='TVD',
+        aspectmode='manual'))
 
-    fig.add_trace(go.Scatter3d(x=x, y=y, z=z))
+    fig.update_scenes(zaxis_autorange="reversed")
+    fig.update_layout(title='Wellbore Trajectory - 3D View')
+    
     fig.update_layout(template='plotly_white')
     
     fig_json = fig.to_json(pretty=True, engine="json")
@@ -83,10 +97,6 @@ async def upload_trajectory_file(file: UploadFile = File(...), db: Session = Dep
         'fileinfo':file_info,
         'plot': fig_data
     }
-
-
-
-
 
 # enum_map = {
 #     "roles": Role,
