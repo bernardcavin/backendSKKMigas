@@ -223,6 +223,7 @@ def get_dashboard_progress_tablechart(db: Session) -> Dict:
         dashboard_table_data[job_type]["rencana"] = result.rencana
         dashboard_table_data[job_type]["realisasi"] = result.realisasi
         dashboard_table_data[job_type]["change"] = result.change
+        dashboard_table_data[job_type]["percentage"] = (result.realisasi/result.rencana)*100 if result.rencana > 0 else 0
     
     job_types = list(job_type_map.keys())
     
