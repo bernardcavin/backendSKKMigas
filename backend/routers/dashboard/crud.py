@@ -277,10 +277,10 @@ def get_dashboard_kkks_table(db: Session) -> Dict:
             dict(
                 id=result.id,
                 name=result.name,
-                exploration_percentage=f'{round(result.exploration_percentage, 2)}%' if result.exploration_percentage else 0,
-                development_percentage=f'{round(result.development_percentage, 2)}%' if result.development_percentage else 0,
-                workover_percentage=f'{round(result.workover_percentage, 2)}%' if result.workover_percentage else 0,
-                wellservice_percentage=f'{round(result.wellservice_percentage, 2)}%' if result.wellservice_percentage else 0,
+                exploration_percentage=round(result.exploration_percentage, 2) if result.exploration_percentage else 0,
+                development_percentage=round(result.development_percentage, 2) if result.development_percentage else 0,
+                workover_percentage=round(result.workover_percentage, 2) if result.workover_percentage else 0,
+                wellservice_percentage=round(result.wellservice_percentage, 2) if result.wellservice_percentage else 0,
             )  
         )
 
@@ -475,7 +475,7 @@ def get_kkks_table_by_job_type(db: Session, job_type: JobType):
                 name=result.name,
                 rencana=result.rencana,
                 realisasi=result.realisasi,
-                percentage=f'{round(result.rencana / result.realisasi * 100, 2)}%' if result.realisasi > 0 else 0,
+                percentage=round(result.rencana / result.realisasi * 100, 2) if result.realisasi > 0 else 0,
             )  
         )
 
