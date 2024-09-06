@@ -222,6 +222,7 @@ def get_dashboard_progress_tablechart(db: Session) -> Dict:
         dashboard_table_data[job_type] = {}
         dashboard_table_data[job_type]["rencana"] = result.rencana
         dashboard_table_data[job_type]["realisasi"] = result.realisasi
+        dashboard_table_data[job_type]["change"] = result.change
     
     job_types = list(job_type_map.keys())
     
