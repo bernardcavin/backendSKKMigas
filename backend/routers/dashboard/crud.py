@@ -304,7 +304,10 @@ def make_job_graph(db: Session, job_type: JobType, periods: list) -> Dict[str, D
         (Job.actual_start_date).label('actual_start_date'),
     ).filter(
         Job.job_type == job_type,
-        Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]),
+        or_(
+            Job.operation_status == OperationStatus.OPERATING,
+            Job.operation_status == OperationStatus.FINISHED,
+        ),
         Job.wpb_year == current_year).all()
     
     list_rencana = [date.plan_start_date for date in rencana]
