@@ -598,7 +598,7 @@ def get_environment_type_by_job_type(db: Session, job_type: JobType):
 def get_job_type_dashboard(db: Session, job_type: JobType):
     
     cost = get_costs_by_job_type(db, job_type)
-    cost_graph = generate_vs_bar_graph([cost['rencana'], cost['realisasi']], ['Plan Cost', 'Actual Cost'], orientation='h')
+    cost_graph = generate_vs_bar_graph(['Plan Cost', 'Actual Cost'],[cost['rencana'], cost['realisasi']], orientation='h')
 
     output = {
         'summary': get_job_type_summary(db, job_type),
