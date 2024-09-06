@@ -32,9 +32,7 @@ async def create_planning_development(plan: schemas.DevelopmentJobPlan, db: Sess
 @router.post("/planning/create/workover", response_model=OutputSchema)
 @authorize(role=[Role.Admin,Role.KKKS])
 async def create_planning_workover(plan: schemas.WorkoverJobPlan, db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
-    
     job_id = crud.create_job_plan(db, JobType.WORKOVER, plan, user)
-    
     return OutputSchema(
         id=job_id
     )

@@ -59,10 +59,12 @@ async def read_tabular_file(file: UploadFile = File(...), user: GetUser = Depend
 @router.post("/upload/trajectory")
 async def upload_trajectory_file(file: UploadFile = File(...), db: Session = Depends(get_db), user: GetUser = Depends(get_current_user)):
     
-    file_info = save_upload_file(db, file, user)
-    
-    well_profile = load(file_info.file_location)
-    well_profile_df = pd.DataFrame(well_profile.trajectory)
+    try:
+        file_info = save_upload_file(db, file, user)
+        well_profile = load(file_info.file_location)
+        well_profile_df = pd.DataFrame(well_profile.trajectory)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"File cannot be processed.")
     
     fig = go.Figure()
 
@@ -78,6 +80,7 @@ async def upload_trajectory_file(file: UploadFile = File(...), db: Session = Dep
     fig_data = json.loads(fig_json)
 
     return {
+        'fileinfo':file_info,
         'plot': fig_data
     }
 
