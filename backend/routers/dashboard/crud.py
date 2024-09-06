@@ -478,7 +478,7 @@ def get_kkks_table_by_job_type(db: Session, job_type: JobType):
                 name=result.name,
                 rencana=result.rencana,
                 realisasi=result.realisasi,
-                percentage=round(result.rencana / result.realisasi * 100, 2) if result.realisasi > 0 else 0,
+                percentage=round( result.realisasi/ result.rencana * 100, 2) if result.rencana > 0 else 0,
             )  
         )
 
