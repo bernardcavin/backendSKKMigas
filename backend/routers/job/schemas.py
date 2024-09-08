@@ -68,6 +68,17 @@ class JobPlanInstanceBase(BaseModel):
     job_hazards: List[JobHazardBase]
     job_documents: List[JobDocumentBase]
 
+class JobActualInstanceBase(BaseModel):
+    
+    start_date: date
+    end_date: date
+    total_budget: Decimal = Field(default=None, max_digits=10, decimal_places=2)
+    
+    job_operation_days: List[JobOperationDayBase]
+    work_breakdown_structure: List[WorkBreakdownStructureBase]
+    job_hazards: List[JobHazardBase]   
+    job_documents: List[JobDocumentBase]
+
 class CreatePlanExploration(JobPlanInstanceBase):
     
     rig_name: str
@@ -159,6 +170,87 @@ class CreatePlanWellService(JobPlanInstanceBase):
     class Meta:
         orm_model = PlanWellService
 
+class CreateActualExploration(JobActualInstanceBase):
+    
+    rig_name: str
+    rig_type: RigType
+    rig_horse_power: Decimal
+
+    well: CreateActualWell
+    
+    wrm_pembebasan_lahan: Percentage
+    wrm_ippkh: Percentage
+    wrm_ukl_upl: Percentage
+    wrm_amdal: Percentage
+    wrm_pengadaan_rig: Percentage
+    wrm_pengadaan_drilling_services: Percentage
+    wrm_pengadaan_lli: Percentage
+    wrm_persiapan_lokasi: Percentage
+    wrm_internal_kkks: Percentage
+    wrm_evaluasi_subsurface: Percentage
+    
+    class Meta:
+        orm_model = ActualExploration
+
+class CreateActualDevelopment(JobActualInstanceBase):
+    
+    rig_name: str
+    rig_type: RigType
+    rig_horse_power: Decimal
+
+    well: CreateActualWell
+    
+    wrm_pembebasan_lahan: Percentage
+    wrm_ippkh: Percentage
+    wrm_ukl_upl: Percentage
+    wrm_amdal: Percentage
+    wrm_cutting_dumping: Percentage
+    wrm_pengadaan_rig: Percentage
+    wrm_pengadaan_drilling_services: Percentage
+    wrm_pengadaan_lli: Percentage
+    wrm_persiapan_lokasi: Percentage
+    wrm_internal_kkks: Percentage
+    wrm_evaluasi_subsurface: Percentage
+    
+    class Meta:
+        orm_model = ActualDevelopment
+    
+class CreateActualWorkover(JobActualInstanceBase):
+    
+    equipment: str
+    equipment_sepesifications: str
+    
+    well_id: str
+    
+    job_category: WOWSJobType
+    job_description: str
+    
+    #target
+    onstream_oil: Decimal
+    onstream_gas: Decimal
+    onstream_water_cut: Decimal
+    
+    class Meta:
+        orm_model = ActualWorkover
+    
+class CreateActualWellService(JobActualInstanceBase):
+    
+    equipment: str
+    equipment_sepesifications: str
+    
+    well_id: str
+    
+    job_category: WOWSJobType
+    job_description: str
+    
+    #target
+    onstream_oil: Decimal
+    onstream_gas: Decimal
+    onstream_water_cut: Decimal
+    
+    class Meta:
+        orm_model = ActualWellService
+
 class PlanJobBase(BaseModel):
 
     #kkks information
@@ -173,6 +265,18 @@ class PlanJobBase(BaseModel):
     
     class Meta:
         orm_model = Job
+
+class ActualJobBase(BaseModel):
+
+    #kkks information
+    area_id: str
+    field_id: str
+    
+    #contract information
+    contract_type: ContractType
+    
+    afe_number: str
+    wpb_year: int
 
 class ExplorationJobPlan(PlanJobBase):
     
@@ -189,5 +293,21 @@ class WorkoverJobPlan(PlanJobBase):
 class WellServiceJobPlan(PlanJobBase):
     
     job_plan: CreatePlanWellService
+
+class ExplorationActualJob(ActualJobBase):
+    
+    actual_job: CreateActualExploration
+
+class DevelopmentActualJob(ActualJobBase):
+    
+    actual_job: CreateActualDevelopment
+
+class WorkoverActualJob(ActualJobBase):
+    
+    actual_job: CreateActualWorkover
+
+class WellServiceActualJob(ActualJobBase):
+    
+    actual_job: CreateActualWellService
     
     

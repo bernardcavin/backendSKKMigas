@@ -1,3 +1,4 @@
+from pyparsing import C
 from sqlalchemy.orm import Session
 from backend.routers.auth.models import *
 from backend.routers.job.models import *
@@ -20,7 +21,8 @@ import plotly.graph_objects as go
 import calendar
 import numpy as np
 import pandas as pd
-from backend.routers.dashboard.utils import generate_pie_chart, generate_vs_bar_graph, generate_stimulation_graph
+from backend.routers.dashboard.utils import generate_pie_chart, generate_vs_bar_graph, generate_stimulation_graph, COLOR_SEQUENCE
+
 
 job_type_map = {
     'Exploration': JobType.EXPLORATION,
@@ -55,7 +57,7 @@ def get_plans_dashboard(db: Session, job_type: JobType):
             "RENCANA MULAI": job.plan_start_date.strftime("%d %b %Y") if job.plan_start_date else "N/A",
             "RENCANA SELESAI": job.plan_end_date.strftime("%d %b %Y") if job.plan_end_date else "N/A",
             "TANGGAL DIAJUKAN": job.date_proposed.strftime("%d %b %Y") if job.date_proposed else "N/A",
-            "STATUS": job.job_current_status.value
+            "STATUS": job.planning_status.value,
         }
         
         if job.job_type in [JobType.WELLSERVICE, JobType.WORKOVER]:
@@ -99,7 +101,7 @@ def get_operations_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
             "RENCANA SELESAI": job.plan_end_date.strftime("%d %b %Y") if job.plan_end_date else "N/A",
             "REALISASI MULAI": job.actual_start_date.strftime("%d %b %Y") if job.actual_start_date else "N/A",
             "REALISASI SELESAI": job.actual_end_date.strftime("%d %b %Y") if job.actual_end_date else "N/A",
-            "STATUS": job.job_current_status.value
+            "STATUS": job.operation_status.value
         }
         
         if job.job_type in [JobType.WELLSERVICE, JobType.WORKOVER]:
@@ -143,7 +145,7 @@ def get_ppp_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
             "REALISASI SELESAI": job.actual_end_date.strftime("%d %b %Y") if job.actual_end_date else "N/A",
             "TANGGAL P3 DIAJUKAN": job.date_ppp_proposed.strftime("%d %b %Y") if job.date_ppp_proposed else "N/A",
             "TANGGAL P3 DISETUJUI": job.date_ppp_approved.strftime("%d %b %Y") if job.date_ppp_approved else "N/A",
-            "STATUS": job.job_current_status.value
+            "STATUS": job.ppp_status.value
         }
         
         if job.job_type in [JobType.WELLSERVICE, JobType.WORKOVER]:
@@ -187,7 +189,7 @@ def get_co_dashboard(db: Session, job_type: JobType) -> Dict[str, Dict]:
             "REALISASI SELESAI": job.actual_end_date.strftime("%d %b %Y") if job.actual_end_date else "N/A",
             "TANGGAL CO DIAJUKAN": job.date_co_proposed.strftime("%d %b %Y") if job.date_co_proposed else "N/A",
             "TANGGAL CO DISETUJUI": job.date_co_approved.strftime("%d %b %Y") if job.date_co_approved else "N/A",
-            "STATUS": job.job_current_status.value
+            "STATUS": job.closeout_status.value
         }
         
         if job.job_type in [JobType.WELLSERVICE, JobType.WORKOVER]:
@@ -228,10 +230,19 @@ def get_dashboard_progress_tablechart(db: Session) -> Dict:
     job_types = list(job_type_map.keys())
     
     fig = go.Figure(data=[
-        go.Bar(name='Rencana', x=job_types, y=[dashboard_table_data[job_type_map[job_type].value.lower()]["rencana"] for job_type in job_types]),
-        go.Bar(name='Realisasi', x=job_types, y=[dashboard_table_data[job_type_map[job_type].value.lower()]["realisasi"] for job_type in job_types])
+        go.Bar(name='Rencana', x=job_types, y=[dashboard_table_data[job_type_map[job_type].value.lower()]["rencana"] for job_type in job_types], marker_color=COLOR_SEQUENCE[0]),
+        go.Bar(name='Realisasi', x=job_types, y=[dashboard_table_data[job_type_map[job_type].value.lower()]["realisasi"] for job_type in job_types], marker_color=COLOR_SEQUENCE[1])
     ])
-
+    
+    fig.update_layout(
+        hovermode='x unified',
+        template='plotly_white',
+        margin={'l': 0, 'r': 0, 'b': 0, 't': 0},
+        xaxis={'type': 'category'},  # Keep the category type for the x-axis
+        yaxis2={'showgrid': False},  # Hide grid for secondary y-axis
+        bargap=0.1,  # Add some gap between bars,
+    )
+    
     fig.update_layout(barmode='group')
     fig.update_layout(template='plotly_white')
     fig_json = fig.to_json(pretty=True, engine="json")
@@ -312,45 +323,65 @@ def make_job_graph(db: Session, job_type: JobType, periods: list) -> Dict[str, D
     
     list_rencana = [date.plan_start_date for date in rencana]
     list_realisasi = [date.actual_start_date for date in realisasi]
-    
+
     output = {}
     
     if 'month' in periods:
         
-        months_rencana = [date.strftime("%B") if date is not None else None for date in list_rencana]
-        months_realisasi = [date.strftime("%B") if date is not None else None for date in list_realisasi]
-
+        rencana = pd.to_datetime(pd.Series(list_rencana)).dt.to_period('M')
+        realisasi = pd.to_datetime(pd.Series(list_realisasi)).dt.to_period('M')
+        
+        start_date = datetime(current_year, 1, 1).date()
+        end_date = datetime(current_year, 12, 31).date()
+        
+        months_list = np.unique(pd.date_range(start=start_date, end=end_date).to_period('M'))
+        
         m=[]
         j_rencana=[]
         j_realisasi=[]
 
-        month_counts_rencana = Counter(months_rencana)
-        month_counts_realisasi = Counter(months_realisasi)
-        month_names = calendar.month_name[1:]
+        month_counts_rencana = Counter(rencana)
+        month_counts_realisasi = Counter(realisasi)
+        nama_bulan = calendar.month_name[1:]
 
-        for month in month_names:
-            m.append(f'{month} {current_year}')
-            j_rencana.append(month_counts_rencana.get(month, 0))
-            j_realisasi.append(month_counts_realisasi.get(month, 0))
+        for month in months_list:
+            m.append(f'{nama_bulan[month.month-1]} {month.year}')
+            try:
+                j_rencana.append(month_counts_rencana[month])
+                
+            except:
+                j_rencana.append(0)
+            try:
+                j_realisasi.append(month_counts_realisasi[month])
+            except:
+                j_realisasi.append(0)
+        
 
         rencanasum = np.cumsum(j_rencana)
         realisasisum = np.cumsum(j_realisasi)
-
-        # Graph components
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
-        fig.add_trace(go.Bar(y=j_rencana, x=m, name="Rencana", marker_color="#eb2427"),secondary_y=False)
-        fig.add_trace(go.Bar(y=j_realisasi, x=m, name="Realisasi", marker_color="#bcd42c"),secondary_y=False)
-        fig.add_trace(go.Scatter(y=rencanasum, x=m, name="Outlook Kumulatif", marker_color="#eb2427"),secondary_y=True)
-        fig.add_trace(go.Scatter(y=realisasisum, x=m, name="Realisasi Kumulatif", marker_color="#bcd42c"),secondary_y=True)
-        fig.update_layout(hovermode='x unified')
-        fig.update_layout(template='plotly_white')
-        fig['layout']['margin'] = {'l': 10, 'r': 10, 'b': 10, 't': 10}
-        fig['layout']['xaxis']['type'] = 'category'
-        fig['layout']['yaxis2']['showgrid'] = False
         
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig.add_trace(go.Bar(y=j_rencana, x=m, name="Rencana", text=j_rencana, textposition='auto', marker_color=COLOR_SEQUENCE[0]), secondary_y=False)
+        fig.add_trace(go.Bar(y=j_realisasi, x=m, name="Realisasi", text=j_realisasi, textposition='auto', marker_color=COLOR_SEQUENCE[1]), secondary_y=False)
+        fig.add_trace(go.Scatter(y=rencanasum, x=m, name="Outlook Kumulatif", marker_color=COLOR_SEQUENCE[2]), secondary_y=True)
+        fig.add_trace(go.Scatter(y=realisasisum, x=m, name="Realisasi Kumulatif", marker_color=COLOR_SEQUENCE[3]), secondary_y=True)
+
+        # Update layout for better visualization
+        fig.update_layout(
+            hovermode='x unified',
+            template='plotly_white',
+            margin={'l': 0, 'r': 0, 'b': 0, 't': 0},
+            xaxis={'type': 'category'},  # Keep the category type for the x-axis
+            yaxis2={'showgrid': False},  # Hide grid for secondary y-axis
+            bargap=0.1,  # Add some gap between bars,
+        )
+
+        # Update the range of the primary and secondary y-axes to prevent overlap
+        fig.update_yaxes(title_text="Count", secondary_y=False)
+        fig.update_yaxes(title_text="Cumulative", secondary_y=True)
+
         fig_json = fig.to_json(pretty=True, engine="json")
         fig_data = json.loads(fig_json)
-        
         output['month'] = fig_data
     
     if 'week' in periods:
@@ -397,10 +428,10 @@ def make_job_graph(db: Session, job_type: JobType, periods: list) -> Dict[str, D
 
         # Graph components
         fig = make_subplots(specs=[[{"secondary_y": True}]])
-        fig.add_trace(go.Bar(y=j_rencana, x=w, name="Rencana", marker_color="#eb2427"),secondary_y=False)
-        fig.add_trace(go.Bar(y=j_realisasi, x=w, name="Realisasi", marker_color="#bcd42c"),secondary_y=False)
-        fig.add_trace(go.Scatter(y=rencanasum, x=w, name="Outlook Kumulatif", marker_color="#eb2427"),secondary_y=True)
-        fig.add_trace(go.Scatter(y=realisasisum, x=w, name="Realisasi Kumulatif", marker_color="#bcd42c"),secondary_y=True)
+        fig.add_trace(go.Bar(y=j_rencana, x=w, name="Rencana", marker_color=COLOR_SEQUENCE[0]),secondary_y=False)
+        fig.add_trace(go.Bar(y=j_realisasi, x=w, name="Realisasi", marker_color=COLOR_SEQUENCE[1]),secondary_y=False)
+        fig.add_trace(go.Scatter(y=rencanasum, x=w, name="Outlook Kumulatif", marker_color=COLOR_SEQUENCE[2]),secondary_y=True)
+        fig.add_trace(go.Scatter(y=realisasisum, x=w, name="Realisasi Kumulatif", marker_color=COLOR_SEQUENCE[3]),secondary_y=True)
         fig.update_layout(hovermode='x unified')
         fig.update_layout(template='plotly_white')
         fig['layout']['xaxis']['type'] = 'category'
@@ -471,17 +502,23 @@ def get_kkks_table_by_job_type(db: Session, job_type: JobType):
 
     kkks_data = []
     for result in results:
-
-        kkks_data.append(
-            dict(
-                id=result.id,
-                name=result.name,
-                rencana=result.rencana,
-                realisasi=result.realisasi,
-                percentage=round( result.realisasi/ result.rencana * 100, 2) if result.rencana > 0 else 0,
-            )  
-        )
-
+        
+        if result.rencana == 0 and result.realisasi == 0:
+            
+            pass
+        
+        else:
+            
+            kkks_data.append(
+                dict(
+                    id=result.id,
+                    name=result.name,
+                    rencana=result.rencana,
+                    realisasi=result.realisasi,
+                    percentage=round( result.realisasi/ result.rencana * 100, 2) if result.rencana > 0 else 0,
+                )  
+            )
+            
     return kkks_data
 
 def get_costs_by_job_type(db: Session, job_type: JobType):
@@ -557,7 +594,7 @@ def get_well_stimulation_by_job_type(db: Session, job_type: JobType):
             func.sum(actual_job_model.onstream_oil).label('final_onstream_oil'), 
             func.sum(actual_job_model.onstream_gas).label('final_onstream_gas'), 
         )
-        .join(Job, Job.job_plan_id == actual_job_model.job_instance_id)
+        .join(Job, Job.actual_job_id == actual_job_model.job_instance_id)
         .filter(Job.job_type == job_type, 
             or_(
                 Job.operation_status == OperationStatus.OPERATING,

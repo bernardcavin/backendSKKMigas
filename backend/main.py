@@ -10,32 +10,49 @@ from backend.routers.visualize import routers as visualization_routers
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 import sys
+import contextlib
+from backend.database import SessionLocal
+from sqlalchemy.orm import Session
+from backend.routers.auth.models import User
+from backend.utils.create_dummy_data import generate_dummy_data
 
 import os
 
 app = FastAPI()
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-stream_handler = logging.StreamHandler(sys.stdout)
-log_formatter = logging.Formatter("%(asctime)s [%(processName)s: %(process)d] [%(threadName)s: %(thread)d] [%(levelname)s] %(name)s: %(message)s")
-stream_handler.setFormatter(log_formatter)
-logger.addHandler(stream_handler)
+def reset_database(engine):
+    Base.metadata.drop_all(bind=engine)  # Drops all tables
+    Base.metadata.create_all(bind=engine)  # Creates all tables
+    
+def data_exists(db: Session):
+    return db.query(User).first() is not None
+    
+@contextlib.contextmanager
+def get_db_context():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-if int(os.getenv('DEMO_MODE'))==1:
-    logger.info('Creating dummy data')
-    if os.path.exists('test.db'):
-        os.remove("test.db")
-    from backend.utils.create_dummy_data import generate_dummy_data
-    Base.metadata.create_all(bind=engine)
-    generate_dummy_data(n=10)
-    logger.info('Dummy data successfully created')
+# Main logic for generating dummy data if no data exists
+def handle_data_creation(engine, demo_mode=False):
+    with get_db_context() as session:
+        print('Database connection established')
+        try:
+            if data_exists(session):
+                pass
+
+        except:
+            reset_database(engine)
+
+            if demo_mode:
+                generate_dummy_data(session, n=500)
+
+if int(os.getenv('DEMO_MODE', 0)) == 1:
+    handle_data_creation(engine, demo_mode=True)
 else:
-    if os.path.exists('test.db'):
-        os.remove("test.db")
-    from backend.utils.create_dummy_data import generate_dummy_user
-    Base.metadata.create_all(bind=engine)
-    generate_dummy_user()
+    handle_data_creation(engine)
 
 app.add_middleware(
     CORSMiddleware,

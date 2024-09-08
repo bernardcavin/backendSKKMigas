@@ -1,5 +1,8 @@
 import json
 import plotly.graph_objects as go
+import plotly.express as px
+
+COLOR_SEQUENCE = px.colors.qualitative.Pastel
 
 def generate_pie_chart(data: list, labels: list):
     
@@ -40,11 +43,13 @@ def generate_pie_chart(data: list, labels: list):
         margin=dict(
             l=0,
             r=0,
-            t=50,
+            t=0,
             b=0
         ),
         plot_bgcolor='white',
     )
+    
+    fig.update_traces(marker=dict(colors=COLOR_SEQUENCE))
 
     fig_json = fig.to_json(pretty=True, engine="json")
     fig_data = json.loads(fig_json)
@@ -93,11 +98,13 @@ def generate_vs_bar_graph(x_axis: list, y_axis: list, orientation: str = 'v'):
         margin=dict(
             l=0,
             r=0,
-            t=50,
+            t=0,
             b=0
         ),
         plot_bgcolor='white',
     )
+    
+    fig.update_traces(marker=dict(color=COLOR_SEQUENCE))
 
     fig_json = fig.to_json(pretty=True, engine="json")
     fig_data = json.loads(fig_json)
@@ -108,12 +115,16 @@ def generate_stimulation_graph(stimulation_data: dict):
     
     fig = go.Figure()
     fig.add_trace(go.Bar(
-        x=['Oil Before', 'Gas Before'],
+        x=['Oil', 'Gas'],
         y=[stimulation_data['current_onstream_oil'], stimulation_data['current_onstream_gas']],
+        name='Current',
+        marker_color=COLOR_SEQUENCE[0]
     ))
     fig.add_trace(go.Bar(
-        x=['Final Oil', 'Final Gas'],
+        x=['Oil', 'Gas'],
         y=[stimulation_data['final_onstream_oil'], stimulation_data['final_onstream_gas']],
+        name='Final',
+        marker_color=COLOR_SEQUENCE[1]
     ))
 
     fig.update_layout(barmode='group')
@@ -147,7 +158,7 @@ def generate_stimulation_graph(stimulation_data: dict):
         margin=dict(
             l=0,
             r=0,
-            t=50,
+            t=0,
             b=0
         ),
         plot_bgcolor='white',
@@ -157,3 +168,4 @@ def generate_stimulation_graph(stimulation_data: dict):
     fig_data = json.loads(fig_json)
     
     return fig_data
+
