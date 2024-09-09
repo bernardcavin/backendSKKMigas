@@ -8,6 +8,7 @@ Dockerfile.backend
 Dockerfile.frontend
 Dockerfile.req
 .dockerignore
+.venv
 
 app/__pycache__
 

@@ -49,7 +49,6 @@ pillow==10.4.0
 plotly==5.23.0
 psycopg2-binary==2.9.9
 pyasn1==0.6.0
-pydantic==2.8.2
 pydantic-extra-types==2.9.0
 pydantic_core==2.20.1
 pydot==3.0.1
