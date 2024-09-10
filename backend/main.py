@@ -38,7 +38,6 @@ def get_db_context():
 # Main logic for generating dummy data if no data exists
 def handle_data_creation(engine, demo_mode=False):
     with get_db_context() as session:
-        print('Database connection established')
         try:
             if data_exists(session):
                 pass
