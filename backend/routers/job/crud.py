@@ -13,6 +13,7 @@ from backend.routers.job.utils import create_gantt_chart, create_operation_plot,
 from backend.routers.visualize.schemas import VisualizeCasing
 from backend.routers.visualize.routers import request_visualize_casing
 
+
 from well_profile import load
 import pandas as pd
 
@@ -234,6 +235,74 @@ def get_job_plan(id: str, db: Session) -> Job:
     
     return view_plan
 
+
+def time_to_datetime(t: time) -> datetime:
+    return datetime.combine(date.today(), t)
+
+def datetime_to_time(dt: datetime) -> time:
+    return dt.time()
+
+# In your CRUD operations
+def create_daily_operations_report(db: Session, report: DailyOperationsReportCreate):
+    db_report = DailyOperationsReport(**report.dict(exclude={'time_breakdowns', 'personnel', 'Incidents', 'bit_records'}))
+    
+    for tb in report.time_breakdowns:
+        start_datetime = datetime.combine(report.report_date, tb.start_time)
+        end_datetime = datetime.combine(report.report_date, tb.end_time)
+        
+        # If end_time is earlier than start_time, assume it's the next day
+        if end_datetime <= start_datetime:
+            end_datetime += timedelta(days=1)
+        
+        db_time_breakdown = TimeBreakdown(
+            start_time=start_datetime.replace(microsecond=0),
+            end_time=end_datetime.replace(microsecond=0),
+            start_measured_depth=tb.start_measured_depth,
+            end_measured_depth=tb.end_measured_depth,
+            category=tb.category,
+            p=tb.p,
+            npt=tb.npt,
+            code=tb.code,
+            operation=tb.operation
+        )
+        db_report.time_breakdowns.append(db_time_breakdown)
+    
+    for p in report.personnel:
+        db_personnel = Personnel(
+            company=p.company,
+            people=p.people
+        )
+        db_report.personnel.append(db_personnel)
+    
+    for incident in report.Incidents:
+        db_incident = Incident(
+            incidents_time=incident.incidents_time,
+            incident=incident.incident,
+            incident_type=incident.incident_type,
+            comments=incident.comments
+        )
+        db_report.Incidents.append(db_incident)
+
+    for bit_record in report.bit_records:
+        db_bit_record = BitRecord(
+            bit_size=bit_record.bit_size,
+            manufacturer=bit_record.manufacturer,
+            iadc_code=bit_record.iadc_code,
+            jets=bit_record.jets,
+            serial=bit_record.serial,
+            depth_out=bit_record.depth_out,
+            depth_in=bit_record.depth_in,
+            meterage=bit_record.meterage,
+            bit_hours=bit_record.bit_hours,
+            nozzels=bit_record.nozzels,
+            dull_grade=bit_record.dull_grade
+        )
+        db_report.bit_records.append(db_bit_record)
+    
+    db.add(db_report)
+    db.commit()
+    db.refresh(db_report)
+    return {"data": db_report, "status": 200}
 
 
 
