@@ -1,6 +1,6 @@
 from typing import Dict, Any, Union, List
 
-from pydantic import BaseModel, condecimal, Json
+from pydantic import BaseModel, condecimal, Json,ConfigDict
 from datetime import datetime
 
 from backend.routers.job.models import *
@@ -351,6 +351,7 @@ def validate_time(v):
 TimeField = Annotated[time, Field(json_schema_extra={"type": "string", "format": "time"})]
 
 class TimeBreakdownBase(BaseModel):
+    daily_operations_report_id: str
     start_time: time
     end_time: time
     start_measured_depth: float
@@ -457,6 +458,7 @@ class DailyOperationsReportBase(BaseModel):
 
 
 class PersonnelBase(BaseModel):
+    daily_operations_report_id: str
     company: str
     people: int
 
@@ -471,6 +473,7 @@ class PersonnelInDB(PersonnelBase):
 
 
 class IncidentBase(BaseModel):
+    daily_operations_report_id: str
     incidents_time: datetime
     incident: str
     incident_type: str
@@ -506,12 +509,11 @@ class IncidentInDB(IncidentBase):
         from_attributes = True
 
 class BitRecordBase(BaseModel):
+    daily_operations_report_id: str
     id: str
-    start_time: datetime
-    end_time: datetime
-    bit_type: str
     bit_size: float
-    bit_count: int
+    bit_number: int
+    bit_run: int
     manufacturer: str
     iadc_code: str
     jets: str
@@ -522,19 +524,6 @@ class BitRecordBase(BaseModel):
     bit_hours: float
     nozzels: float
     dull_grade: str
-
-
-
-
-    @validator('start_time', 'end_time')
-    def validate_time(cls, v):
-        if isinstance(v, str):
-            try:
-                return datetime.fromisoformat(v)
-            except ValueError:
-                pass
-        elif isinstance(v, datetime):
-            return v
         
 class BitRecordCreate(BitRecordBase):
     pass
@@ -544,12 +533,164 @@ class BitRecordInDB(BitRecordBase):
     class Config:
         from_attributes = True
 
+
+class BHAComponentBase(BaseModel):
+    component: BHAComponentType
+    outer_diameter: float
+    length: float
+
+class BHAComponentCreate(BHAComponentBase):
+    pass
+
+class BHAComponentInDB(BHAComponentBase):
+    pass
+    model_config = ConfigDict(from_attributes=True)
+
+class BottomHoleAssemblyBase(BaseModel):
+    daily_operations_report_id: str
+
+    bha_number: int
+    bha_run: int
+
+class BottomHoleAssemblyCreate(BottomHoleAssemblyBase):
+    components: List[BHAComponentCreate]
+
+class BottomHoleAssemblyInDB(BottomHoleAssemblyBase):
+    components: List[BHAComponentInDB]
+
+    model_config = ConfigDict(from_attributes=True)
+
+class DrillingFluidBase(BaseModel):
+    daily_operations_report_id: str
+    mud_type: MudType
+    time: datetime
+    mw_in: float
+    mw_out: float
+    temp_in: float
+    temp_out: float
+    pres_grad: float
+    visc: float
+    pv: float
+    yp: float
+    gels_10_sec: float
+    gels_10_min: float
+    fluid_loss: float
+    ph: float
+    solids: float
+    sand: float
+    water: float
+    oil: float
+    hgs: float
+    lgs: float
+    ltlp: float
+    hthp: float
+    cake: float
+    e_stb: float
+    pf: float
+    mf: float
+    pm: float
+    ecd: float
+
+class DrillingFluidCreate(DrillingFluidBase):
+    pass
+
+class DrillingFluidInDB(DrillingFluidBase):
+    pass
+    model_config = ConfigDict(from_attributes=True)
+
+class MudAdditiveBase(BaseModel):
+    daily_operations_report_id: str
+    mud_additive_type: str
+    amount: float
+
+class MudAdditiveCreate(MudAdditiveBase):
+    pass
+
+class MudAdditiveInDB(MudAdditiveBase):
+    pass
+    model_config = ConfigDict(from_attributes=True)
+
+class BulkMaterialBase(BaseModel):
+    material_type: str
+    material_name: str
+    material_uom: str
+    received: float
+    consumed: float
+    returned: float
+    adjust: float
+    ending: float
+
+class BulkMaterialCreate(BulkMaterialBase):
+    daily_operations_report_id: str
+
+class BulkMaterialInDB(BulkMaterialBase):
+    daily_operations_report_id: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class DirectionalSurveyBase(BaseModel):
+    measured_depth: float
+    inclination: float
+    azimuth: float
+
+class DirectionalSurveyCreate(DirectionalSurveyBase):
+    daily_operations_report_id: str
+
+class DirectionalSurveyInDB(DirectionalSurveyBase):
+    daily_operations_report_id: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class PumpsBase(BaseModel):
+    slow_speed: YesNo
+    circulate: float
+    strokes: float
+    pressure: float
+    liner_size: float
+    efficiency: float
+
+class PumpsCreate(PumpsBase):
+    daily_operations_report_id: str
+
+class PumpsInDB(PumpsBase):
+    daily_operations_report_id: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+class WeatherBase(BaseModel):
+    temperature_high: float
+    temperature_low: float
+    chill_factor: float
+    wind_speed: float
+    wind_direction: float
+    barometric_pressure: float
+    wave_height: float
+    wave_current_speed: float
+    road_condition: str
+    visibility: str
+
+class WeatherCreate(WeatherBase):
+    daily_operations_report_id: str
+
+class WeatherInDB(WeatherBase):
+    daily_operations_report_id: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class DailyOperationsReportCreate(DailyOperationsReportBase):
     job_id: str 
     personnel: List[PersonnelCreate]
     Incidents: List[IncidentCreate]
     time_breakdowns: List[TimeBreakdownCreate]
     bit_records: List[BitRecordCreate]
+    bottom_hole_assemblies: List[BottomHoleAssemblyCreate]
+    drilling_fluids: List[DrillingFluidCreate]
+    mud_additives: List[MudAdditiveCreate]
+    bulk_materials: List[BulkMaterialCreate]
+    directional_surveys: List[DirectionalSurveyCreate]
+    pumps: List[PumpsCreate]
+    weather: List[WeatherCreate]
 
     @validator('time_breakdowns')
     def validate_time_breakdowns(cls, v, values):
@@ -586,9 +727,16 @@ class DailyOperationsReportInDB(DailyOperationsReportBase):
     personnel: List[PersonnelInDB]
     Incidents: List[IncidentInDB]
     bit_records: List[BitRecordInDB]
+    bottom_hole_assemblies: List[BottomHoleAssemblyInDB]
+    drilling_fluids: List[DrillingFluidInDB]
+    mud_additives: List[MudAdditiveInDB]
+    bulk_materials: List[BulkMaterialInDB]
+    directional_surveys: List[DirectionalSurveyInDB]
+    pumps: List[PumpsInDB]
+    weather: List[WeatherInDB]
 
-    class Config:
-        orm_mode = True
+
+    model_config = ConfigDict(from_attributes=True)
 
 class ReportResponse(BaseModel):
     data: DailyOperationsReportInDB

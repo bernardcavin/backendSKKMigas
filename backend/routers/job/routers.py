@@ -82,11 +82,9 @@ def get_job_detail(job_id: str, db: Session = Depends(get_db)):
     return job
 
 
-@router.post("/daily-operations-reports/", response_model=ReportResponse, status_code=status.HTTP_200_OK)
+@router.post("/daily-operations-reports/", response_model=schemas.ReportResponse, status_code=status.HTTP_200_OK)
 def create_daily_operations_report(report: schemas.DailyOperationsReportCreate, db: Session = Depends(get_db)):
-    # Check if the job exists
     job = db.query(Job).filter(Job.id == report.job_id).first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-    created_report= crud.create_daily_operations_report(db=db, report=report)
-    return created_report
+    return crud.create_daily_operations_report(db=db, report=report)

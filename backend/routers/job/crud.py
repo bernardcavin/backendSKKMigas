@@ -12,6 +12,7 @@ from backend.utils.db_operations import model_to_dict
 from backend.routers.job.utils import create_gantt_chart, create_operation_plot, create_well_path
 from backend.routers.visualize.schemas import VisualizeCasing
 from backend.routers.visualize.routers import request_visualize_casing
+from uuid import uuid4
 
 
 from well_profile import load
@@ -244,7 +245,7 @@ def datetime_to_time(dt: datetime) -> time:
 
 # In your CRUD operations
 def create_daily_operations_report(db: Session, report: DailyOperationsReportCreate):
-    db_report = DailyOperationsReport(**report.dict(exclude={'time_breakdowns', 'personnel', 'Incidents', 'bit_records'}))
+    db_report = DailyOperationsReport(**report.dict(exclude={'time_breakdowns', 'personnel', 'Incidents', 'bit_records','bottom_hole_assemblies','drilling_fluids','mud_additives','bulk_materials','directional_surveys','pumps','weather'}))
     
     for tb in report.time_breakdowns:
         start_datetime = datetime.combine(report.report_date, tb.start_time)
@@ -255,6 +256,7 @@ def create_daily_operations_report(db: Session, report: DailyOperationsReportCre
             end_datetime += timedelta(days=1)
         
         db_time_breakdown = TimeBreakdown(
+            daily_operations_report_id=db_report.id,
             start_time=start_datetime.replace(microsecond=0),
             end_time=end_datetime.replace(microsecond=0),
             start_measured_depth=tb.start_measured_depth,
@@ -269,6 +271,7 @@ def create_daily_operations_report(db: Session, report: DailyOperationsReportCre
     
     for p in report.personnel:
         db_personnel = Personnel(
+            daily_operations_report_id=db_report.id,
             company=p.company,
             people=p.people
         )
@@ -276,6 +279,7 @@ def create_daily_operations_report(db: Session, report: DailyOperationsReportCre
     
     for incident in report.Incidents:
         db_incident = Incident(
+            daily_operations_report_id=db_report.id,
             incidents_time=incident.incidents_time,
             incident=incident.incident,
             incident_type=incident.incident_type,
@@ -285,6 +289,9 @@ def create_daily_operations_report(db: Session, report: DailyOperationsReportCre
 
     for bit_record in report.bit_records:
         db_bit_record = BitRecord(
+            daily_operations_report_id=db_report.id,
+            bit_number=bit_record.bit_number,
+            bit_run=bit_record.bit_run,
             bit_size=bit_record.bit_size,
             manufacturer=bit_record.manufacturer,
             iadc_code=bit_record.iadc_code,
@@ -298,11 +305,122 @@ def create_daily_operations_report(db: Session, report: DailyOperationsReportCre
             dull_grade=bit_record.dull_grade
         )
         db_report.bit_records.append(db_bit_record)
-    
+
+    for bha_data in report.bottom_hole_assemblies:
+        db_bha = BottomHoleAssembly(
+            daily_operations_report_id=db_report.id,
+            bha_number=bha_data.bha_number,
+            bha_run=bha_data.bha_run
+        )
+        for component_data in bha_data.components:
+            db_component = BHAComponent(
+                component=component_data.component,
+                outer_diameter=component_data.outer_diameter,
+                length=component_data.length
+            )
+            db_bha.components.append(db_component)
+        db_report.bottom_hole_assemblies.append(db_bha)
+
+    for drilling_fluid in report.drilling_fluids:
+        db_drilling_fluid = DrillingFluid(  # Assuming you're using UUID
+            daily_operations_report_id=db_report.id,  # Link to the current report
+            mud_type=drilling_fluid.mud_type,
+            time=drilling_fluid.time,
+            mw_in=drilling_fluid.mw_in,
+            mw_out=drilling_fluid.mw_out,
+            temp_in=drilling_fluid.temp_in,
+            temp_out=drilling_fluid.temp_out,
+            pres_grad=drilling_fluid.pres_grad,
+            visc=drilling_fluid.visc,
+            pv=drilling_fluid.pv,
+            yp=drilling_fluid.yp,
+            gels_10_sec=drilling_fluid.gels_10_sec,
+            gels_10_min=drilling_fluid.gels_10_min,
+            fluid_loss=drilling_fluid.fluid_loss,
+            ph=drilling_fluid.ph,
+            solids=drilling_fluid.solids,
+            sand=drilling_fluid.sand,
+            water=drilling_fluid.water,
+            oil=drilling_fluid.oil,
+            hgs=drilling_fluid.hgs,
+            lgs=drilling_fluid.lgs,
+            ltlp=drilling_fluid.ltlp,
+            hthp=drilling_fluid.hthp,
+            cake=drilling_fluid.cake,
+            e_stb=drilling_fluid.e_stb,
+            pf=drilling_fluid.pf,
+            mf=drilling_fluid.mf,
+            pm=drilling_fluid.pm,
+            ecd=drilling_fluid.ecd
+        )
+        db_report.drilling_fluids.append(db_drilling_fluid)
+
+    for mud_additive in report.mud_additives:
+        db_mud_additive = MudAdditive(
+            daily_operations_report_id=db_report.id,
+            mud_additive_type=mud_additive.mud_additive_type,
+            amount=mud_additive.amount
+        )
+        db_report.mud_additives.append(db_mud_additive)
+
+    for bulk_material in report.bulk_materials:
+        db_bulk_material = BulkMaterial(
+            id=str(uuid4()),
+            daily_operations_report_id=db_report.id,
+            material_type=bulk_material.material_type,
+            material_name=bulk_material.material_name,
+            material_uom=bulk_material.material_uom,
+            received=bulk_material.received,
+            consumed=bulk_material.consumed,
+            returned=bulk_material.returned,
+            adjust=bulk_material.adjust,
+            ending=bulk_material.ending
+        )
+        db_report.bulk_materials.append(db_bulk_material)
+
+    for directional_survey in report.directional_surveys:
+        db_directional_survey = DirectionalSurvey(
+            daily_operations_report_id=db_report.id,
+            measured_depth=directional_survey.measured_depth,
+            azimuth=directional_survey.azimuth,
+            inclination=directional_survey.inclination
+        )
+        db_report.directional_surveys.append(db_directional_survey)
+    for pump in report.pumps:
+        db_pump = Pumps(
+            daily_operations_report_id=db_report.id,
+            slow_speed=pump.slow_speed,
+            circulate=pump.circulate,
+            strokes=pump.strokes,
+            pressure=pump.pressure,
+            liner_size=pump.liner_size,
+            efficiency=pump.efficiency 
+        )
+        db_report.pumps.append(db_pump)
+
+    for weather in report.weather:
+        db_weather = Weather(
+            daily_operations_report_id=db_report.id,
+            temperature_high=weather.temperature_high,
+            temperature_low=weather.temperature_low,
+            wind_direction=weather.wind_direction,
+            wind_speed=weather.wind_speed,
+            chill_factor=weather.chill_factor,
+            wave_height=weather.wave_height,
+            wave_current_speed=weather.wave_current_speed,
+            road_condition=weather.road_condition,
+            visibility=weather.visibility,
+            barometric_pressure=weather.barometric_pressure
+        )
+        db_report.weather.append(db_weather)
+
     db.add(db_report)
     db.commit()
     db.refresh(db_report)
-    return {"data": db_report, "status": 200}
+    return ReportResponse(
+        data=DailyOperationsReportInDB.from_orm(db_report),
+        status=200
+    )
 
 
 
