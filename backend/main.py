@@ -38,7 +38,6 @@ def get_db_context():
 # Main logic for generating dummy data if no data exists
 def handle_data_creation(engine, demo_mode=False):
     with get_db_context() as session:
-        print('Database connection established')
         try:
             if data_exists(session):
                 pass
@@ -56,8 +55,8 @@ else:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173","http://127.0.0.1:8000"],  # Ganti dengan URL frontend Anda
-    allow_credentials=True,
+    allow_origins=["http://localhost:5173","http://127.0.0.1:8000","http://localhost:4173"],  # Ganti dengan URL frontend Anda
+    allow_credentials=True,  # Allow cookies
     allow_methods=["*"],  # Izinkan semua metode HTTP
     allow_headers=["*"],  # Izinkan semua header
 )

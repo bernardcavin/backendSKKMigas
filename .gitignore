@@ -9,6 +9,7 @@ Dockerfile.frontend
 Dockerfile.req
 .dockerignore
 .venv
+.vscode
 
 app/__pycache__
 
