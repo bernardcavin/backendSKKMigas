@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+file_path = os.path.abspath(os.getcwd())+"/test.db"
+SQLALCHEMY_DATABASE_URL = 'sqlite:///'+file_path
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
