@@ -1,0 +1,74 @@
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.api.auth.models import Role
+from app.api.auth.schemas import GetUser
+from app.core.security import authorize, get_db, get_current_user
+from app.api.job import crud, schemas
+from app.api.job.models import JobType
+from app.core.schema_operations import create_api_response
+
+router = APIRouter(prefix="/job", tags=["job"])
+
+@router.post("/planning/create/exploration")
+@authorize(role=[Role.KKKS])
+async def create_planning_exploration(plan: schemas.ExplorationJobPlan, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    job_id = crud.create_job_plan(db, JobType.EXPLORATION, plan, user)
+    return create_api_response(success=True, message="Exploration job plan created successfully", data={"id": job_id})
+
+@router.post("/planning/create/development")
+@authorize(role=[Role.KKKS])
+async def create_planning_development(plan: schemas.DevelopmentJobPlan, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    job_id = crud.create_job_plan(db, JobType.DEVELOPMENT, plan, user)
+    return create_api_response(success=True, message="Development job plan created successfully", data={"id": job_id})
+
+@router.post("/planning/create/workover")
+@authorize(role=[Role.KKKS])
+async def create_planning_workover(plan: schemas.WorkoverJobPlan, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    job_id = crud.create_job_plan(db, JobType.WORKOVER, plan, user)
+    return create_api_response(success=True, message="Workover job plan created successfully", data={"id": job_id})
+
+@router.post("/planning/create/wellservice")
+@authorize(role=[Role.KKKS])
+async def create_planning_wellservice(plan: schemas.WellServiceJobPlan, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    job_id = crud.create_job_plan(db, JobType.WELLSERVICE, plan, user)
+    return create_api_response(success=True, message="Well service job plan created successfully", data={"id": job_id})
+
+@router.delete('/planning/delete/{job_id}')
+@authorize(role=[Role.Admin])
+async def delete_planning_exploration(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    deleted = crud.delete_job_plan(job_id, db, user)
+    if not deleted:
+        return create_api_response(success=False, message="Job plan not found", status_code=404)
+    return create_api_response(success=True, message="Job plan deleted successfully")
+
+@router.patch('/planning/approve/{job_id}')
+@authorize(role=[Role.Admin])
+async def approve_planning_exploration(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    approved = crud.approve_job_plan(job_id, db, user)
+    if not approved:
+        return create_api_response(success=False, message="Job plan not found", status_code=404)
+    return create_api_response(success=True, message="Job plan approved successfully")
+
+@router.patch('/planning/return/{job_id}')
+@authorize(role=[Role.Admin])
+async def return_planning_exploration(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    returned = crud.return_job_plan(job_id, db, user)
+    if not returned:
+        return create_api_response(success=False, message="Job plan not found", status_code=404)
+    return create_api_response(success=True, message="Job plan returned successfully")
+
+@router.get('/planning/view/{job_id}')
+@authorize(role=[Role.Admin, Role.KKKS])
+async def view_plan(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    job_plan = crud.get_job_plan(job_id, db)
+    if not job_plan:
+        return create_api_response(success=False, message="Job plan not found", status_code=404)
+    return create_api_response(success=True, message="Job plan retrieved successfully", data=job_plan)
+
+@router.patch('/operations/operate/{job_id}')
+@authorize(role=[Role.Admin])
+async def operate_job(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    operated = crud.operate_job(job_id, db, user)
+    if not operated:
+        return create_api_response(success=False, message="Job not found or operation failed", status_code=404)
+    return create_api_response(success=True, message="Job operation started successfully")

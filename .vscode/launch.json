@@ -7,13 +7,15 @@
         {
             "name": "Python Debugger: FastAPI",
             "type": "debugpy",
+            "python": "D:/Aplikasi SKK Migas/backend/.venv/Scripts/python.exe",
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "backend.main:app",
+                "app.core.main:app",
                 "--reload"
             ],
             "jinja": true
         }
     ]
 }
+

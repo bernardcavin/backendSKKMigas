@@ -1,10 +1,11 @@
 myenv
 frontend/node_modules
 test.db
+demo.db
 frontend
-backendSKKMigas
+appSKKMigas
 docker-compose.yml
-Dockerfile.backend
+Dockerfile.app
 Dockerfile.frontend
 Dockerfile.req
 .dockerignore
