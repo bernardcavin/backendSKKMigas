@@ -16,7 +16,7 @@ from app.core.config import settings
 
 load_dotenv()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="{settings.API_V1_STR}/auth/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_db():
