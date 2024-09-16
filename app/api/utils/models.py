@@ -8,14 +8,14 @@ class FileDB(Base):
 
     __tablename__ = 'files'
 
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     
-    filename = Column(String)
+    filename = Column(String(50))
     size  = Column(Integer)
-    content_type = Column(String)
+    content_type = Column(String(50))
     upload_time = Column(DateTime)
 
-    file_location = Column(String)
+    file_location = Column(String(50))
 
     uploaded_by_id = Column(String(36), ForeignKey('users.id'))
     uploaded_by = relationship('User', foreign_keys=[uploaded_by_id])

@@ -11,8 +11,8 @@ class Role(PyEnum):
 class KKKS(Base):
     __tablename__ = 'kkks'
 
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    name = Column(String, unique=True, index=True)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+    name = Column(String(255), unique=True, index=True)  # Assuming name can be lengthy, up to 255 characters
     users = relationship("KKKSUser", back_populates="kkks")
     jobs = relationship("Job", back_populates="kkks")
     area = relationship("Area", back_populates='kkks')
@@ -21,10 +21,10 @@ class KKKS(Base):
 class User(Base):
     __tablename__ = 'users'
 
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    username = Column(String, unique=True, index=True)
-    email = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+    username = Column(String(50), unique=True, index=True)  # Typical username length is around 50 characters
+    email = Column(String(100), unique=True, index=True)  # Email addresses typically max out at 100 characters
+    hashed_password = Column(String(128))  # Common length for hashed passwords
     role = Column(Enum(Role), nullable=False)
     
     verified_status = Column(Boolean)

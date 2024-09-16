@@ -57,10 +57,10 @@ class Area(Base):
     
     __tablename__ = 'area'
 
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
 
-    label = Column(String, unique=True)
-    name = Column(String, unique=True, index=True)
+    label = Column(String(50), unique=True)
+    name = Column(String(50), unique=True, index=True)
     phase = Column(Enum(AreaPhase))
     type = Column(Enum(AreaType))
     position = Column(Enum(AreaPosition))
@@ -75,17 +75,17 @@ class Area(Base):
     well_instances = relationship("WellInstance", back_populates='area')
     strat_units = relationship("StratUnit", back_populates="area")
     
-    geojson = Column(JSON)
+    # geojson = Column(JSON)
 
 class Lapangan(Base):   
 
     __tablename__ = 'fields'
     
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
-    name = Column(String)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+    name = Column(String(50))
     area_id = Column(String(36), ForeignKey('area.id'))
     area = relationship("Area", back_populates="fields")
-    geojson = Column(JSON)
+    # geojson = Column(JSON)
     
     jobs = relationship("Job", back_populates='field')
     well_instances = relationship("WellInstance", back_populates="field")
@@ -94,11 +94,11 @@ class StratUnit(Base):
     
     __tablename__ = 'area_strat'
     
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     area_id = Column(String(36), ForeignKey('area.id'))
     area = relationship("Area", back_populates="strat_units")
     
-    strat_unit_name = Column(String)
+    strat_unit_name = Column(String(50))
     strat_type = Column(Enum(StratType))
     strat_unit_type = Column(Enum(StratUnitType))
     strat_petroleum_system = Column(Enum(PetroleumSystem))

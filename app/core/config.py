@@ -4,12 +4,15 @@ import os
 from pydantic import (
     AnyUrl,
     BeforeValidator,
-    HttpUrl,
     PostgresDsn,
     computed_field,
 )
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+class OracleDsn(AnyUrl):
+    allowed_schemes = {'oracle+cx_oracle'}
+    user_required = True
 
 def parse_cors(v: Any) -> list[str] | str:
     if isinstance(v, str) and not v.startswith("["):
@@ -25,8 +28,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = ""
     SECRET_KEY: str = secrets.token_urlsafe(32)
     
-    DEMO_MODE: bool = True
-    DEMO_SQL_ALCHEMY_DATABASE_URI: str = 'sqlite:///./demo.db'
+    LOCAL_SQLALCHEMY_DATABASE_URI: str = 'sqlite:///./demo.db'
     
     UPLOAD_DIR: str = "uploads"
     
@@ -58,7 +60,7 @@ class Settings(BaseSettings):
     ] = []
 
     PROJECT_NAME: str
-    SENTRY_DSN: HttpUrl | None = None
+
     POSTGRES_SERVER: str
     POSTGRES_PORT: int = 5432
     POSTGRES_USER: str
@@ -67,7 +69,7 @@ class Settings(BaseSettings):
 
     @computed_field  # type: ignore[prop-decorator]
     @property
-    def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
+    def SQLALCHEMY_POSTGRES_DATABASE_URI(self) -> PostgresDsn:
         return MultiHostUrl.build(
             scheme="postgresql",
             username=self.POSTGRES_USER,
@@ -76,5 +78,28 @@ class Settings(BaseSettings):
             port=self.POSTGRES_PORT,
             path=self.POSTGRES_DB,
         )
+
+    ORACLE_USER: str
+    ORACLE_PASSWORD: str = ""
+    ORACLE_SERVER: str
+    ORACLE_PORT: int = 1512
+    ORACLE_SERVICE_NAME: str = ""
+        
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def SQLALCHEMY_ORACLE_DATABASE_URI(self) -> str:
+        return f"oracle+cx_oracle://{self.ORACLE_USER}:{self.ORACLE_PASSWORD}@{self.ORACLE_SERVER}:{self.ORACLE_PORT}/?service_name={self.ORACLE_SERVICE_NAME}"
+    
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def SQLALCHEMY_DATABASE_URI(self) -> str:
+        if self.ENVIRONMENT == "local":
+            return str(self.LOCAL_SQLALCHEMY_DATABASE_URI)
+        elif self.ENVIRONMENT == "staging":
+            return str(self.SQLALCHEMY_POSTGRES_DATABASE_URI)
+        elif self.ENVIRONMENT == "production":
+            return str(self.SQLALCHEMY_ORACLE_DATABASE_URI)
+        else:
+            raise ValueError(f"Invalid environment: {self.ENVIRONMENT}")
 
 settings = Settings()  # type: ignore

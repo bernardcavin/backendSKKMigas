@@ -22,7 +22,7 @@ def get_db_context():
         db.close()
 
 # Main logic for generating dummy data if no data exists
-
+# reset_database(engine)
 
 def init_db():
     with get_db_context() as session:
@@ -30,5 +30,6 @@ def init_db():
             if data_exists(session):
                 return
         except Exception as e:
+            print(e)
             reset_database(engine)
         generate_dummy_data(session, n=500)
