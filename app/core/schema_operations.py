@@ -32,6 +32,7 @@ def parse_schema(schema):
     to a dictionary containing SQLAlchemy models.
     Only works if nested schemas have specified the Meta.orm_model.
     """
+    
     parsed_schema = dict(schema)
     
     parsed_schema_copy = parsed_schema.copy()

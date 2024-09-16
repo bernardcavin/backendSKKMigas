@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends,status,HTTPException
 from sqlalchemy.orm import Session
 from app.api.auth.models import Role
 from app.api.auth.schemas import GetUser
 from app.core.security import authorize, get_db, get_current_user
 from app.api.job import crud, schemas
-from app.api.job.models import JobType
+from app.api.job.models import JobType,Job
 from app.core.schema_operations import create_api_response
 
 router = APIRouter(prefix="/job", tags=["job"])
@@ -72,3 +72,18 @@ async def operate_job(job_id: str, db: Session = Depends(get_db), user = Depends
     if not operated:
         return create_api_response(success=False, message="Job not found or operation failed", status_code=404)
     return create_api_response(success=True, message="Job operation started successfully")
+
+# @router.get("/jobs/{job_id}", response_model=schemas.JobDetail)
+# def get_job_detail(job_id: str, db: Session = Depends(get_db)):
+#     job = db.query(Job).filter(Job.id == job_id).first()
+#     if not job:
+#         raise HTTPException(status_code=404, detail="Job not found")
+#     return job
+
+
+@router.post("/daily-operations-reports/", response_model=schemas.ReportResponse, status_code=status.HTTP_200_OK)
+def create_daily_operations_report(report: schemas.DailyOperationsReportCreate, db: Session = Depends(get_db)):
+    job = db.query(Job).filter(Job.id == report.job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return crud.create_daily_operations_report(db=db, report=report)

@@ -1,4 +1,5 @@
 from os import close
+from sqlalchemy import Column, String, Enum as SQLAlchemyEnum
 from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, Enum, Text, Boolean, Float, Date, func, select
 from app.api.well.models import ActualWell, DepthDatum, PlanWell, WellInstance
 from sqlalchemy.orm import relationship, declared_attr, with_polymorphic, aliased
@@ -773,17 +774,17 @@ class DailyOperationsReport(Base):
     fire = Column(Enum(YesNo))
     
     #lampiran
-    time_breakdown = relationship('TimeBreakdown', back_populates='daily_operations_report')
-    bit_records = relationship('BitRecord', back_populates='daily_operations_report')
+    time_breakdowns = relationship("TimeBreakdown", back_populates="daily_operations_report", lazy="joined")
+    bit_records = relationship('BitRecord', back_populates='daily_operations_report',uselist=False)
     bottom_hole_assemblies = relationship('BottomHoleAssembly', back_populates='daily_operations_report')
     drilling_fluids = relationship('DrillingFluid', back_populates='daily_operations_report')
     mud_additives = relationship('MudAdditive', back_populates='daily_operations_report')
     bulk_materials = relationship('BulkMaterial', back_populates='daily_operations_report')
-    hse_incidents = relationship('Incident', back_populates='daily_operations_report')
+    Incidents = relationship("Incident", back_populates="daily_operations_report", cascade="all, delete-orphan")
+    personnel = relationship("Personnel", back_populates="daily_operations_report", cascade="all, delete-orphan")
     directional_surveys = relationship('DirectionalSurvey', back_populates='daily_operations_report')
-    personnel = relationship('Personnel', back_populates='daily_operations_report')
     pumps = relationship('Pumps', back_populates='daily_operations_report')
-    weather = relationship('Weather', back_populates='daily_operations_report')
+    weather = relationship('Weather', back_populates='daily_operations_report', uselist=False)
 
 class JobCategory(PyEnum):
     DRILLING = 'DRILLING'
@@ -844,7 +845,6 @@ class TimeBreakdown(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
-    daily_operations_report = relationship('DailyOperationsReport', back_populates='time_breakdown')
     
     #time
     start_time = Column(DateTime)
@@ -861,6 +861,16 @@ class TimeBreakdown(Base):
     code = Column(Enum(OperationCode))
     
     operation = Column(Text)
+    code = Column(SQLAlchemyEnum(OperationCode, name='operationcode', create_constraint=False))
+    daily_operations_report = relationship("DailyOperationsReport", back_populates="time_breakdowns")
+
+    @property
+    def start_time_without_microseconds(self):
+        return self.start_time.replace(microsecond=0) if self.start_time else None
+
+    @property
+    def end_time_without_microseconds(self):
+        return self.end_time.replace(microsecond=0) if self.end_time else None
 
 class BitRecord(Base):
     
@@ -1033,7 +1043,7 @@ class Incident(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
 
     daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
-    daily_operations_report = relationship('DailyOperationsReport', back_populates='hse_incidents')
+    daily_operations_report = relationship('DailyOperationsReport', back_populates='Incidents')
     
     incidents_time = Column(DateTime)
     incident = Column(String(50))
