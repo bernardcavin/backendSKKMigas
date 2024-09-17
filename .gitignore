@@ -11,6 +11,7 @@ Dockerfile.req
 .dockerignore
 .venv
 .vscode
+uploads
 
 app/__pycache__
 
