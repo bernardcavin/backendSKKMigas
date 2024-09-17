@@ -34,41 +34,58 @@ job_type_map = {
 
 #dashboard per job
 def get_plans_dashboard(db: Session, job_type: JobType, user):
-    
     if isinstance(user, Admin):
-    
         plans = db.query(Job).filter(Job.job_type == job_type).all()
         
+        # Modifikasi query summary untuk SQLite
         summary = db.query(
-            func.count(Job.id).filter(Job.planning_status.in_([PlanningStatus.APPROVED, PlanningStatus.PROPOSED])).label('diajukan'),
-            func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).label('disetujui'),
-            func.count(Job.id).filter(Job.planning_status == PlanningStatus.RETURNED).label('dikembalikan'),
-        ).filter(Job.job_type==job_type).first()
-        
+            func.count(Job.id).label('total'),
+            func.sum(case(
+                (Job.planning_status.in_([PlanningStatus.APPROVED.value, PlanningStatus.PROPOSED.value]), 1),
+                else_=0
+            )).label('diajukan'),
+            func.sum(case(
+                (Job.planning_status == PlanningStatus.APPROVED.value, 1),
+                else_=0
+            )).label('disetujui'),
+            func.sum(case(
+                (Job.planning_status == PlanningStatus.RETURNED.value, 1),
+                else_=0
+            )).label('dikembalikan'),
+        ).filter(Job.job_type == job_type).first()
     else:
-    
         plans = db.query(Job).filter(Job.job_type == job_type, Job.kkks_id == user.kkks_id).all()
         
+        # Modifikasi query summary untuk SQLite
         summary = db.query(
-            func.count(Job.id).filter(Job.planning_status.in_([PlanningStatus.APPROVED, PlanningStatus.PROPOSED])).label('diajukan'),
-            func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).label('disetujui'),
-            func.count(Job.id).filter(Job.planning_status == PlanningStatus.RETURNED).label('dikembalikan'),
-        ).filter(Job.job_type==job_type, Job.kkks_id == user.kkks_id).first()
-    
-    result = {
-            "job_details": [],
-            "summary": {
-                "disetujui": summary.disetujui,
-                "diajukan": summary.diajukan,
-                "dikembalikan": summary.dikembalikan
-            }
-        }
-    
-    for i, job in enumerate(plans):
+            func.count(Job.id).label('total'),
+            func.sum(case(
+                (Job.planning_status.in_([PlanningStatus.APPROVED.value, PlanningStatus.PROPOSED.value]), 1),
+                else_=0
+            )).label('diajukan'),
+            func.sum(case(
+                (Job.planning_status == PlanningStatus.APPROVED.value, 1),
+                else_=0
+            )).label('disetujui'),
+            func.sum(case(
+                (Job.planning_status == PlanningStatus.RETURNED.value, 1),
+                else_=0
+            )).label('dikembalikan'),
+        ).filter(Job.job_type == job_type, Job.kkks_id == user.kkks_id).first()
 
+    result = {
+        "job_details": [],
+        "summary": {
+            "disetujui": summary.disetujui,
+            "diajukan": summary.diajukan,
+            "dikembalikan": summary.dikembalikan
+        }
+    }
+
+    for i, job in enumerate(plans):
         job_detail = {
             "id": job.id,
-            'NO':i+1,
+            'NO': i+1,
             "NAMA SUMUR": job.well_name if job.well_name else "N/A",
             "WILAYAH KERJA": job.area_name if job.area_name else "N/A",
             "LAPANGAN": job.field_name if job.field_name else "N/A",
@@ -83,46 +100,40 @@ def get_plans_dashboard(db: Session, job_type: JobType, user):
             job_detail['JENIS PEKERJAAN'] = job.job_plan.job_category.value
         
         result["job_details"].append(job_detail)
-    
+
     return result
 
 def get_operations_dashboard(db: Session, job_type: JobType, user) -> Dict[str, Dict]:
-    
     if isinstance(user, Admin):
-        
-        jobs = db.query(Job).filter(Job.planning_status == PlanningStatus.APPROVED).filter(Job.job_type == job_type).all()
+        jobs = db.query(Job).filter(Job.planning_status == PlanningStatus.APPROVED, Job.job_type == job_type).all()
 
         summary = db.query(
-            func.count(Job.id).filter(Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])).label('beroperasi'),
-            func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).label('disetujui'),
-            func.count(Job.id).filter(Job.operation_status == OperationStatus.FINISHED).label('selesai_beroperasi'),
-        ).filter(Job.job_type==job_type).first()
-    
+            func.sum(case([(Job.operation_status.in_([OperationStatus.OPERATING.value, OperationStatus.FINISHED.value]), 1)], else_=0)).label('beroperasi'),
+            func.sum(case([(Job.planning_status == PlanningStatus.APPROVED.value, 1)], else_=0)).label('disetujui'),
+            func.sum(case([(Job.operation_status == OperationStatus.FINISHED.value, 1)], else_=0)).label('selesai_beroperasi'),
+        ).filter(Job.job_type == job_type).first()
     else:
-        
         jobs = db.query(Job).filter(Job.planning_status == PlanningStatus.APPROVED, Job.job_type == job_type, Job.kkks_id == user.kkks_id).all()
-        
-        summary = db.query(
-            func.count(Job.id).filter(Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])).label('beroperasi'),
-            func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).label('disetujui'),
-            func.count(Job.id).filter(Job.operation_status == OperationStatus.FINISHED).label('selesai_beroperasi'),
-        ).filter(Job.job_type==job_type, Job.kkks_id == user.kkks_id).first()
 
+        summary = db.query(
+            func.sum(case([(Job.operation_status.in_([OperationStatus.OPERATING.value, OperationStatus.FINISHED.value]), 1)], else_=0)).label('beroperasi'),
+            func.sum(case([(Job.planning_status == PlanningStatus.APPROVED.value, 1)], else_=0)).label('disetujui'),
+            func.sum(case([(Job.operation_status == OperationStatus.FINISHED.value, 1)], else_=0)).label('selesai_beroperasi'),
+        ).filter(Job.job_type == job_type, Job.kkks_id == user.kkks_id).first()
 
     result = {
-            "job_details": [],
-            "summary": {
-                "disetujui": summary.disetujui,
-                "beroperasi": summary.beroperasi,
-                "selesai_beroperasi": summary.selesai_beroperasi
-            }
+        "job_details": [],
+        "summary": {
+            "disetujui": summary.disetujui or 0,
+            "beroperasi": summary.beroperasi or 0,
+            "selesai_beroperasi": summary.selesai_beroperasi or 0
         }
-    
+    }
+
     for i, job in enumerate(jobs):
-        
         job_detail = {
             "id": job.id,
-            'NO':i+1,
+            'NO': i+1,
             "NAMA SUMUR": job.well_name if job.well_name else "N/A",
             "WILAYAH KERJA": job.area_name if job.area_name else "N/A",
             "LAPANGAN": job.field_name if job.field_name else "N/A",
@@ -133,50 +144,45 @@ def get_operations_dashboard(db: Session, job_type: JobType, user) -> Dict[str, 
             "REALISASI SELESAI": job.actual_end_date.strftime("%d %b %Y") if job.actual_end_date else "N/A",
             "STATUS": job.operation_status.value if job.operation_status is not None else job.job_current_status.value
         }
-        
+
         if job.job_type in [JobType.WELLSERVICE, JobType.WORKOVER]:
             job_detail['JENIS PEKERJAAN'] = job.job_plan.job_category.value
-        
+
         result["job_details"].append(job_detail)
-        
+
     return result
 
 def get_ppp_dashboard(db: Session, job_type: JobType, user) -> Dict[str, Dict]:
-    
     if isinstance(user, Admin):
-        
-        jobs = db.query(Job).filter(Job.operation_status == OperationStatus.FINISHED).filter(Job.job_type == job_type).all()
+        jobs = db.query(Job).filter(Job.operation_status == OperationStatus.FINISHED, Job.job_type == job_type).all()
         
         summary = db.query(
-            func.count(Job.id).filter(Job.ppp_status.in_([PPPStatus.PROPOSED, PPPStatus.APPROVED])).label('diajukan'),
-            func.count(Job.id).filter(Job.ppp_status == PPPStatus.APPROVED).label('disetujui'),
-            func.count(Job.id).filter(Job.operation_status == OperationStatus.FINISHED).label('selesai_beroperasi'),
-        ).filter(Job.job_type==job_type).first()
-        
+            func.sum(case([(Job.ppp_status.in_([PPPStatus.PROPOSED.value, PPPStatus.APPROVED.value]), 1)], else_=0)).label('diajukan'),
+            func.sum(case([(Job.ppp_status == PPPStatus.APPROVED.value, 1)], else_=0)).label('disetujui'),
+            func.sum(case([(Job.operation_status == OperationStatus.FINISHED.value, 1)], else_=0)).label('selesai_beroperasi'),
+        ).filter(Job.job_type == job_type).first()
     else:
-        
-        jobs = db.query(Job).filter(Job.operation_status == OperationStatus.FINISHED).filter(Job.job_type == job_type, Job.kkks_id == user.kkks_id).all()
+        jobs = db.query(Job).filter(Job.operation_status == OperationStatus.FINISHED, Job.job_type == job_type, Job.kkks_id == user.kkks_id).all()
         
         summary = db.query(
-            func.count(Job.id).filter(Job.ppp_status.in_([PPPStatus.PROPOSED, PPPStatus.APPROVED])).label('diajukan'),
-            func.count(Job.id).filter(Job.ppp_status == PPPStatus.APPROVED).label('disetujui'),
-            func.count(Job.id).filter(Job.operation_status == OperationStatus.FINISHED).label('selesai_beroperasi'),
-        ).filter(Job.job_type==job_type, Job.kkks_id == user.kkks_id).first()
+            func.sum(case([(Job.ppp_status.in_([PPPStatus.PROPOSED.value, PPPStatus.APPROVED.value]), 1)], else_=0)).label('diajukan'),
+            func.sum(case([(Job.ppp_status == PPPStatus.APPROVED.value, 1)], else_=0)).label('disetujui'),
+            func.sum(case([(Job.operation_status == OperationStatus.FINISHED.value, 1)], else_=0)).label('selesai_beroperasi'),
+        ).filter(Job.job_type == job_type, Job.kkks_id == user.kkks_id).first()
     
     result = {
-            "job_details": [],
-            "summary": {
-                "selesai_beroperasi": summary.selesai_beroperasi,
-                "diajukan": summary.diajukan,
-                "disetujui": summary.disetujui
-            }
+        "job_details": [],
+        "summary": {
+            "selesai_beroperasi": summary.selesai_beroperasi or 0,
+            "diajukan": summary.diajukan or 0,
+            "disetujui": summary.disetujui or 0
         }
+    }
     
     for i, job in enumerate(jobs):
-
         job_detail = {
             "id": job.id,
-            'NO':i+1,
+            'NO': i+1,
             "NAMA SUMUR": job.well_name if job.well_name else "N/A",
             "WILAYAH KERJA": job.area_name if job.area_name else "N/A",
             "LAPANGAN": job.field_name if job.field_name else "N/A",
@@ -196,41 +202,36 @@ def get_ppp_dashboard(db: Session, job_type: JobType, user) -> Dict[str, Dict]:
     return result
 
 def get_co_dashboard(db: Session, job_type: JobType, user) -> Dict[str, Dict]:
-    
     if isinstance(user, Admin):
-        
-        jobs = db.query(Job).filter(Job.ppp_status == PPPStatus.APPROVED).filter(Job.job_type == job_type).all()
+        jobs = db.query(Job).filter(Job.ppp_status == PPPStatus.APPROVED, Job.job_type == job_type).all()
         
         summary = db.query(
-        func.count(Job.id).filter(Job.closeout_status.in_([CloseOutStatus.PROPOSED, CloseOutStatus.APPROVED])).label('diajukan'),
-        func.count(Job.id).filter(Job.closeout_status == CloseOutStatus.APPROVED).label('disetujui'),
-        func.count(Job.id).filter(Job.ppp_status == PPPStatus.APPROVED).label('selesai_p3'),
-        ).filter(Job.job_type==job_type).first()
-        
+            func.sum(case([(Job.closeout_status.in_([CloseOutStatus.PROPOSED.value, CloseOutStatus.APPROVED.value]), 1)], else_=0)).label('diajukan'),
+            func.sum(case([(Job.closeout_status == CloseOutStatus.APPROVED.value, 1)], else_=0)).label('disetujui'),
+            func.sum(case([(Job.ppp_status == PPPStatus.APPROVED.value, 1)], else_=0)).label('selesai_p3'),
+        ).filter(Job.job_type == job_type).first()
     else:
-        
-        jobs = db.query(Job).filter(Job.ppp_status == PPPStatus.APPROVED).filter(Job.job_type == job_type, Job.kkks_id == user.kkks_id).all()
+        jobs = db.query(Job).filter(Job.ppp_status == PPPStatus.APPROVED, Job.job_type == job_type, Job.kkks_id == user.kkks_id).all()
         
         summary = db.query(
-        func.count(Job.id).filter(Job.closeout_status.in_([CloseOutStatus.PROPOSED, CloseOutStatus.APPROVED])).label('diajukan'),
-        func.count(Job.id).filter(Job.closeout_status == CloseOutStatus.APPROVED).label('disetujui'),
-        func.count(Job.id).filter(Job.ppp_status == PPPStatus.APPROVED).label('selesai_p3'),
-        ).filter(Job.job_type==job_type, Job.kkks_id == user.kkks_id).first()
+            func.sum(case([(Job.closeout_status.in_([CloseOutStatus.PROPOSED.value, CloseOutStatus.APPROVED.value]), 1)], else_=0)).label('diajukan'),
+            func.sum(case([(Job.closeout_status == CloseOutStatus.APPROVED.value, 1)], else_=0)).label('disetujui'),
+            func.sum(case([(Job.ppp_status == PPPStatus.APPROVED.value, 1)], else_=0)).label('selesai_p3'),
+        ).filter(Job.job_type == job_type, Job.kkks_id == user.kkks_id).first()
 
     result = {
-            "job_details": [],
-            "summary": {
-                "selesai_p3": summary.selesai_p3,
-                "diajukan": summary.diajukan,
-                "disetujui": summary.disetujui
-            }
+        "job_details": [],
+        "summary": {
+            "selesai_p3": summary.selesai_p3 or 0,
+            "diajukan": summary.diajukan or 0,
+            "disetujui": summary.disetujui or 0
         }
+    }
     
     for i, job in enumerate(jobs):
-
         job_detail = {
             "id": job.id,
-            'NO':i+1,
+            'NO': i+1,
             "NAMA SUMUR": job.well_name if job.well_name else "N/A",
             "WILAYAH KERJA": job.area_name if job.area_name else "N/A",
             "LAPANGAN": job.field_name if job.field_name else "N/A",
