@@ -105,7 +105,7 @@ def get_plans_dashboard(db: Session, job_type: JobType, user):
 
 def get_operations_dashboard(db: Session, job_type: JobType, user) -> Dict[str, Dict]:
     if isinstance(user, Admin):
-        jobs = db.query(Job).filter(Job.planning_status == PlanningStatus.APPROVED, Job.job_type == job_type).all()
+        jobs = db.query(Job).filter(Job.planning_status == PlanningStatus.APPROVED).filter(Job.job_type == job_type).all()
 
         summary = db.query(
             func.sum(case([(Job.operation_status.in_([OperationStatus.OPERATING.value, OperationStatus.FINISHED.value]), 1)], else_=0)).label('beroperasi'),
@@ -114,7 +114,7 @@ def get_operations_dashboard(db: Session, job_type: JobType, user) -> Dict[str, 
         ).filter(Job.job_type == job_type).first()
     else:
         jobs = db.query(Job).filter(Job.planning_status == PlanningStatus.APPROVED, Job.job_type == job_type, Job.kkks_id == user.kkks_id).all()
-
+        
         summary = db.query(
             func.sum(case([(Job.operation_status.in_([OperationStatus.OPERATING.value, OperationStatus.FINISHED.value]), 1)], else_=0)).label('beroperasi'),
             func.sum(case([(Job.planning_status == PlanningStatus.APPROVED.value, 1)], else_=0)).label('disetujui'),
@@ -129,7 +129,7 @@ def get_operations_dashboard(db: Session, job_type: JobType, user) -> Dict[str, 
             "selesai_beroperasi": summary.selesai_beroperasi or 0
         }
     }
-
+    
     for i, job in enumerate(jobs):
         job_detail = {
             "id": job.id,
@@ -144,12 +144,12 @@ def get_operations_dashboard(db: Session, job_type: JobType, user) -> Dict[str, 
             "REALISASI SELESAI": job.actual_end_date.strftime("%d %b %Y") if job.actual_end_date else "N/A",
             "STATUS": job.operation_status.value if job.operation_status is not None else job.job_current_status.value
         }
-
+        
         if job.job_type in [JobType.WELLSERVICE, JobType.WORKOVER]:
             job_detail['JENIS PEKERJAAN'] = job.job_plan.job_category.value
-
+        
         result["job_details"].append(job_detail)
-
+        
     return result
 
 def get_ppp_dashboard(db: Session, job_type: JobType, user) -> Dict[str, Dict]:
@@ -252,18 +252,14 @@ def get_co_dashboard(db: Session, job_type: JobType, user) -> Dict[str, Dict]:
 
 #home dashboard
 def get_dashboard_progress_tablechart(db: Session, user) -> Dict:
-    
     if isinstance(user, Admin):
-
         results = db.query(
             Job.job_type,
             func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).label('rencana'),
             func.count(Job.id).filter(Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])).label('realisasi'),
             func.count(Job.id).filter(Job.actual_start_date == datetime.now().date()).label('change'),
         ).group_by(Job.job_type).all()
-    
     else:
-        
         results = db.query(
             Job.job_type,
             func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).label('rencana'),
