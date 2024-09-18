@@ -57,3 +57,14 @@ class LapanganResponse(BaseModel):
     class Config:
         orm_mode = True
 
+class WellInstanceResponse(BaseModel):
+    id: str
+    well_name: str
+
+    class Config:
+        orm_mode = True
+
+class StratUnitResponse(BaseModel):
+    id: str
+    strat_unit_info: str
+

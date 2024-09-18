@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends,HTTPException
 from sqlalchemy.orm import Session
 from app.api.auth.models import *
 from app.api.spatial.models import *
 from app.api.spatial.schemas import *
+from app.api.well.models import *
+from app.api.well.schemas import *
 from app.api.auth.schemas import GetUser
 from app.core.security import authorize, get_db, get_current_user
 from app.api.spatial import crud, schemas
@@ -42,6 +44,37 @@ def get_areas(db: Session = Depends(get_db)):
 
 @router.get("/api/lapangan", response_model=List[LapanganResponse])
 def get_areas(db: Session = Depends(get_db)):
-    areas = db.query(Lapangan.id, Lapangan.name).all()
-    return areas
+    lapangan = db.query(Lapangan.id, Lapangan.name).all()
+    return lapangan
+
+@router.get("/api/well-instance", response_model=List[WellInstanceResponse])
+def get_well_instances(db: Session = Depends(get_db)):
+    well_instances = (
+        db.query(WellInstance.well_instance_id, WellInstance.well_name)
+        .filter(WellInstance.well_phase == "actual")
+        .all()
+    )
+    return [
+        WellInstanceResponse(id=well_instance_id, well_name=well_name)
+        for well_instance_id, well_name in well_instances
+    ]
+
+@router.get("/api/strat-units/{area_id}", response_model=List[StratUnitResponse])
+def get_strat_units_by_area(area_id: str, db: Session = Depends(get_db)):
+    strat_units = (
+        db.query(StratUnit)
+        .filter(StratUnit.area_id == area_id)
+        .all()
+    )
+    
+    if not strat_units:
+        raise HTTPException(status_code=404, detail="No strat units found for this area")
+    
+    return [
+        StratUnitResponse(
+            id=unit.id,
+            strat_unit_info=f"{unit.strat_unit_name} ({unit.strat_petroleum_system.name})"
+        )
+        for unit in strat_units
+    ]
 
