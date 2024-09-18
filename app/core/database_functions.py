@@ -7,7 +7,9 @@ from app.scripts.create_dummy_data import generate_dummy_data
 from app.core.database import Base, SessionLocal, engine
 
 def reset_database(engine):
-    Base.metadata.drop_all(bind=engine)  # Drops all tables
+    # print(Base.metadata.tables.values())
+    # Base.metadata.drop_all(bind=engine)  # Drops all tables
+    print('creating all tables')
     Base.metadata.create_all(bind=engine)  # Creates all tables
     
 def data_exists(db: Session):
