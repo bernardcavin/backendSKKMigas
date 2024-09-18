@@ -87,8 +87,8 @@ class Lapangan(Base):
     area = relationship("Area", back_populates="fields")
     # geojson = Column(JSON)
     
-    jobs = relationship("Job", back_populates='field')
-    well_instances = relationship("WellInstance", back_populates="field")
+    jobs = relationship("Job", back_populates='field', cascade="all, delete-orphan")
+    well_instances = relationship("WellInstance", back_populates="field", cascade="all, delete-orphan")
 
 class StratUnit(Base):
     

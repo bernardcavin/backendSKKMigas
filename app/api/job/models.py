@@ -130,21 +130,21 @@ class PlanningStatus(PyEnum):
 
 class OperationStatus(PyEnum):
     OPERATING = 'OPERATING'
-    FINISHED = 'FINISHED OPS'
+    FINISHED = 'FINISHED'
 
 class PPPStatus(PyEnum):
-    PROPOSED = 'P3 PROPOSED'
-    APPROVED = 'P3 APPROVED'
+    PROPOSED = 'PROPOSED'
+    APPROVED = 'APPROVED'
 
 class CloseOutStatus(PyEnum):
-    PROPOSED = 'CO PROPOSED'
-    APPROVED = 'CO APPROVED'
+    PROPOSED = 'PROPOSED'
+    APPROVED = 'APPROVED'
 
 class JobType(PyEnum):
-    EXPLORATION = 'Exploration'
-    DEVELOPMENT = 'Development'
-    WORKOVER = 'Workover'
-    WELLSERVICE = 'Well Service'
+    EXPLORATION = 'EXPLORATION'
+    DEVELOPMENT = 'DEVELOPMENT'
+    WORKOVER = 'WORKOVER'
+    WELLSERVICE = 'WELLSERVICE'
     
 class ValidationBase:
     
@@ -845,6 +845,7 @@ class TimeBreakdown(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
+    daily_operations_report = relationship("DailyOperationsReport", back_populates="time_breakdowns")
     
     #time
     start_time = Column(DateTime)
@@ -862,7 +863,6 @@ class TimeBreakdown(Base):
     
     operation = Column(Text)
     code = Column(SQLAlchemyEnum(OperationCode, name='operationcode', create_constraint=False))
-    daily_operations_report = relationship("DailyOperationsReport", back_populates="time_breakdowns")
 
     @property
     def start_time_without_microseconds(self):

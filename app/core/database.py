@@ -5,4 +5,9 @@ from app.core.config import settings
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+
+class Base:
+    # __table_args__ = {'schema': 'public'}
+    pass
+
+Base = declarative_base(cls=Base)

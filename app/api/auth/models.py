@@ -13,10 +13,10 @@ class KKKS(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     name = Column(String(255), unique=True, index=True)  # Assuming name can be lengthy, up to 255 characters
-    users = relationship("KKKSUser", back_populates="kkks")
-    jobs = relationship("Job", back_populates="kkks")
-    area = relationship("Area", back_populates='kkks')
-    well_instances = relationship("WellInstance", back_populates='kkks')
+    users = relationship("KKKSUser", back_populates="kkks", cascade="all, delete-orphan")
+    jobs = relationship("Job", back_populates="kkks", cascade="all, delete-orphan")
+    area = relationship("Area", back_populates='kkks', cascade="all, delete-orphan")
+    well_instances = relationship("WellInstance", back_populates='kkks', cascade="all, delete-orphan")
 
 class User(Base):
     __tablename__ = 'users'
