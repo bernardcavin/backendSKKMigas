@@ -13,9 +13,6 @@ class WellBase(BaseModel):
     unit_type: UnitType
 
     uwi: Optional[str]
-    field_id: Optional[str]
-    area_id: Optional[str]
-    kkks_id: Optional[str]
 
     well_name: Optional[str]
     alias_long_name: Optional[str]

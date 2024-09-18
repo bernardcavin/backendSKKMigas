@@ -256,6 +256,7 @@ def generate_dummy_data(db, n: int):
                 "well_type": random_enum_value(WellType).value,
                 "well_status": random_enum_value(WellStatus).value,
                 "well_profile_type": random_enum_value(WellProfileType).value,
+                "well_directional_type": random_enum_value(WellDirectionalType).value,
                 "hydrocarbon_target": random_enum_value(HydrocarbonTarget).value,
                 "environment_type": random_enum_value(EnvironmentType).value,
                 "surface_longitude": 106.816666,
