@@ -267,7 +267,7 @@ class Job(Base, CreateBase, ValidationBase):
     actual_job_id = Column(String(36), ForeignKey('job_instances.job_instance_id'))
     actual_job = relationship('JobInstance', foreign_keys=[actual_job_id])
     
-    daily_operations_report = relationship('DailyOperationsReport', back_populates='job', cascade="all, delete-orphan")
+    daily_operations_report = relationship('DailyOperationsReport', back_populates='job')
     
     @hybrid_property
     def plan_start_date(self):
@@ -317,7 +317,7 @@ class Job(Base, CreateBase, ValidationBase):
     def actual_end_date(cls):
         return select(JobInstance.end_date).where(cls.actual_job_id == JobInstance.job_instance_id).as_scalar()
         
-    job_issues = relationship('JobIssue', back_populates='job', cascade="all, delete-orphan")
+    job_issues = relationship('JobIssue', back_populates='job')
     
     operation_status = Column(Enum(OperationStatus))
     
@@ -358,10 +358,10 @@ class JobInstance(Base):
     end_date = Column(Date)
     total_budget = Column(Numeric(precision=10, scale=2))
 
-    job_operation_days = relationship('JobOperationDay', back_populates='job_instance', cascade="all, delete-orphan")
-    work_breakdown_structure = relationship('WorkBreakdownStructure', back_populates='job_instance', cascade="all, delete-orphan")
-    job_hazards = relationship('JobHazard', back_populates='job_instance', cascade="all, delete-orphan")
-    job_documents = relationship('JobDocument', back_populates='job_instance', cascade="all, delete-orphan")
+    job_operation_days = relationship('JobOperationDay', back_populates='job_instance')
+    work_breakdown_structure = relationship('WorkBreakdownStructure', back_populates='job_instance')
+    job_hazards = relationship('JobHazard', back_populates='job_instance')
+    job_documents = relationship('JobDocument', back_populates='job_instance')
     
     __mapper_args__ = {
         "polymorphic_on": "job_phase_type",
@@ -774,17 +774,17 @@ class DailyOperationsReport(Base):
     fire = Column(Enum(YesNo))
     
     #lampiran
-    time_breakdowns = relationship("TimeBreakdown", back_populates="daily_operations_report", lazy="joined", cascade="all, delete-orphan")
-    bit_records = relationship('BitRecord', back_populates='daily_operations_report',uselist=False, cascade="all, delete-orphan")
-    bottom_hole_assemblies = relationship('BottomHoleAssembly', back_populates='daily_operations_report', cascade="all, delete-orphan")
-    drilling_fluids = relationship('DrillingFluid', back_populates='daily_operations_report', cascade="all, delete-orphan")
-    mud_additives = relationship('MudAdditive', back_populates='daily_operations_report', cascade="all, delete-orphan")
-    bulk_materials = relationship('BulkMaterial', back_populates='daily_operations_report', cascade="all, delete-orphan")
-    Incidents = relationship("Incident", back_populates="daily_operations_report", cascade="all, delete-orphan")
-    personnel = relationship("Personnel", back_populates="daily_operations_report", cascade="all, delete-orphan")
-    directional_surveys = relationship('DirectionalSurvey', back_populates='daily_operations_report', cascade="all, delete-orphan")
-    pumps = relationship('Pumps', back_populates='daily_operations_report', cascade="all, delete-orphan")
-    weather = relationship('Weather', back_populates='daily_operations_report', uselist=False, cascade="all, delete-orphan")
+    time_breakdowns = relationship("TimeBreakdown", back_populates="daily_operations_report", lazy="joined")
+    bit_records = relationship('BitRecord', back_populates='daily_operations_report',uselist=False)
+    bottom_hole_assemblies = relationship('BottomHoleAssembly', back_populates='daily_operations_report')
+    drilling_fluids = relationship('DrillingFluid', back_populates='daily_operations_report')
+    mud_additives = relationship('MudAdditive', back_populates='daily_operations_report')
+    bulk_materials = relationship('BulkMaterial', back_populates='daily_operations_report')
+    Incidents = relationship("Incident", back_populates="daily_operations_report")
+    personnel = relationship("Personnel", back_populates="daily_operations_report")
+    directional_surveys = relationship('DirectionalSurvey', back_populates='daily_operations_report')
+    pumps = relationship('Pumps', back_populates='daily_operations_report')
+    weather = relationship('Weather', back_populates='daily_operations_report', uselist=False)
 
 class JobCategory(PyEnum):
     DRILLING = 'DRILLING'
@@ -906,7 +906,7 @@ class BottomHoleAssembly(Base):
     bha_number = Column(String(50))
     bha_run = Column(Integer)
     
-    components = relationship('BHAComponent', back_populates='bottom_hole_assembly', cascade="all, delete-orphan")
+    components = relationship('BHAComponent', back_populates='bottom_hole_assembly')
 
 class BHAComponentType(PyEnum):
     BUMPER_SUB = "Bumper Sub"
