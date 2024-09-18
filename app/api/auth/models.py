@@ -48,7 +48,7 @@ class KKKSUser(User):
     
     id = Column(String(36), ForeignKey('users.id'), primary_key=True)
     kkks_id = Column(String(36), ForeignKey('kkks.id'))
-    kkks = relationship("KKKS", back_populates="users", cascade="all, delete-orphan")
+    kkks = relationship("KKKS", back_populates="users")
     
     __mapper_args__ = {
         "polymorphic_identity": Role.KKKS

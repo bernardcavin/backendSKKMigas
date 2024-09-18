@@ -43,3 +43,17 @@ class GetAreaSchema(CreateAreaSchema):
     fields: List[GetFieldSchema]
     strat_units: List[GetStratUnitSchema]
 
+class AreaResponse(BaseModel):
+    id: str
+    name: str
+
+    class Config:
+        orm_mode = True
+
+class LapanganResponse(BaseModel):
+    id: str
+    name: str
+
+    class Config:
+        orm_mode = True
+

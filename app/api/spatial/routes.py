@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.api.auth.models import Role
+from app.api.auth.models import *
+from app.api.spatial.models import *
+from app.api.spatial.schemas import *
 from app.api.auth.schemas import GetUser
 from app.core.security import authorize, get_db, get_current_user
 from app.api.spatial import crud, schemas
 from app.core.schema_operations import create_api_response
+from typing import List
 
 router = APIRouter(prefix="/spatial", tags=["spatial"])
 
@@ -31,3 +34,14 @@ async def create_strat_unit(strat_unit: schemas.CreateStratUnitSchema, db: Sessi
     if not created_strat_unit:
         return create_api_response(success=False, message="Failed to create stratigraphic unit", status_code=400)
     return create_api_response(success=True, message="Stratigraphic unit created successfully", data=created_strat_unit)
+
+@router.get("/api/areas", response_model=List[AreaResponse])
+def get_areas(db: Session = Depends(get_db)):
+    areas = db.query(Area.id, Area.name).all()
+    return areas
+
+@router.get("/api/lapangan", response_model=List[LapanganResponse])
+def get_areas(db: Session = Depends(get_db)):
+    areas = db.query(Lapangan.id, Lapangan.name).all()
+    return areas
+
