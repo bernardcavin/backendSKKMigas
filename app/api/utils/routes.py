@@ -14,6 +14,7 @@ import json
 import pandas as pd
 import plotly.graph_objects as go
 from app.core.schema_operations import create_api_response
+from app.api.visualize.lib.well_profile_func import render_well_profile
 
 router = APIRouter(prefix="/utils", tags=["utils"])
 
@@ -57,32 +58,8 @@ async def upload_trajectory_file(file: UploadFile = File(...), db: Session = Dep
     try:
         file_info = save_upload_file(db, file, user)
         well_profile = load(file_info.file_location)
-        well_profile_df = pd.DataFrame(well_profile.trajectory)
-
-        fig = go.Figure(
-            data=[go.Scatter3d(
-                x=well_profile_df['east'],
-                y=well_profile_df['north'],
-                z=well_profile_df['tvd'],
-                mode='markers',
-                marker=dict(showscale=True, opacity=0.8),
-                hovertemplate='%{text}<extra></extra><br><b>North</b>: %{y:.2f}<br><b>East</b>: %{x}<br><b>TVD</b>: %{z}<br>'
-            )]
-        )
-
-        fig.update_layout(
-            scene=dict(
-                xaxis_title='East',
-                yaxis_title='North',
-                zaxis_title='TVD',
-                aspectmode='manual'
-            ),
-            title='Wellbore Trajectory - 3D View',
-            template='plotly_white'
-        )
-        fig.update_scenes(zaxis_autorange="reversed")
-        fig_json = fig.to_json(pretty=True)
-        fig_data = json.loads(fig_json)
+        
+        fig_data = render_well_profile(well_profile)
 
         return create_api_response(
             success=True,
@@ -90,4 +67,5 @@ async def upload_trajectory_file(file: UploadFile = File(...), db: Session = Dep
             data={"file_info": file_info, "plot": fig_data}
         )
     except Exception as e:
+        print(e)
         return create_api_response(success=False, message="File cannot be processed", status_code=500)
