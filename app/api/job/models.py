@@ -200,13 +200,13 @@ class Job(Base, CreateBase, ValidationBase):
     
     #kkks information
     kkks_id = Column(String(36), ForeignKey('kkks.id'))
-    kkks = relationship('KKKS', back_populates='jobs')
+    kkks = relationship('KKKS', back_populates='jobs', cascade="all, delete-orphan")
     
     area_id = Column(String(36), ForeignKey('area.id'))
-    area = relationship('Area', back_populates='jobs')
+    area = relationship('Area', back_populates='jobs', cascade="all, delete-orphan")
     
     field_id = Column(String(36), ForeignKey('fields.id'))
-    field = relationship('Lapangan', back_populates='jobs')
+    field = relationship('Lapangan', back_populates='jobs', cascade="all, delete-orphan")
     
     @hybrid_property
     def kkks_name(self):
@@ -267,7 +267,7 @@ class Job(Base, CreateBase, ValidationBase):
     actual_job_id = Column(String(36), ForeignKey('job_instances.job_instance_id'))
     actual_job = relationship('JobInstance', foreign_keys=[actual_job_id])
     
-    daily_operations_report = relationship('DailyOperationsReport', back_populates='job')
+    daily_operations_report = relationship('DailyOperationsReport', back_populates='job', cascade="all, delete-orphan")
     
     @hybrid_property
     def plan_start_date(self):
@@ -317,7 +317,7 @@ class Job(Base, CreateBase, ValidationBase):
     def actual_end_date(cls):
         return select(JobInstance.end_date).where(cls.actual_job_id == JobInstance.job_instance_id).as_scalar()
         
-    job_issues = relationship('JobIssue', back_populates='job')
+    job_issues = relationship('JobIssue', back_populates='job', cascade="all, delete-orphan")
     
     operation_status = Column(Enum(OperationStatus))
     
@@ -358,10 +358,10 @@ class JobInstance(Base):
     end_date = Column(Date)
     total_budget = Column(Numeric(precision=10, scale=2))
 
-    job_operation_days = relationship('JobOperationDay', back_populates='job_instance')
-    work_breakdown_structure = relationship('WorkBreakdownStructure', back_populates='job_instance')
-    job_hazards = relationship('JobHazard', back_populates='job_instance')
-    job_documents = relationship('JobDocument', back_populates='job_instance')
+    job_operation_days = relationship('JobOperationDay', back_populates='job_instance', cascade="all, delete-orphan")
+    work_breakdown_structure = relationship('WorkBreakdownStructure', back_populates='job_instance', cascade="all, delete-orphan")
+    job_hazards = relationship('JobHazard', back_populates='job_instance', cascade="all, delete-orphan")
+    job_documents = relationship('JobDocument', back_populates='job_instance', cascade="all, delete-orphan")
     
     __mapper_args__ = {
         "polymorphic_on": "job_phase_type",
@@ -595,7 +595,7 @@ class WorkBreakdownStructure(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     job_instance_id = Column(String(36), ForeignKey('job_instances.job_instance_id'))
-    job_instance = relationship('JobInstance', back_populates='work_breakdown_structure')
+    job_instance = relationship('JobInstance', back_populates='work_breakdown_structure', cascade="all, delete-orphan")
     
     event = Column(String(255))
     start_date = Column(Date)
@@ -608,7 +608,7 @@ class JobHazard(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     job_instance_id = Column(String(36), ForeignKey('job_instances.job_instance_id'))
-    job_instance = relationship('JobInstance', back_populates='job_hazards')
+    job_instance = relationship('JobInstance', back_populates='job_hazards', cascade="all, delete-orphan")
     
     hazard_type = Column(Enum(HazardType))
     hazard_description = Column(Text)
@@ -639,7 +639,7 @@ class JobDocument(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     job_instance_id = Column(String(36), ForeignKey('job_instances.job_instance_id'))
-    job_instance = relationship('JobInstance', back_populates='job_documents')
+    job_instance = relationship('JobInstance', back_populates='job_documents', cascade="all, delete-orphan")
 
     file_id = Column(String(36), ForeignKey('files.id'))
     file = relationship('FileDB', foreign_keys=[file_id])
@@ -664,7 +664,7 @@ class JobOperationDay(Base):
     operation_days = Column(Float)
     
     job_instance_id = Column(String(36), ForeignKey('job_instances.job_instance_id'))
-    job_instance = relationship('JobInstance', back_populates='job_operation_days')
+    job_instance = relationship('JobInstance', back_populates='job_operation_days', cascade="all, delete-orphan")
 
     def __init__(self, unit_type, *args, **kwargs):
 
@@ -680,7 +680,7 @@ class JobIssue(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     
     job_id = Column(String(36), ForeignKey('jobs.id'))
-    job = relationship('Job', back_populates='job_issues')
+    job = relationship('Job', back_populates='job_issues', cascade="all, delete-orphan")
     
     date_time = Column(DateTime)
     severity = Column(Enum(Severity))
@@ -700,7 +700,7 @@ class DailyOperationsReport(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     
     job_id = Column(String(36), ForeignKey('jobs.id'))
-    job = relationship('Job', back_populates='daily_operations_report')
+    job = relationship('Job', back_populates='daily_operations_report', cascade="all, delete-orphan")
     
     #date
     report_date = Column(Date)
@@ -774,17 +774,17 @@ class DailyOperationsReport(Base):
     fire = Column(Enum(YesNo))
     
     #lampiran
-    time_breakdowns = relationship("TimeBreakdown", back_populates="daily_operations_report", lazy="joined")
-    bit_records = relationship('BitRecord', back_populates='daily_operations_report',uselist=False)
-    bottom_hole_assemblies = relationship('BottomHoleAssembly', back_populates='daily_operations_report')
-    drilling_fluids = relationship('DrillingFluid', back_populates='daily_operations_report')
-    mud_additives = relationship('MudAdditive', back_populates='daily_operations_report')
-    bulk_materials = relationship('BulkMaterial', back_populates='daily_operations_report')
-    Incidents = relationship("Incident", back_populates="daily_operations_report", cascade="all, delete-orphan")
-    personnel = relationship("Personnel", back_populates="daily_operations_report", cascade="all, delete-orphan")
-    directional_surveys = relationship('DirectionalSurvey', back_populates='daily_operations_report')
-    pumps = relationship('Pumps', back_populates='daily_operations_report')
-    weather = relationship('Weather', back_populates='daily_operations_report', uselist=False)
+    time_breakdowns = relationship("TimeBreakdown", back_populates="daily_operations_report", lazy="joined", cascade="all, delete-orphan")
+    bit_records = relationship('BitRecord', back_populates='daily_operations_report',uselist=False, cascade="all, delete-orphan")
+    bottom_hole_assemblies = relationship('BottomHoleAssembly', back_populates='daily_operations_report', cascade="all, delete-orphan")
+    drilling_fluids = relationship('DrillingFluid', back_populates='daily_operations_report', cascade="all, delete-orphan")
+    mud_additives = relationship('MudAdditive', back_populates='daily_operations_report', cascade="all, delete-orphan")
+    bulk_materials = relationship('BulkMaterial', back_populates='daily_operations_report', cascade="all, delete-orphan")
+    Incidents = relationship("Incident", back_populates="daily_operations_report", cascade="all, delete-orphan", cascade="all, delete-orphan")
+    personnel = relationship("Personnel", back_populates="daily_operations_report", cascade="all, delete-orphan", cascade="all, delete-orphan")
+    directional_surveys = relationship('DirectionalSurvey', back_populates='daily_operations_report', cascade="all, delete-orphan")
+    pumps = relationship('Pumps', back_populates='daily_operations_report', cascade="all, delete-orphan")
+    weather = relationship('Weather', back_populates='daily_operations_report', uselist=False, cascade="all, delete-orphan")
 
 class JobCategory(PyEnum):
     DRILLING = 'DRILLING'
@@ -862,7 +862,7 @@ class TimeBreakdown(Base):
     
     operation = Column(Text)
     code = Column(SQLAlchemyEnum(OperationCode, name='operationcode', create_constraint=False))
-    daily_operations_report = relationship("DailyOperationsReport", back_populates="time_breakdowns")
+    daily_operations_report = relationship("DailyOperationsReport", back_populates="time_breakdowns", cascade="all, delete-orphan")
 
     @property
     def start_time_without_microseconds(self):
@@ -879,7 +879,7 @@ class BitRecord(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     
     daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
-    daily_operations_report = relationship('DailyOperationsReport', back_populates='bit_records')
+    daily_operations_report = relationship('DailyOperationsReport', back_populates='bit_records', cascade="all, delete-orphan")
 
     bit_number = Column(String(10))
     bit_size = Column(Float)
@@ -901,12 +901,12 @@ class BottomHoleAssembly(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     
     daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
-    daily_operations_report = relationship('DailyOperationsReport', back_populates='bottom_hole_assemblies')
+    daily_operations_report = relationship('DailyOperationsReport', back_populates='bottom_hole_assemblies', cascade="all, delete-orphan")
     
     bha_number = Column(String(50))
     bha_run = Column(Integer)
     
-    components = relationship('BHAComponent', back_populates='bottom_hole_assembly')
+    components = relationship('BHAComponent', back_populates='bottom_hole_assembly', cascade="all, delete-orphan")
 
 class BHAComponentType(PyEnum):
     BUMPER_SUB = "Bumper Sub"
@@ -957,7 +957,7 @@ class BHAComponent(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     
     bottom_hole_assembly_id = Column(String(36), ForeignKey('job_bottom_hole_assemblies.id'))
-    bottom_hole_assembly = relationship('BottomHoleAssembly', back_populates='components')
+    bottom_hole_assembly = relationship('BottomHoleAssembly', back_populates='components', cascade="all, delete-orphan")
     
     component = Column(Enum(BHAComponentType))
     
@@ -975,7 +975,7 @@ class DrillingFluid(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
      
     daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
-    daily_operations_report = relationship('DailyOperationsReport', back_populates='drilling_fluids')
+    daily_operations_report = relationship('DailyOperationsReport', back_populates='drilling_fluids', cascade="all, delete-orphan")
     
     mud_type = Column(Enum(MudType))
     time = Column(DateTime)
@@ -1013,7 +1013,7 @@ class MudAdditive(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     
     daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
-    daily_operations_report = relationship('DailyOperationsReport', back_populates='mud_additives')
+    daily_operations_report = relationship('DailyOperationsReport', back_populates='mud_additives', cascade="all, delete-orphan")
     
     mud_additive_type = Column(String(50))
     amount = Column(Float)
@@ -1025,7 +1025,7 @@ class BulkMaterial(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     
     daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
-    daily_operations_report = relationship('DailyOperationsReport', back_populates='bulk_materials')
+    daily_operations_report = relationship('DailyOperationsReport', back_populates='bulk_materials', cascade="all, delete-orphan")
     
     material_type = Column(String(50))
     material_name = Column(String(50))	
@@ -1043,7 +1043,7 @@ class Incident(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
 
     daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
-    daily_operations_report = relationship('DailyOperationsReport', back_populates='Incidents')
+    daily_operations_report = relationship('DailyOperationsReport', back_populates='Incidents', cascade="all, delete-orphan")
     
     incidents_time = Column(DateTime)
     incident = Column(String(50))
@@ -1057,7 +1057,7 @@ class DirectionalSurvey(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     
     daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
-    daily_operations_report = relationship('DailyOperationsReport', back_populates='directional_surveys')
+    daily_operations_report = relationship('DailyOperationsReport', back_populates='directional_surveys', cascade="all, delete-orphan")
     
     measured_depth = Column(Float)
     inclination = Column(Float)
@@ -1070,7 +1070,7 @@ class Personnel(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     
     daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
-    daily_operations_report = relationship('DailyOperationsReport', back_populates='personnel')
+    daily_operations_report = relationship('DailyOperationsReport', back_populates='personnel', cascade="all, delete-orphan")
     
     company = Column(String(50))
     people = Column(Integer)
@@ -1082,7 +1082,7 @@ class Pumps(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     
     daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
-    daily_operations_report = relationship('DailyOperationsReport', back_populates='pumps')
+    daily_operations_report = relationship('DailyOperationsReport', back_populates='pumps', cascade="all, delete-orphan")
     
     slow_speed = Column(Enum(YesNo))
     circulate = Column(Float)
@@ -1098,7 +1098,7 @@ class Weather(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     
     daily_operations_report_id = Column(String(36), ForeignKey('job_daily_operations_reports.id'))
-    daily_operations_report = relationship('DailyOperationsReport', back_populates='weather')
+    daily_operations_report = relationship('DailyOperationsReport', back_populates='weather', cascade="all, delete-orphan")
     
     temperature_high = Column(Float)
     temperature_low = Column(Float)

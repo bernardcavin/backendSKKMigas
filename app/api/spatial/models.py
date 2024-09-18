@@ -68,12 +68,12 @@ class Area(Base):
     region = Column(Enum(AreaRegion))
     
     kkks_id = Column(String(36), ForeignKey('kkks.id'))
-    kkks = relationship("KKKS", back_populates='area')
+    kkks = relationship("KKKS", back_populates='area', cascade="all, delete-orphan")
     
-    fields = relationship("Lapangan", back_populates="area")
-    jobs = relationship("Job", back_populates='area')
-    well_instances = relationship("WellInstance", back_populates='area')
-    strat_units = relationship("StratUnit", back_populates="area")
+    fields = relationship("Lapangan", back_populates="area", cascade="all, delete-orphan")
+    jobs = relationship("Job", back_populates='area', cascade="all, delete-orphan")
+    well_instances = relationship("WellInstance", back_populates='area', cascade="all, delete-orphan")
+    strat_units = relationship("StratUnit", back_populates="area", cascade="all, delete-orphan")
     
     # geojson = Column(JSON)
 
