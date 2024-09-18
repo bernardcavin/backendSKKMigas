@@ -68,7 +68,7 @@ class Area(Base):
     region = Column(Enum(AreaRegion))
     
     kkks_id = Column(String(36), ForeignKey('kkks.id'))
-    kkks = relationship("KKKS", back_populates='area', cascade="all, delete-orphan")
+    kkks = relationship("KKKS", back_populates='area')
     
     fields = relationship("Lapangan", back_populates="area", cascade="all, delete-orphan")
     jobs = relationship("Job", back_populates='area', cascade="all, delete-orphan")
@@ -87,8 +87,8 @@ class Lapangan(Base):
     area = relationship("Area", back_populates="fields")
     # geojson = Column(JSON)
     
-    jobs = relationship("Job", back_populates='field')
-    well_instances = relationship("WellInstance", back_populates="field")
+    jobs = relationship("Job", back_populates='field', cascade="all, delete-orphan")
+    well_instances = relationship("WellInstance", back_populates="field", cascade="all, delete-orphan")
 
 class StratUnit(Base):
     

@@ -108,17 +108,17 @@ def get_operations_dashboard(db: Session, job_type: JobType, user) -> Dict[str, 
         jobs = db.query(Job).filter(Job.planning_status == PlanningStatus.APPROVED, Job.job_type == job_type).all()
 
         summary = db.query(
-            func.sum(case([(Job.operation_status.in_([OperationStatus.OPERATING.value, OperationStatus.FINISHED.value]), 1)], else_=0)).label('beroperasi'),
-            func.sum(case([(Job.planning_status == PlanningStatus.APPROVED.value, 1)], else_=0)).label('disetujui'),
-            func.sum(case([(Job.operation_status == OperationStatus.FINISHED.value, 1)], else_=0)).label('selesai_beroperasi'),
+            func.sum(case((Job.operation_status.in_([OperationStatus.OPERATING.value, OperationStatus.FINISHED.value]), 1), else_=0)).label('beroperasi'),
+            func.sum(case((Job.planning_status == PlanningStatus.APPROVED.value, 1), else_=0)).label('disetujui'),
+            func.sum(case((Job.operation_status == OperationStatus.FINISHED.value, 1), else_=0)).label('selesai_beroperasi'),
         ).filter(Job.job_type == job_type).first()
     else:
         jobs = db.query(Job).filter(Job.planning_status == PlanningStatus.APPROVED, Job.job_type == job_type, Job.kkks_id == user.kkks_id).all()
 
         summary = db.query(
-            func.sum(case([(Job.operation_status.in_([OperationStatus.OPERATING.value, OperationStatus.FINISHED.value]), 1)], else_=0)).label('beroperasi'),
-            func.sum(case([(Job.planning_status == PlanningStatus.APPROVED.value, 1)], else_=0)).label('disetujui'),
-            func.sum(case([(Job.operation_status == OperationStatus.FINISHED.value, 1)], else_=0)).label('selesai_beroperasi'),
+            func.sum(case((Job.operation_status.in_([OperationStatus.OPERATING.value, OperationStatus.FINISHED.value]), 1), else_=0)).label('beroperasi'),
+            func.sum(case((Job.planning_status == PlanningStatus.APPROVED.value, 1), else_=0)).label('disetujui'),
+            func.sum(case((Job.operation_status == OperationStatus.FINISHED.value, 1), else_=0)).label('selesai_beroperasi'),
         ).filter(Job.job_type == job_type, Job.kkks_id == user.kkks_id).first()
 
     result = {
@@ -312,22 +312,29 @@ def get_dashboard_kkks_table(db: Session) -> Dict:
     columns = [
         KKKS.id,
         KKKS.name.label('name')
-        ] + [
-        (cast(func.count(Job.id).filter(
-            and_(
-                or_(
-                    Job.operation_status == OperationStatus.OPERATING,
-                    Job.operation_status == OperationStatus.FINISHED,
-                ),
-                Job.job_type == job_type
-            )
-        ), Float) / 
-        cast(func.count(Job.id).filter(
-            and_(
-                Job.planning_status == PlanningStatus.APPROVED,
-                Job.job_type == job_type
-            )
-        ), Float) * 100).label(f'{job_type.value.lower().replace(" ", "")}_percentage') for job_type in JobType ]
+    ] + [
+        (cast(
+            func.count(Job.id).filter(
+                and_(
+                    or_(
+                        Job.operation_status == OperationStatus.OPERATING,
+                        Job.operation_status == OperationStatus.FINISHED,
+                    ),
+                    Job.job_type == job_type
+                )
+            ), Float) / 
+            cast(
+                func.nullif(
+                    func.count(Job.id).filter(
+                        and_(
+                            Job.planning_status == PlanningStatus.APPROVED,
+                            Job.job_type == job_type
+                        )
+                    ), 0
+                ), Float
+            ) * 100
+        ).label(f'{job_type.value.lower().replace(" ", "")}_percentage') for job_type in JobType
+    ]
 
     query = db.query(
         *columns
