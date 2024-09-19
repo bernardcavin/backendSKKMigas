@@ -20,9 +20,10 @@ def create_job_plan(db: Session, job_type: JobType, plan: object, user):
     db_job.planning_status = PlanningStatus.PROPOSED
     db_job.created_by_id = user.id
     db_job.time_created = datetime.now()
-    db_job.job_plan.well.area_id = plan.area_id
-    db_job.job_plan.well.field_id = plan.field_id
-    db_job.job_plan.well.kkks_id = user.kkks_id
+    if isinstance(plan, (ExplorationJobPlan, DevelopmentJobPlan)):
+        db_job.job_plan.well.area_id = plan.area_id
+        db_job.job_plan.well.field_id = plan.field_id
+        db_job.job_plan.well.kkks_id = user.kkks_id
     db.add(db_job)
     db.commit()
     return db_job.id
