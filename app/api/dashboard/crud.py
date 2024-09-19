@@ -41,15 +41,15 @@ def get_plans_dashboard(db: Session, job_type: JobType, user):
         summary = db.query(
             func.count(Job.id).label('total'),
             func.sum(case(
-                (Job.planning_status.in_([PlanningStatus.APPROVED.value, PlanningStatus.PROPOSED.value]), 1),
+                (Job.planning_status.in_([PlanningStatus.APPROVED, PlanningStatus.PROPOSED]), 1),
                 else_=0
             )).label('diajukan'),
             func.sum(case(
-                (Job.planning_status == PlanningStatus.APPROVED.value, 1),
+                (Job.planning_status == PlanningStatus.APPROVED, 1),
                 else_=0
             )).label('disetujui'),
             func.sum(case(
-                (Job.planning_status == PlanningStatus.RETURNED.value, 1),
+                (Job.planning_status == PlanningStatus.RETURNED, 1),
                 else_=0
             )).label('dikembalikan'),
         ).filter(Job.job_type == job_type).first()
@@ -60,15 +60,15 @@ def get_plans_dashboard(db: Session, job_type: JobType, user):
         summary = db.query(
             func.count(Job.id).label('total'),
             func.sum(case(
-                (Job.planning_status.in_([PlanningStatus.APPROVED.value, PlanningStatus.PROPOSED.value]), 1),
+                (Job.planning_status.in_([PlanningStatus.APPROVED, PlanningStatus.PROPOSED]), 1),
                 else_=0
             )).label('diajukan'),
             func.sum(case(
-                (Job.planning_status == PlanningStatus.APPROVED.value, 1),
+                (Job.planning_status == PlanningStatus.APPROVED, 1),
                 else_=0
             )).label('disetujui'),
             func.sum(case(
-                (Job.planning_status == PlanningStatus.RETURNED.value, 1),
+                (Job.planning_status == PlanningStatus.RETURNED, 1),
                 else_=0
             )).label('dikembalikan'),
         ).filter(Job.job_type == job_type, Job.kkks_id == user.kkks_id).first()
@@ -108,17 +108,17 @@ def get_operations_dashboard(db: Session, job_type: JobType, user) -> Dict[str, 
         jobs = db.query(Job).filter(Job.planning_status == PlanningStatus.APPROVED).filter(Job.job_type == job_type).all()
 
         summary = db.query(
-            func.sum(case((Job.operation_status.in_([OperationStatus.OPERATING.value, OperationStatus.FINISHED.value]), 1), else_=0)).label('beroperasi'),
-            func.sum(case((Job.planning_status == PlanningStatus.APPROVED.value, 1), else_=0)).label('disetujui'),
-            func.sum(case((Job.operation_status == OperationStatus.FINISHED.value, 1), else_=0)).label('selesai_beroperasi'),
+            func.sum(case((Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]), 1), else_=0)).label('beroperasi'),
+            func.sum(case((Job.planning_status == PlanningStatus.APPROVED, 1), else_=0)).label('disetujui'),
+            func.sum(case((Job.operation_status == OperationStatus.FINISHED, 1), else_=0)).label('selesai_beroperasi'),
         ).filter(Job.job_type == job_type).first()
     else:
         jobs = db.query(Job).filter(Job.planning_status == PlanningStatus.APPROVED, Job.job_type == job_type, Job.kkks_id == user.kkks_id).all()
         
         summary = db.query(
-            func.sum(case((Job.operation_status.in_([OperationStatus.OPERATING.value, OperationStatus.FINISHED.value]), 1), else_=0)).label('beroperasi'),
-            func.sum(case((Job.planning_status == PlanningStatus.APPROVED.value, 1), else_=0)).label('disetujui'),
-            func.sum(case((Job.operation_status == OperationStatus.FINISHED.value, 1), else_=0)).label('selesai_beroperasi'),
+            func.sum(case((Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED]), 1), else_=0)).label('beroperasi'),
+            func.sum(case((Job.planning_status == PlanningStatus.APPROVED, 1), else_=0)).label('disetujui'),
+            func.sum(case((Job.operation_status == OperationStatus.FINISHED, 1), else_=0)).label('selesai_beroperasi'),
         ).filter(Job.job_type == job_type, Job.kkks_id == user.kkks_id).first()
 
     result = {
@@ -206,17 +206,17 @@ def get_co_dashboard(db: Session, job_type: JobType, user) -> Dict[str, Dict]:
         jobs = db.query(Job).filter(Job.ppp_status == PPPStatus.APPROVED, Job.job_type == job_type).all()
         
         summary = db.query(
-            func.sum(case((Job.closeout_status.in_([CloseOutStatus.PROPOSED.value, CloseOutStatus.APPROVED.value]), 1), else_=0)).label('diajukan'),
-            func.sum(case((Job.closeout_status == CloseOutStatus.APPROVED.value, 1), else_=0)).label('disetujui'),
-            func.sum(case((Job.ppp_status == PPPStatus.APPROVED.value, 1), else_=0)).label('selesai_p3'),
+            func.sum(case((Job.closeout_status.in_([CloseOutStatus.PROPOSED, CloseOutStatus.APPROVED]), 1), else_=0)).label('diajukan'),
+            func.sum(case((Job.closeout_status == CloseOutStatus.APPROVED, 1), else_=0)).label('disetujui'),
+            func.sum(case((Job.ppp_status == PPPStatus.APPROVED, 1), else_=0)).label('selesai_p3'),
         ).filter(Job.job_type == job_type).first()
     else:
         jobs = db.query(Job).filter(Job.ppp_status == PPPStatus.APPROVED, Job.job_type == job_type, Job.kkks_id == user.kkks_id).all()
         
         summary = db.query(
-            func.sum(case((Job.closeout_status.in_([CloseOutStatus.PROPOSED.value, CloseOutStatus.APPROVED.value]), 1), else_=0)).label('diajukan'),
-            func.sum(case((Job.closeout_status == CloseOutStatus.APPROVED.value, 1), else_=0)).label('disetujui'),
-            func.sum(case((Job.ppp_status == PPPStatus.APPROVED.value, 1), else_=0)).label('selesai_p3'),
+            func.sum(case((Job.closeout_status.in_([CloseOutStatus.PROPOSED, CloseOutStatus.APPROVED]), 1), else_=0)).label('diajukan'),
+            func.sum(case((Job.closeout_status == CloseOutStatus.APPROVED, 1), else_=0)).label('disetujui'),
+            func.sum(case((Job.ppp_status == PPPStatus.APPROVED, 1), else_=0)).label('selesai_p3'),
         ).filter(Job.job_type == job_type, Job.kkks_id == user.kkks_id).first()
 
     result = {
