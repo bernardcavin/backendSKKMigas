@@ -285,9 +285,11 @@ class CreateActualWellService(JobActualInstanceBase):
         from_attributes = True
         
 class PlanJobBase(BaseModel):
-
-    #kkks information
     
+    #kkks information
+    area_id: str
+    field_id: str
+   
     #contract information
     contract_type: ContractType
     
@@ -300,10 +302,6 @@ class PlanJobBase(BaseModel):
         from_attributes = True
         
 class ActualJobBase(BaseModel):
-
-    #kkks information
-    area_id: str
-    field_id: str
     
     #contract information
     contract_type: ContractType
