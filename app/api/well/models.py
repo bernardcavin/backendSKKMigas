@@ -51,6 +51,12 @@ class WellStatus(PyEnum):
     TPA = 'Temporary P&A'
     PA = "P&A"
 
+class WellDirectionalType(PyEnum):
+    HORIZONTAL = "HORIZONTAL"
+    J_TYPE = "J-Type"
+    S_TYPE = "S-Type"
+
+
 class CasingType(PyEnum):
     CONDUCTOR_PIPE = 'CONDUCTOR PIPE'
     SURFACE_CASING = 'SURFACE CASING'
