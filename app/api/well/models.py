@@ -1,6 +1,7 @@
 from sqlalchemy.orm import relationship,Mapped
 from sqlalchemy import Column, String, ForeignKey, Enum, Text, Float, Date
 from enum import Enum as PyEnum
+from app.api.visualize.lib.well_profile import well
 from app.core.database import Base
 import uuid
 from typing import Optional, List,ClassVar
@@ -37,7 +38,11 @@ class WellType(PyEnum):
 class WellProfileType(PyEnum):
     DIRECTIONAL = 'DIRECTIONAL'
     VERTICAL = 'VERTICAL'
+
+class WellDirectionalType(PyEnum):
     HORIZONTAL = 'HORIZONTAL'
+    J_TYPE = 'J-TYPE'
+    S_TYPE = 'S-TYPE'
 
 class WellStatus(PyEnum):
     ACTIVE = "Active"
@@ -110,6 +115,7 @@ class WellInstance(Base):
     well_type = Column(Enum(WellType))
     well_status = Column(Enum(WellStatus))
     well_profile_type = Column(Enum(WellProfileType))
+    well_directional_type = Column(Enum(WellDirectionalType))
     hydrocarbon_target = Column(Enum(HydrocarbonTarget))
     environment_type = Column(Enum(EnvironmentType))
     

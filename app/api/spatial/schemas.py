@@ -48,21 +48,21 @@ class AreaResponse(BaseModel):
     name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class LapanganResponse(BaseModel):
     id: str
     name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class WellInstanceResponse(BaseModel):
     id: str
     well_name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class StratUnitResponse(BaseModel):
     id: str
