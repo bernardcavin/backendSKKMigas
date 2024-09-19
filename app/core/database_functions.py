@@ -1,5 +1,3 @@
-import os
-from dotenv import load_dotenv
 import contextlib
 from sqlalchemy.orm import Session
 from app.api.auth.models import User
