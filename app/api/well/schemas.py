@@ -23,6 +23,7 @@ class WellBase(BaseModel):
     well_type: Optional[WellType]
     well_status: Optional[WellStatus]
     well_profile_type: Optional[WellProfileType]
+    well_directional_type: Optional[WellDirectionalType]
     hydrocarbon_target: Optional[HydrocarbonTarget]
     environment_type: Optional[EnvironmentType]
 
