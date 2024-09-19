@@ -287,8 +287,6 @@ class CreateActualWellService(JobActualInstanceBase):
 class PlanJobBase(BaseModel):
 
     #kkks information
-    area_id: str
-    field_id: str
     
     #contract information
     contract_type: ContractType
