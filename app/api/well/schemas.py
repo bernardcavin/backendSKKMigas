@@ -19,7 +19,7 @@ class WellBase(BaseModel):
     alias_long_name: Optional[str]
 
     well_type: Optional[WellType]
-    well_status: Optional[WellStatus]
+    # well_status: Optional[WellStatus]
     well_profile_type: Optional[WellProfileType]
     well_directional_type: Optional[WellDirectionalType]
     hydrocarbon_target: Optional[HydrocarbonTarget]
@@ -176,8 +176,8 @@ class CreatePlanWell(WellBase):
     well_test: Optional[List[WellTestBase]] = None
     well_trajectory: Optional[WellTrajectoryBase] = None
     well_ppfg: Optional[WellPPFGBase] = None
-    well_logs: Optional[List[WellLogBase]] = None
-    well_drilling_parameter: Optional[WellDrillingParameterBase] = None
+    # well_logs: Optional[List[WellLogBase]] = None
+    # well_drilling_parameter: Optional[WellDrillingParameterBase] = None
     well_casing: Optional[List[WellCasingBase]] = None
     well_stratigraphy: Optional[List[WellStratigraphyBase]] = None
     
