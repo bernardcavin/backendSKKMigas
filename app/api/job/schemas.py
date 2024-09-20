@@ -723,7 +723,7 @@ class DailyOperationsReportCreate(DailyOperationsReportBase):
     personnel: List[PersonnelCreate]
     Incidents: List[IncidentCreate]
     time_breakdowns: List[TimeBreakdownCreate]
-    bit_records: BitRecordCreate
+    bit_records: List[BitRecordCreate]
     bottom_hole_assemblies: List[BottomHoleAssemblyCreate]
     drilling_fluids: List[DrillingFluidCreate]
     mud_additives: List[MudAdditiveCreate]
@@ -745,7 +745,7 @@ class DailyOperationsReportInDB(DailyOperationsReportBase):
     time_breakdowns: List[TimeBreakdownInDB]
     personnel: List[PersonnelInDB]
     Incidents: List[IncidentInDB]
-    bit_records: BitRecordInDB
+    bit_records: List[BitRecordInDB]
     bottom_hole_assemblies: List[BottomHoleAssemblyInDB]
     drilling_fluids: List[DrillingFluidInDB]
     mud_additives: List[MudAdditiveInDB]

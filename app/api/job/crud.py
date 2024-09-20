@@ -214,24 +214,24 @@ def create_daily_operations_report(db: Session, report: DailyOperationsReportCre
             comments=incident.comments
         )
         db_report.Incidents.append(db_incident)
-
-    db_bit_record = BitRecord(
+    for br_data in report.bit_records:
+        db_bit_record = BitRecord(
             daily_operations_report_id=db_report.id,
-            bit_number=report.bit_records.bit_number,
-            bit_run=report.bit_records.bit_run,
-            bit_size=report.bit_records.bit_size,
-            manufacturer=report.bit_records.manufacturer,
-            iadc_code=report.bit_records.iadc_code,
-            jets=report.bit_records.jets,
-            serial=report.bit_records.serial,
-            depth_out=report.bit_records.depth_out,
-            depth_in=report.bit_records.depth_in,
-            meterage=report.bit_records.meterage,
-            bit_hours=report.bit_records.bit_hours,
-            nozzels=report.bit_records.nozzels,
-            dull_grade=report.bit_records.dull_grade
+            bit_number=br_data.bit_number,
+            bit_run=br_data.bit_run,
+            bit_size=br_data.bit_size,
+            manufacturer=br_data.manufacturer,
+            iadc_code=br_data.iadc_code,
+            jets=br_data.jets,
+            serial=br_data.serial,
+            depth_out=br_data.depth_out,
+            depth_in=br_data.depth_in,
+            meterage=br_data.meterage,
+            bit_hours=br_data.bit_hours,
+            nozzels=br_data.nozzels,
+            dull_grade=br_data.dull_grade
         )
-    db_report.bit_records=(db_bit_record)
+        db_report.bit_records.append(db_bit_record)
 
     for bha_data in report.bottom_hole_assemblies:
         db_bha = BottomHoleAssembly(
@@ -342,7 +342,4 @@ def create_daily_operations_report(db: Session, report: DailyOperationsReportCre
     db.add(db_report)
     db.commit()
     db.refresh(db_report)
-    return ReportResponse(
-        data=DailyOperationsReportInDB.from_orm(db_report),
-        status=200
-    )
+    return create_api_response(data=db_report)

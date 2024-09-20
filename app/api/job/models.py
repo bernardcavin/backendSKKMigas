@@ -775,7 +775,7 @@ class DailyOperationsReport(Base):
     
     #lampiran
     time_breakdowns = relationship("TimeBreakdown", back_populates="daily_operations_report", lazy="joined")
-    bit_records = relationship('BitRecord', back_populates='daily_operations_report',uselist=False)
+    bit_records = relationship('BitRecord', back_populates='daily_operations_report')
     bottom_hole_assemblies = relationship('BottomHoleAssembly', back_populates='daily_operations_report')
     drilling_fluids = relationship('DrillingFluid', back_populates='daily_operations_report')
     mud_additives = relationship('MudAdditive', back_populates='daily_operations_report')
