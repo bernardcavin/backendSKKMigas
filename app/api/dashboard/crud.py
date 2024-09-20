@@ -175,7 +175,7 @@ def get_ppp_dashboard(db: Session, job_type: JobType, user) -> Dict[str, Dict]:
         "summary": {
             "selesai_beroperasi": summary.selesai_beroperasi or 0,
             "diajukan": summary.diajukan or 0,
-            "disetujui": summary.disetujui or 03
+            "disetujui": summary.disetujui or 0
         }
     }
     
