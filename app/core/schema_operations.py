@@ -12,11 +12,17 @@ from fastapi import HTTPException
 def create_api_response(success: bool, message: str, data: dict = None, status_code: int = 200):
     if not success:
         raise HTTPException(status_code=status_code, detail=message)
-    return {
+    
+    output = {
         "success": success,
         "message": message,
         "data": data or {}
     }
+    
+    if data:
+        output["data"] = data
+    
+    return output
 
 class PlotlyJSONSchema(BaseModel):
     data: JsonValue

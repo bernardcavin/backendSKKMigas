@@ -9,6 +9,7 @@ from pydantic import (
 )
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pathlib import Path
 
 class OracleDsn(AnyUrl):
     allowed_schemes = {'oracle+cx_oracle'}
@@ -30,7 +31,7 @@ class Settings(BaseSettings):
     
     LOCAL_SQLALCHEMY_DATABASE_URI: str = 'sqlite:///./demo.db'
     
-    UPLOAD_DIR: str = "uploads"
+    UPLOAD_DIR: str = str(Path(__file__).parent.parent.parent.joinpath("uploads"))
     
     ALGORITHM: str = "HS256"
 

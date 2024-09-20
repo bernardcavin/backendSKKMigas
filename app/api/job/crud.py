@@ -4,7 +4,7 @@ from datetime import datetime
 from app.api.job.models import *
 from app.api.job.schemas import *
 from app.api.auth.schemas import GetUser
-from app.core.schema_operations import parse_schema
+from app.core.schema_operations import create_api_response, parse_schema
 from app.api.job.utils import create_gantt_chart, create_operation_plot, create_well_path
 from app.api.visualize.schemas import VisualizeCasing
 from app.api.visualize.routes import request_visualize_casing
@@ -20,6 +20,10 @@ def create_job_plan(db: Session, job_type: JobType, plan: object, user):
     db_job.planning_status = PlanningStatus.PROPOSED
     db_job.created_by_id = user.id
     db_job.time_created = datetime.now()
+    if isinstance(plan, (ExplorationJobPlan, DevelopmentJobPlan)):
+        db_job.job_plan.well.area_id = plan.area_id
+        db_job.job_plan.well.field_id = plan.field_id
+        db_job.job_plan.well.kkks_id = user.kkks_id
     db.add(db_job)
     db.commit()
     return db_job.id
@@ -342,4 +346,7 @@ def create_daily_operations_report(db: Session, report: DailyOperationsReportCre
     db.add(db_report)
     db.commit()
     db.refresh(db_report)
-    return create_api_response(data=db_report)
+    return create_api_response(
+        success=True,
+        message="Daily Operations Report created successfully",
+    )
