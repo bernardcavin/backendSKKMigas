@@ -395,3 +395,38 @@ def update_job_issue(db: Session, job_issue_id: str, job_issue_update: JobIssueU
     db.commit()
     db.refresh(db_job_issue)
     return db_job_issue
+
+def get_wrm_data_by_job_id(db: Session, job_id: str) -> Optional[ActualExplorationUpdate]:
+    wrm_data = db.query(ActualExploration).filter(ActualExploration.id == job_id).first()
+    
+    if wrm_data is None:
+        return None
+    
+    return ActualExplorationUpdate(
+        job_id=wrm_data.id,
+        wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
+        wrm_ippkh=wrm_data.wrm_ippkh,
+        wrm_ukl_upl=wrm_data.wrm_ukl_upl,
+        wrm_amdal=wrm_data.wrm_amdal,
+        wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
+        wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
+        wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
+        wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
+        wrm_internal_kkks=wrm_data.wrm_internal_kkks,
+        wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
+    )
+
+def get_wrmissues_data_by_job_id(db: Session, job_id: str) -> Optional[JobIssueCreate]:
+    wrm_data = db.query(JobIssue).filter(JobIssue.job_id == job_id).first()
+    
+    if wrm_data is None:
+        return None
+    
+    return JobIssueCreate(
+        job_id=wrm_data.job_id,
+        date_time=wrm_data.date_time,
+        severity=wrm_data.severity,
+        description=wrm_data.description,
+        resolved=wrm_data.resolved,        
+        resolved_date_time=wrm_data.resolved_date_time
+    )   

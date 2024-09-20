@@ -117,3 +117,24 @@ def update_job_issue(
         raise HTTPException(status_code=404, detail="Job issue not found")
     return updated_job_issue
 
+@router.get("/jobs/{job_id}/wrm", response_model=schemas.ActualExplorationUpdate)
+def get_wrm_data(
+    job_id: str,
+    db: Session = Depends(get_db)
+) -> Any:
+    wrm_data = crud.get_wrm_data_by_job_id(db=db, job_id=job_id)
+    if wrm_data is None:
+        raise HTTPException(status_code=404, detail="WRM data not found for this job")
+    return wrm_data
+
+@router.get("/jobs/{job_id}/wrmissues", response_model=schemas.JobIssueCreate)
+def get_wrmissues_data(
+    job_id: str,
+    db: Session = Depends(get_db)
+) -> Any:
+    wrmissues_data = crud.get_wrmissues_data_by_job_id(db=db, job_id=job_id)
+    if wrmissues_data is None:
+        raise HTTPException(status_code=404, detail="WRM data not found for this job")
+    return wrmissues_data
+
+
