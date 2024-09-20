@@ -350,3 +350,20 @@ def create_daily_operations_report(db: Session, report: DailyOperationsReportCre
         success=True,
         message="Daily Operations Report created successfully",
     )
+
+def update_actual_exploration(
+    db: Session, 
+    exploration_id: str, 
+    exploration_update: ActualExplorationUpdate) -> ActualExploration:
+    db_exploration = db.query(ActualExploration).filter(ActualExploration.id == exploration_id).first()
+    if not db_exploration:
+        return None
+    
+    update_data = exploration_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_exploration, key, value)
+    
+    db.add(db_exploration)
+    db.commit()
+    db.refresh(db_exploration)
+    return db_exploration
