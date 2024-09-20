@@ -105,3 +105,15 @@ def create_job_issue(
     db: Session = Depends(get_db)
 ) -> Any:
     return crud.create_job_issue(db=db, job_issue=job_issue)
+
+@router.patch("/job-issues/{job_issue_id}", response_model=schemas.JobIssueResponse)
+def update_job_issue(
+    job_issue_id: str,
+    job_issue_update: schemas.JobIssueUpdate,
+    db: Session = Depends(get_db)
+) -> Any:
+    updated_job_issue = crud.update_job_issue(db=db, job_issue_id=job_issue_id, job_issue_update=job_issue_update)
+    if updated_job_issue is None:
+        raise HTTPException(status_code=404, detail="Job issue not found")
+    return updated_job_issue
+

@@ -787,3 +787,11 @@ class JobIssueCreate(BaseModel):
 
 class JobIssueResponse(JobIssueCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+
+class JobIssueUpdate(BaseModel):
+    resolved: Optional[bool] = None
+    resolved_date_time: Optional[datetime] = None
+
+    class Config:
+        orm_mode = True
+

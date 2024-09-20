@@ -381,3 +381,17 @@ def create_job_issue(db: Session, job_issue: JobIssueCreate) -> JobIssue:
     db.commit()
     db.refresh(db_job_issue)
     return db_job_issue
+
+def update_job_issue(db: Session, job_issue_id: str, job_issue_update: JobIssueUpdate) -> Optional[JobIssue]:
+    db_job_issue = db.query(JobIssue).filter(JobIssue.id == job_issue_id).first()
+    if db_job_issue is None:
+        return None
+    
+    update_data = job_issue_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_job_issue, key, value)
+    
+    db.add(db_job_issue)
+    db.commit()
+    db.refresh(db_job_issue)
+    return db_job_issue
