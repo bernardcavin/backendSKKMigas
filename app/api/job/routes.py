@@ -81,7 +81,7 @@ async def operate_job(job_id: str, db: Session = Depends(get_db), user = Depends
 #     return job
 
 
-@router.post("/daily-operations-reports/", response_model=schemas.ReportResponse, status_code=status.HTTP_200_OK)
+@router.post("/daily-operations-reports/")
 def create_daily_operations_report(report: schemas.DailyOperationsReportCreate, db: Session = Depends(get_db)):
     job = db.query(Job).filter(Job.id == report.job_id).first()
     if not job:

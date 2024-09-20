@@ -41,7 +41,7 @@ def get_plans_dashboard(db: Session, job_type: JobType, user):
         summary = db.query(
             func.count(Job.id).label('total'),
             func.sum(case(
-                (Job.planning_status.in_([PlanningStatus.APPROVED, PlanningStatus.PROPOSED]), 1),
+                (Job.planning_status.in_([PlanningStatus.APPROVED, PlanningStatus.PROPOSED, PlanningStatus.RETURNED]), 1),
                 else_=0
             )).label('diajukan'),
             func.sum(case(

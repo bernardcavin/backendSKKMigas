@@ -4,7 +4,7 @@ from datetime import datetime
 from app.api.job.models import *
 from app.api.job.schemas import *
 from app.api.auth.schemas import GetUser
-from app.core.schema_operations import parse_schema
+from app.core.schema_operations import create_api_response, parse_schema
 from app.api.job.utils import create_gantt_chart, create_operation_plot, create_well_path
 from app.api.visualize.schemas import VisualizeCasing
 from app.api.visualize.routes import request_visualize_casing
@@ -346,7 +346,7 @@ def create_daily_operations_report(db: Session, report: DailyOperationsReportCre
     db.add(db_report)
     db.commit()
     db.refresh(db_report)
-    return ReportResponse(
-        data=DailyOperationsReportInDB.from_orm(db_report),
-        status=200
+    return create_api_response(
+        success=True,
+        message="Daily Operations Report created successfully",
     )
