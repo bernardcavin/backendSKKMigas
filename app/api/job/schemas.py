@@ -773,3 +773,17 @@ class ActualExplorationUpdate(BaseModel):
 
     class Config:
         orm_mode = True
+
+class JobIssueCreate(BaseModel):
+    job_id: str
+    date_time: datetime = Field(default_factory=datetime.utcnow)
+    severity: Severity
+    description: str
+    resolved: bool = False
+    resolved_date_time: Optional[datetime] = None
+
+    class Config:
+        orm_mode = True
+
+class JobIssueResponse(JobIssueCreate):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))

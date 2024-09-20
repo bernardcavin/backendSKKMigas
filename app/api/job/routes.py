@@ -98,3 +98,10 @@ def update_actual_exploration(
     if not updated_exploration:
         raise HTTPException(status_code=404, detail="Actual Exploration not found")
     return updated_exploration
+
+@router.post("/create-job-issues/", response_model=schemas.JobIssueResponse)
+def create_job_issue(
+    job_issue: schemas.JobIssueCreate,
+    db: Session = Depends(get_db)
+) -> Any:
+    return crud.create_job_issue(db=db, job_issue=job_issue)

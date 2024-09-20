@@ -367,3 +367,17 @@ def update_actual_exploration(
     db.commit()
     db.refresh(db_exploration)
     return db_exploration
+
+def create_job_issue(db: Session, job_issue: JobIssueCreate) -> JobIssue:
+    db_job_issue = JobIssue(
+        job_id=job_issue.job_id,
+        date_time=job_issue.date_time,
+        severity=job_issue.severity,
+        description=job_issue.description,
+        resolved=job_issue.resolved,
+        resolved_date_time=job_issue.resolved_date_time
+    )
+    db.add(db_job_issue)
+    db.commit()
+    db.refresh(db_job_issue)
+    return db_job_issue
