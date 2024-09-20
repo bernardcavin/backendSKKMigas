@@ -189,8 +189,8 @@ def get_ppp_dashboard(db: Session, job_type: JobType, user) -> Dict[str, Dict]:
             "KKKS": job.kkks_name if job.kkks_name else "N/A",
             "REALISASI MULAI": job.actual_start_date.strftime("%d %b %Y") if job.actual_start_date else "N/A",
             "REALISASI SELESAI": job.actual_end_date.strftime("%d %b %Y") if job.actual_end_date else "N/A",
-            "TANGGAL P3 DIAJUKAN": job.date_ppp_proposed.strftime("%d %b %Y") if job.date_ppp_proposed else "N/A",
-            "TANGGAL P3 DISETUJUI": job.date_ppp_approved.strftime("%d %b %Y") if job.date_ppp_approved else "N/A",
+            "TANGGAL P3 DIAJUKAN": job.date_ppp_proposed.strftime("%d %b %Y") if job.date_ppp_proposed else "Belum Diajukan",
+            "TANGGAL P3 DISETUJUI": job.date_ppp_approved.strftime("%d %b %Y") if job.date_ppp_approved else "Belum Disetujui" if job.date_ppp_proposed else "Belum Diajukan",
             "STATUS": job.ppp_status.value if job.ppp_status is not None else job.job_current_status.value
         }
         
