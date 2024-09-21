@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, UUID4
+from pydantic import BaseModel, Field, UUID4, model_validator
 from typing import Optional, List
 from datetime import datetime
 from uuid import uuid4
@@ -169,17 +169,25 @@ class WellStratigraphyBase(BaseModel):
     class Config:
         from_attributes = True
 
+class WellSchematicBase(BaseModel):
+
+    file_id: str
+
+    class Meta:
+        orm_model = WellSchematic
+
 class CreatePlanWell(WellBase):
     
-    well_documents: Optional[List[WellDocumentBase]] = None
-    well_summary: Optional[List[WellSummaryBase]] = None
-    well_test: Optional[List[WellTestBase]] = None
+    well_documents: Optional[List[WellDocumentBase]] = []
+    well_summary: Optional[List[WellSummaryBase]] = []
+    well_test: Optional[List[WellTestBase]] = []
     well_trajectory: Optional[WellTrajectoryBase] = None
     well_ppfg: Optional[WellPPFGBase] = None
-    # well_logs: Optional[List[WellLogBase]] = None
-    # well_drilling_parameter: Optional[WellDrillingParameterBase] = None
-    well_casing: Optional[List[WellCasingBase]] = None
-    well_stratigraphy: Optional[List[WellStratigraphyBase]] = None
+    well_casing: Optional[List[WellCasingBase]] = []
+    well_stratigraphy: Optional[List[WellStratigraphyBase]] = []
+    well_schematic: Optional[WellSchematicBase] = None
+
+
     
     class Meta:
         orm_model = PlanWell
@@ -200,15 +208,17 @@ class CreateActualWell(WellBase):
     area_id: str
     field_id: str
     
-    well_documents: Optional[List[WellDocumentBase]] = None
-    well_summary: Optional[List[WellSummaryBase]] = None
-    well_test: Optional[List[WellTestBase]] = None
+    well_documents: Optional[List[WellDocumentBase]] = []
+    well_summary: Optional[List[WellSummaryBase]] = []
+    well_test: Optional[List[WellTestBase]] = []
     well_trajectory: Optional[WellTrajectoryBase] = None
     well_ppfg: Optional[WellPPFGBase] = None
-    well_logs: Optional[List[WellLogBase]] = None
+    well_logs: Optional[List[WellLogBase]] = []
     well_drilling_parameter: Optional[WellDrillingParameterBase] = None
-    well_casing: Optional[List[WellCasingBase]] = None
-    well_stratigraphy: Optional[List[WellStratigraphyBase]] = None
+    well_casing: Optional[List[WellCasingBase]] = []
+    well_stratigraphy: Optional[List[WellStratigraphyBase]] = []
+
+
     
     class Meta:
         orm_model = ActualWell

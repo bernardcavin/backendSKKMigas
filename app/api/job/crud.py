@@ -29,6 +29,29 @@ def create_job_plan(db: Session, job_type: JobType, plan: object, user):
     db.commit()
     return db_job.id
 
+def update_job_plan(db: Session, job_id: str, plan: object, user):
+    db_job = db.query(Job).filter_by(id=job_id).first()
+    if not db_job:
+        raise HTTPException(status_code=404, detail="Job plan not found")
+    if db_job.planning_status == PlanningStatus.APPROVED:
+        raise HTTPException(status_code=400, detail="Job is already approved")
+
+    db_job_new = Job(**parse_schema(plan))
+    db_job_new.id = job_id
+    db_job_new.kkks_id = db_job.kkks_id
+    db_job_new.job_type = db_job.job_type
+    db_job_new.date_proposed = db_job.date_proposed
+    db_job_new.planning_status = PlanningStatus.PROPOSED
+    db_job_new.created_by_id = db_job.created_by_id
+    db_job_new.time_created = db_job.time_created
+    db_job_new.last_edited_by_id = user.id
+    db_job_new.last_edited = datetime.now().date()
+
+    db.delete(db_job)
+    db.add(db_job_new)
+    db.commit()
+    return db_job_new
+
 def delete_job_plan(id: str, db: Session, user):
     db_job = db.query(Job).filter_by(id=id).first()
     if not db_job:

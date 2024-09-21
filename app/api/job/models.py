@@ -190,7 +190,7 @@ class EditBase:
     def last_edited_by(cls):
         return relationship("User", foreign_keys=[cls.last_edited_by_id])
 
-class Job(Base, CreateBase, ValidationBase):
+class Job(Base, CreateBase, ValidationBase, EditBase):
     
     __tablename__ = 'jobs'
     
@@ -357,7 +357,7 @@ class JobInstance(Base):
     start_date = Column(Date)
     end_date = Column(Date)
     total_budget = Column(Numeric(precision=10, scale=2))
-
+    
     job_operation_days = relationship('JobOperationDay', back_populates='job_instance')
     work_breakdown_structure = relationship('WorkBreakdownStructure', back_populates='job_instance')
     job_hazards = relationship('JobHazard', back_populates='job_instance')
@@ -448,9 +448,9 @@ class PlanWorkover(JobInstance):
     target_gas = Column(Float)
     target_water_cut = Column(Float)
 
-    # #completion string
-    # completion_id = Column(String(36), ForeignKey('job_workover_completion_plans.id'))
-    # completion = relationship('PlanWorkoverCompletion', foreign_keys=[completion_id])
+    #well schematic
+    well_schematic_id = Column(String(36), ForeignKey('job_well_schematics.id'))
+    well_schematic = relationship('WellSchematic', foreign_keys=[well_schematic_id])
     
     __mapper_args__ = {
         "polymorphic_identity": 'plan_workover',
@@ -479,6 +479,10 @@ class PlanWellService(JobInstance):
     target_oil = Column(Float)
     target_gas = Column(Float)
     target_water_cut = Column(Float)
+
+    #well schematic
+    well_schematic_id = Column(String(36), ForeignKey('job_well_schematics.id'))
+    well_schematic = relationship('WellSchematic', foreign_keys=[well_schematic_id])
         
     __mapper_args__ = {
         "polymorphic_identity": 'plan_wellservice',
@@ -559,6 +563,10 @@ class ActualWorkover(JobInstance):
     onstream_gas = Column(Float)
     onstream_water_cut = Column(Float)
     
+    #well schematic
+    well_schematic_id = Column(String(36), ForeignKey('job_well_schematics.id'))
+    well_schematic = relationship('WellSchematic', foreign_keys=[well_schematic_id])
+    
     # #completion string
     # completion_id = Column(String(36), ForeignKey('job_workover_completion_actuals.id'))
     # completion = relationship('ActualWorkoverCompletion', foreign_keys=[completion_id])
@@ -584,6 +592,10 @@ class ActualWellService(JobInstance):
     onstream_oil = Column(Float)
     onstream_gas = Column(Float)
     onstream_water_cut = Column(Float)
+    
+    #well schematic
+    well_schematic_id = Column(String(36), ForeignKey('job_well_schematics.id'))
+    well_schematic = relationship('WellSchematic', foreign_keys=[well_schematic_id])
     
     __mapper_args__ = {
         "polymorphic_identity": 'actual_wellservice',
