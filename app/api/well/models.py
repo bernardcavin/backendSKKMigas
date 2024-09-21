@@ -171,6 +171,10 @@ class WellInstance(Base):
     well_casing = relationship('WellCasing', back_populates='well_instance')
     well_stratigraphy = relationship('WellStratigraphy', back_populates='well_instance')
 
+    #well schematic
+    well_schematic_id = Column(String(36), ForeignKey('job_well_schematics.id'))
+    well_schematic = relationship('WellSchematic', foreign_keys=[well_schematic_id])
+
     __mapper_args__ = {
         "polymorphic_on": "well_phase",
     }
@@ -474,3 +478,12 @@ class WellStratigraphy(Base):
             self.depth_uom = 'm'  # Default value
         
         super().__init__(*args, **kwargs)
+
+class WellSchematic(Base):
+
+    __tablename__ = 'job_well_schematics'
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+    
+    file_id = Column(String(36), ForeignKey('files.id'), nullable=True)
+    file = relationship('FileDB', foreign_keys=[file_id])

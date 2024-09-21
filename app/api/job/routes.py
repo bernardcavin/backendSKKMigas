@@ -6,7 +6,7 @@ from app.core.security import authorize, get_db, get_current_user
 from app.api.job import crud, schemas
 from app.api.job.models import JobType,Job
 from app.core.schema_operations import create_api_response
-from typing import Any
+from typing import Any, Union
 
 router = APIRouter(prefix="/job", tags=["job"])
 
@@ -14,25 +14,25 @@ router = APIRouter(prefix="/job", tags=["job"])
 @authorize(role=[Role.KKKS])
 async def create_planning_exploration(plan: schemas.CreateExplorationJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_id = crud.create_job_plan(db, JobType.EXPLORATION, plan, user)
-    return create_api_response(success=True, message="Exploration job plan created successfully", data={"id": job_id})
+    return create_api_response(success=True, message="Exploration job plan created successfully")
 
 @router.post("/planning/create/development")
 @authorize(role=[Role.KKKS])
 async def create_planning_development(plan: schemas.CreateDevelopmentJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_id = crud.create_job_plan(db, JobType.DEVELOPMENT, plan, user)
-    return create_api_response(success=True, message="Development job plan created successfully", data={"id": job_id})
+    return create_api_response(success=True, message="Development job plan created successfully")
 
 @router.post("/planning/create/workover")
 @authorize(role=[Role.KKKS])
 async def create_planning_workover(plan: schemas.CreateWorkoverJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_id = crud.create_job_plan(db, JobType.WORKOVER, plan, user)
-    return create_api_response(success=True, message="Workover job plan created successfully", data={"id": job_id})
+    return create_api_response(success=True, message="Workover job plan created successfully")
 
 @router.post("/planning/create/wellservice")
 @authorize(role=[Role.KKKS])
 async def create_planning_wellservice(plan: schemas.CreateWellServiceJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_id = crud.create_job_plan(db, JobType.WELLSERVICE, plan, user)
-    return create_api_response(success=True, message="Well service job plan created successfully", data={"id": job_id})
+    return create_api_response(success=True, message="Well service job plan created successfully")
 
 @router.delete('/planning/delete/{job_id}')
 @authorize(role=[Role.Admin, Role.KKKS])
@@ -57,6 +57,31 @@ async def return_planning_exploration(job_id: str, db: Session = Depends(get_db)
     if not returned:
         return create_api_response(success=False, message="Job plan not found", status_code=404)
     return create_api_response(success=True, message="Job plan returned successfully")
+
+@router.get("/planning/view-raw/{job_id}")
+def view_plan(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    job_plan = db.query(Job).get(job_id)
+    if not job_plan:
+        return create_api_response(success=False, message="Job plan not found", status_code=404)
+    if job_plan.job_type == JobType.EXPLORATION:
+        data = schemas.CreateExplorationJob.model_validate(job_plan, from_attributes=True)
+    elif job_plan.job_type == JobType.DEVELOPMENT:
+        data = schemas.CreateDevelopmentJob.model_validate(job_plan, from_attributes=True)
+    elif job_plan.job_type == JobType.WORKOVER:
+        data = schemas.CreateWorkoverJob.model_validate(job_plan, from_attributes=True)
+    elif job_plan.job_type == JobType.WELLSERVICE:
+        data = schemas.CreateWellServiceJob.model_validate(job_plan, from_attributes=True)
+    return create_api_response(success=True, message="Job plan retrieved successfully", data=data)
+
+@router.put("/planning/update/{job_id}")
+def update_planning_exploration(
+    job_id: str,
+    plan: Union[schemas.CreateExplorationJob, schemas.CreateDevelopmentJob, schemas.CreateWorkoverJob, schemas.CreateWellServiceJob],
+    db: Session = Depends(get_db),
+    user = Depends(get_current_user)
+) -> Any:
+    crud.update_job_plan(db, job_id, plan, user)
+    return create_api_response(success=True, message="Job Updated Successfully")
 
 @router.get('/planning/view/{job_id}')
 @authorize(role=[Role.Admin, Role.KKKS])

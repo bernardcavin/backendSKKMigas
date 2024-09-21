@@ -64,6 +64,8 @@ class JobOperationDayBase(BaseModel):
         orm_model = JobOperationDay
     class Config:
         from_attributes = True
+
+
         
 class JobPlanInstanceBase(BaseModel):
     
@@ -169,6 +171,8 @@ class CreatePlanWorkover(JobPlanInstanceBase):
     target_oil: Decimal
     target_gas: Decimal
     target_water_cut: Decimal
+    
+    well_schematic: Optional[WellSchematicBase] = None
 
     class Meta:
         orm_model = PlanWorkover
@@ -194,6 +198,8 @@ class CreatePlanWellService(JobPlanInstanceBase):
     target_oil: Decimal
     target_gas: Decimal
     target_water_cut: Decimal
+    
+    well_schematic: Optional[WellSchematicBase] = None
 
     class Meta:
         orm_model = PlanWellService
@@ -264,6 +270,8 @@ class CreateActualWorkover(JobActualInstanceBase):
     onstream_gas: Decimal
     onstream_water_cut: Decimal
     
+    well_schematic: Optional[WellSchematicBase] = None
+    
     class Meta:
         orm_model = ActualWorkover
     class Config:
@@ -283,6 +291,8 @@ class CreateActualWellService(JobActualInstanceBase):
     onstream_oil: Decimal
     onstream_gas: Decimal
     onstream_water_cut: Decimal
+    
+    well_schematic: Optional[WellSchematicBase] = None
     
     class Meta:
         orm_model = ActualWellService

@@ -16,7 +16,6 @@ def create_api_response(success: bool, message: str, data: dict = None, status_c
     output = {
         "success": success,
         "message": message,
-        "data": data or {}
     }
     
     if data:
