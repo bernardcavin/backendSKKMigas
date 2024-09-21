@@ -476,7 +476,7 @@ def get_wrm_data_by_job_id(db: Session, job_id: str) -> Optional[ActualExplorati
         wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
     )
 
-def get_wrmissues_data_by_job_id(db: Session, job_id: str) -> List[JobIssueCreate]:
+def get_wrmissues_data_by_job_id(db: Session, job_id: str) -> List[JobIssueResponse]:
     wrm_data = db.query(JobIssue).filter(JobIssue.job_id == job_id).all()
     return wrm_data
 

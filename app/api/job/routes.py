@@ -127,7 +127,7 @@ def get_wrm_data(
         raise HTTPException(status_code=404, detail="WRM data not found for this job")
     return wrm_data
 
-@router.get("/job-issues/{job_id}", response_model=List[schemas.JobIssueCreate])
+@router.get("/job-issues/{job_id}", response_model=List[schemas.JobIssueResponse])
 def read_job_issues(job_id: str, db: Session = Depends(get_db)):
     job_issues = crud.get_wrmissues_data_by_job_id(db, job_id)
     if job_issues is None:

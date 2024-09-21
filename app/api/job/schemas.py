@@ -827,5 +827,3 @@ class JobIssueUpdate(BaseModel):
 class DrillingOperationResponse(BaseModel):
     operation: DrillingOperation
 
-
-
