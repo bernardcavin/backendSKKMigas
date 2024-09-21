@@ -824,4 +824,8 @@ class JobIssueUpdate(BaseModel):
     class Config:
         orm_mode = True
 
+class DrillingOperationResponse(BaseModel):
+    operation: DrillingOperation
+
+
 

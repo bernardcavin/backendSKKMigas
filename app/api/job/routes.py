@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.api.auth.models import Role
 from app.api.auth.schemas import GetUser
 from app.core.security import authorize, get_db, get_current_user
-from app.api.job import crud, schemas
+from app.api.job import crud, schemas,models
 from app.api.job.models import JobType,Job
 from app.core.schema_operations import create_api_response
 from typing import Any,List
@@ -133,3 +133,11 @@ def read_job_issues(job_id: str, db: Session = Depends(get_db)):
     if job_issues is None:
         raise HTTPException(status_code=404, detail="Job issues not found")
     return job_issues
+
+@router.get("/drilling-operations/pyenum", response_model=List[schemas.DrillingOperationResponse])
+async def list_drilling_operations():
+    return [
+        schemas.DrillingOperationResponse(operation=op, description=op.value)
+        for op in models.DrillingOperation
+    ]
+

@@ -479,3 +479,9 @@ def get_wrm_data_by_job_id(db: Session, job_id: str) -> Optional[ActualExplorati
 def get_wrmissues_data_by_job_id(db: Session, job_id: str) -> List[JobIssueCreate]:
     wrm_data = db.query(JobIssue).filter(JobIssue.job_id == job_id).all()
     return wrm_data
+
+def get_drilling_operation(value: str) -> DrillingOperation:
+    for operation in DrillingOperation:
+        if value.lower() in operation.value.lower():
+            return operation
+    raise ValueError(f"No matching DrillingOperation found for: {value}")
