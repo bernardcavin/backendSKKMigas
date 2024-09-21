@@ -151,10 +151,10 @@ class JobTypeDataKKKS(BaseModel):
     percentage: float
 
 class JobTypeTimeSeriesData(BaseModel):
-    exploration: List[Optional[TimeSeriesData]] = []
-    development: List[Optional[TimeSeriesData]] = []
-    workover: List[Optional[TimeSeriesData]] = []
-    well_service: List[Optional[TimeSeriesData]] = []
+    exploration: Optional[List[TimeSeriesData]] = []
+    development: Optional[List[TimeSeriesData]] = []
+    workover: Optional[List[TimeSeriesData]] = []
+    well_service: Optional[List[TimeSeriesData]] = []
 
 
 class ChartAxis(BaseModel):
@@ -163,7 +163,7 @@ class ChartAxis(BaseModel):
     tickvals: Optional[List] = None
     ticktext: Optional[List] = None
     tickangle: Optional[int] = None
-    range: List[Optional[float]] = []
+    range: Optional[List[float]] = []
 
 class ChartLayout(BaseModel):
     title: str

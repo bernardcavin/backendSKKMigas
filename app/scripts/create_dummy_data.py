@@ -42,7 +42,7 @@ def random_datetime_within_year(year: int) -> datetime:
 def generate_dummy_data(db, n: int):
 
     df_plan = pd.read_excel('app/scripts/dummy_data/Operation Days.xlsx', sheet_name='Plan')
-    # df_actual = pd.read_excel('Operation Days.xlsx', sheet_name='Actual')
+    df_actual = pd.read_excel('app/scripts/dummy_data/Operation Days.xlsx', sheet_name='Actual')
     
     plan_job_operation_days = []
     
@@ -58,19 +58,20 @@ def generate_dummy_data(db, n: int):
             }
         )
     
-    # actual_job_operation_days = []
+    actual_job_operation_days = []
     
-    # for i, row in df_actual.iterrows():
-    #     actual_job_operation_days.append(
-    #         {
-    #             "phase": row['Event'],
-    #             "depth_datum": "KB",
-    #             "depth_in": row['Start Depth'],
-    #             "depth_out": row['End Depth'],
-    #             "depth_uom": "FEET",
-    #             "operation_days": row['Days']
-    #         }
-    #     )
+    for i, row in df_actual.iterrows():
+        actual_job_operation_days.append(
+            {
+                "unit_type": "Metrics",
+                "phase": row['Event'],
+                "depth_datum": "KB",
+                "depth_in": row['Start Depth'],
+                "depth_out": row['End Depth'],
+                "depth_uom": "FEET",
+                "operation_days": row['Days']
+            }
+        )
     
     wbs = pd.read_excel('app/scripts/dummy_data/wbs.xlsx')
     
@@ -345,7 +346,7 @@ def generate_dummy_data(db, n: int):
                         "remark": "string"
                     }
                     ],
-                    "well": well_dict,
+                    "well": CreateDummyPlanWell(**well_dict).model_dump(),
                     "wrm_pembebasan_lahan": True,
                     "wrm_ippkh": True,
                     "wrm_ukl_upl": True,
@@ -366,7 +367,7 @@ def generate_dummy_data(db, n: int):
                     "rig_name": f'RIG0{j}',
                     "rig_type": rig_type,
                     "rig_horse_power": rig_hp,
-                    "job_operation_days": plan_job_operation_days,
+                    "job_operation_days": actual_job_operation_days,
                     "work_breakdown_structure": plan_wbs,
                     "job_hazards": [
                     {
@@ -377,7 +378,7 @@ def generate_dummy_data(db, n: int):
                         "remark": "string"
                     }
                     ],
-                    "well": well_dict,
+                    "well": CreateActualWell(**well_dict).model_dump(),
                     "wrm_pembebasan_lahan": random_enum_value(Percentage),
                     "wrm_ippkh": random_enum_value(Percentage),
                     "wrm_ukl_upl": random_enum_value(Percentage),
@@ -401,12 +402,12 @@ def generate_dummy_data(db, n: int):
                 }
                 
                 if job_type == JobType.EXPLORATION:
-                    work_schema = ExplorationJobPlan
-                    job_plan_schema = CreateActualExploration
+                    work_schema = CreateDummyExplorationJob
+                    job_actual_schema = CreateActualExploration
                     actual_work_schema = ActualExploration
                 else:
-                    work_schema = DevelopmentJobPlan
-                    job_plan_schema = CreateActualDevelopment
+                    work_schema = CreateDummyDevelopmentJob
+                    job_actual_schema = CreateActualDevelopment
                     actual_work_schema = ActualDevelopment
                     
                 db_job = Job(
@@ -414,7 +415,7 @@ def generate_dummy_data(db, n: int):
                 )
                 
                 actual_job = actual_work_schema(
-                    **job_crud.parse_schema(job_plan_schema(**actual_job_dict))
+                    **job_crud.parse_schema(job_actual_schema(**actual_job_dict))
                 )
 
             else:
@@ -513,11 +514,11 @@ def generate_dummy_data(db, n: int):
                 db.commit()
                 
                 if job_type == JobType.WORKOVER:
-                    work_schema = WorkoverJobPlan
+                    work_schema = CreateWorkoverJob
                     job_actual_schema = CreateActualWorkover
                     actual_work_schema = ActualWorkover
                 else:
-                    work_schema = WellServiceJobPlan
+                    work_schema = CreateWellServiceJob
                     job_actual_schema = CreateActualWellService
                     actual_work_schema = ActualWellService
                     

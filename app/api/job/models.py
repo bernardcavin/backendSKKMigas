@@ -7,7 +7,7 @@ from app.core.database import Base
 from enum import Enum as PyEnum
 import uuid
 from app.core.enum_operations import extend_enum
-from app.core.constants import uom
+from app.core.constants import uom, UnitType
 from sqlalchemy.ext.hybrid import hybrid_property
 from app.api.spatial.models import Area,Lapangan
 from app.api.auth.models import KKKS
@@ -652,6 +652,8 @@ class JobOperationDay(Base):
     __tablename__ = 'job_operation_days'
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+    
+    unit_type = Column(Enum(UnitType))
 
     phase = Column(String(50))
     
@@ -670,6 +672,7 @@ class JobOperationDay(Base):
 
         uom_map = uom.get(unit_type, {})
         self.depth_uom = uom_map.get('Length', 'm')  # Default to meters if not found
+        self.unit_type = unit_type
 
         super().__init__(*args, **kwargs)
 

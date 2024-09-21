@@ -7,7 +7,7 @@ import uuid
 from typing import Optional, List,ClassVar
 from app.api.spatial.models import StratUnit
 
-from app.core.constants import uom
+from app.core.constants import uom, UnitType
 
 
 class WellInstanceType(PyEnum):
@@ -87,6 +87,8 @@ class DataFormat(PyEnum):
 
 class WellInstance(Base):
     __tablename__ = 'well_instances'
+    
+    unit_type = Column(Enum(UnitType))
 
     well_instance_id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     well_phase = Column(String(10))
@@ -185,6 +187,8 @@ class WellInstance(Base):
         self.kick_off_point_uom = uom_map.get('Length', 'm')  # Default to meters if not found
         self.maximum_tvd_uom = uom_map.get('Length', 'm')  # Default to meters if not found
         self.final_md_uom = uom_map.get('Length', 'm')  # Default to meters if not found
+        
+        self.unit_type = unit_type
 
         super().__init__(*args, **kwargs)
     
@@ -322,6 +326,9 @@ class WellSummary(Base):
     __tablename__ = 'well_summary'
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+    
+    unit_type = Column(Enum(UnitType))
+    
     well_id = Column(String(36), ForeignKey('well_instances.well_instance_id'), nullable=True)
     well_instance = relationship('WellInstance', back_populates='well_summary')
 
@@ -358,12 +365,17 @@ class WellSummary(Base):
         self.casing_outer_diameter_uom = uom_map.get('Diameter', 'mm')  # Default to mm if unit_type is not found
         self.bottom_hole_temperature_uom = uom_map.get('Temperature', '°C')  # Default to °C if unit_type is not found
         
+        self.unit_type = unit_type
+        
         super().__init__(*args, **kwargs)
 
 class WellTest(Base):
     __tablename__ = 'well_test'
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+    
+    unit_type = Column(Enum(UnitType))
+    
     well_id = Column(String(36), ForeignKey('well_instances.well_instance_id'), nullable=True)
     well_instance = relationship('WellInstance', back_populates='well_test')
     
@@ -380,6 +392,8 @@ class WellTest(Base):
         uom_map = uom.get(unit_type, {})
         self.depth_uom = uom_map.get('Length', 'm')  # Default to meters if unit_type is not found
         
+        self.unit_type = unit_type
+        
         super().__init__(*args, **kwargs)
 
 class WellCasing(Base):
@@ -388,6 +402,8 @@ class WellCasing(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     well_id = Column(String(36), ForeignKey('well_instances.well_instance_id'), nullable=True)
     well_instance = relationship('WellInstance', back_populates='well_casing')
+    
+    unit_type = Column(Enum(UnitType))
     
     depth_datum = Column(Enum(DepthDatum))  # Changed to String if not using Enums
     depth = Column(Float)
@@ -426,13 +442,18 @@ class WellCasing(Base):
         self.casing_inner_diameter_uom = uom_map.get('Diameter', 'mm')
         self.casing_weight_uom = uom_map.get('Weight', 'kg')
         
+        self.unit_type = unit_type
+        
         super().__init__(*args, **kwargs)
 
 class WellStratigraphy(Base):
     __tablename__ = 'well_stratigraphy'
     
     id: Mapped[str] = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
-    well_id: Mapped[Optional[str]] = Column(String(36), ForeignKey('well_instances.well_instance_id'), nullable=True)
+    
+    unit_type = Column(Enum(UnitType))
+    
+    well_id: Mapped[Optional[str]] = Column(String(36), ForeignKey('well_instances.well_instance_id'))
     well_instance: Mapped["WellInstance"] = relationship("WellInstance", back_populates='well_stratigraphy')
     
     depth_datum: Mapped[Optional[DepthDatum]] = Column(Enum(DepthDatum))
@@ -443,8 +464,6 @@ class WellStratigraphy(Base):
     stratigraphy_id: Mapped[str] = Column(String(36), ForeignKey('area_strat.id'))
     stratigraphy: Mapped["StratUnit"] = relationship("StratUnit", foreign_keys=[stratigraphy_id])
     
-    unit_type: ClassVar[str]
-
     def __init__(self, unit_type: str, *args, **kwargs):
         self.unit_type = unit_type
 

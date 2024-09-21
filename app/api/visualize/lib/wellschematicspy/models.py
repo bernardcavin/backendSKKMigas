@@ -36,8 +36,8 @@ class Perforation(SectionModel):
     
 class Casing(SectionModel):
     diameter: float = Field(...) 
-    cement: List[Optional[Cement]] = Field(None)
-    perforations: List[Optional[Perforation]]  = Field(None)
+    cement: Optional[List[Cement]] = Field(None)
+    perforations: Optional[List[Perforation]]  = Field(None)
     pipe_width: float = Field(0.03, gt=0)
     shoe_scale: float = Field(5, gt=0)
     color: Color = Field('Black')
