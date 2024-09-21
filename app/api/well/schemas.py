@@ -187,7 +187,18 @@ class CreatePlanWell(WellBase):
     class Config:
         from_attributes = True
 
+class CreateDummyPlanWell(CreatePlanWell):
+    
+    area_id: str
+    field_id: str
+
+    class Config:
+        from_attributes = True
+
 class CreateActualWell(WellBase):
+    
+    area_id: str
+    field_id: str
     
     well_documents: Optional[List[WellDocumentBase]] = None
     well_summary: Optional[List[WellSummaryBase]] = None

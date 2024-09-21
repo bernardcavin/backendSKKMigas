@@ -1,14 +1,11 @@
-from typing import Dict, Any, Union, List
-
-from pydantic import BaseModel, condecimal, Json, computed_field
-from datetime import datetime
+from typing import List, ClassVar
 
 from app.api.job.models import *
 from app.api.well.schemas import *
 
-from pydantic import BaseModel, Field,ConfigDict,Field,field_validator,validator, ValidationInfo
+from pydantic import BaseModel, Field,ConfigDict,Field,validator, model_validator
 from typing import Optional,Annotated
-from datetime import datetime, date,timedelta,time
+from datetime import datetime, date,time
 from decimal import Decimal
 import re
 
@@ -74,10 +71,10 @@ class JobPlanInstanceBase(BaseModel):
     end_date: date
     total_budget: Decimal = Field(default=None, max_digits=10, decimal_places=2)
     
-    job_operation_days: List[Optional[JobOperationDayBase]] = []
-    work_breakdown_structure: List[Optional[WorkBreakdownStructureBase]] = []
-    job_hazards: List[Optional[JobHazardBase]] = []
-    job_documents: List[Optional[JobDocumentBase]] = []
+    job_operation_days: Optional[List[JobOperationDayBase]] = []
+    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]] = []
+    job_hazards: Optional[List[JobHazardBase]] = []
+    job_documents: Optional[List[JobDocumentBase]] = []
 
     class Config:
         from_attributes = True
@@ -88,10 +85,10 @@ class JobActualInstanceBase(BaseModel):
     end_date: date
     total_budget: Decimal = Field(default=None, max_digits=10, decimal_places=2)
     
-    job_operation_days: List[Optional[JobOperationDayBase]] = []
-    work_breakdown_structure: List[Optional[WorkBreakdownStructureBase]] = []
-    job_hazards: List[Optional[JobHazardBase]] = []
-    job_documents: List[Optional[JobDocumentBase]] = []
+    job_operation_days: Optional[List[JobOperationDayBase]] = []
+    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]] = []
+    job_hazards: Optional[List[JobHazardBase]] = []
+    job_documents: Optional[List[JobDocumentBase]] = []
 
     class Config:
         from_attributes = True
@@ -119,6 +116,10 @@ class CreatePlanExploration(JobPlanInstanceBase):
         orm_model = PlanExploration
     class Config:
         from_attributes = True
+
+class CreateDummyPlanExploration(CreatePlanExploration):
+    
+    well: CreateDummyPlanWell
         
 class CreatePlanDevelopment(JobPlanInstanceBase):
     
@@ -144,6 +145,10 @@ class CreatePlanDevelopment(JobPlanInstanceBase):
         orm_model = PlanDevelopment
     class Config:
         from_attributes = True
+
+class CreateDummyPlanDevelopment(CreatePlanDevelopment):
+    
+    well: CreateDummyPlanWell
         
 class CreatePlanWorkover(JobPlanInstanceBase):
     
@@ -284,7 +289,7 @@ class CreateActualWellService(JobActualInstanceBase):
     class Config:
         from_attributes = True
         
-class PlanJobBase(BaseModel):
+class JobBase(BaseModel):
     
     #kkks information
     area_id: str
@@ -301,49 +306,31 @@ class PlanJobBase(BaseModel):
     class Config:
         from_attributes = True
         
-class ActualJobBase(BaseModel):
-    
-    #contract information
-    contract_type: ContractType
-    
-    afe_number: str
-    wpb_year: int
-    
-    class Config:
-        from_attributes = True
-        
-class ExplorationJobPlan(PlanJobBase):
+class CreateExplorationJob(JobBase):
     
     job_plan: CreatePlanExploration
 
-class DevelopmentJobPlan(PlanJobBase):
+class CreateDummyExplorationJob(CreateExplorationJob):
+    
+    job_plan: CreateDummyPlanExploration
+    
+class CreateDevelopmentJob(JobBase):
     
     job_plan: CreatePlanDevelopment
 
-class WorkoverJobPlan(PlanJobBase):
+class CreateDummyDevelopmentJob(CreateDevelopmentJob):
+    
+    job_plan: CreateDummyPlanDevelopment
+
+class CreateWorkoverJob(JobBase):       
     
     job_plan: CreatePlanWorkover
 
-class WellServiceJobPlan(PlanJobBase):
+class CreateWellServiceJob(JobBase):
     
     job_plan: CreatePlanWellService
 
-class ExplorationActualJob(ActualJobBase):
-    
-    actual_job: CreateActualExploration
 
-class DevelopmentActualJob(ActualJobBase):
-    
-    actual_job: CreateActualDevelopment
-
-class WorkoverActualJob(ActualJobBase):
-    
-    actual_job: CreateActualWorkover
-
-class WellServiceActualJob(ActualJobBase):
-    
-    actual_job: CreateActualWellService
-    
 def validate_time(v):
     if isinstance(v, time):
         return v
@@ -752,9 +739,51 @@ class DailyOperationsReportInDB(DailyOperationsReportBase):
     pumps: List[PumpsInDB]
     weather: WeatherInDB
 
-
     model_config = ConfigDict(from_attributes=True)
 
 class ReportResponse(BaseModel):
     data: DailyOperationsReportInDB
     status: int
+
+job_schema_map = {
+    JobType.EXPLORATION:{
+        'schema':{
+            'plan': CreatePlanExploration,
+            'actual': CreateActualExploration
+        },
+        'model':{
+            'plan': PlanExploration,
+            'actual': ActualExploration
+        }
+    },
+    JobType.DEVELOPMENT:{
+        'schema':{
+            'plan': CreatePlanDevelopment,
+            'actual': CreateActualDevelopment
+        },
+        'model':{
+            'plan': PlanDevelopment,
+            'actual': ActualDevelopment
+        }
+    },
+    JobType.WORKOVER:{  
+        'schema':{
+            'plan': CreatePlanWorkover,
+            'actual': CreateActualWorkover
+        },
+        'model':{
+            'plan': PlanWorkover,
+            'actual': ActualWorkover
+        }
+    },
+    JobType.WELLSERVICE:{  
+        'schema':{
+            'plan': CreatePlanWellService,
+            'actual': CreateActualWellService
+        },
+        'model':{
+            'plan': PlanWellService,
+            'actual': ActualWellService
+        }
+    }
+}

@@ -1,6 +1,7 @@
+from ast import parse
 from fastapi.exceptions import HTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.api.job.models import *
 from app.api.job.schemas import *
 from app.api.auth.schemas import GetUser
@@ -20,7 +21,7 @@ def create_job_plan(db: Session, job_type: JobType, plan: object, user):
     db_job.planning_status = PlanningStatus.PROPOSED
     db_job.created_by_id = user.id
     db_job.time_created = datetime.now()
-    if isinstance(plan, (ExplorationJobPlan, DevelopmentJobPlan)):
+    if isinstance(plan, (CreateExplorationJob, CreateDevelopmentJob)):
         db_job.job_plan.well.area_id = plan.area_id
         db_job.job_plan.well.field_id = plan.field_id
         db_job.job_plan.well.kkks_id = user.kkks_id
@@ -63,8 +64,67 @@ def operate_job(id: str, db: Session, user):
     db_job = db.query(Job).filter_by(id=id).first()
     if not db_job:
         raise HTTPException(status_code=404, detail="Job not found")
+    
     db_job.operation_status = OperationStatus.OPERATING
     db_job.date_started = datetime.now().date()
+    
+    schema = job_schema_map[db_job.job_type]['schema']['actual']
+    
+    if db_job.job_type in [JobType.EXPLORATION, JobType.DEVELOPMENT]:
+        job_actual_temporary_schema = schema(**schema.model_validate(db_job.job_plan).model_dump(
+            include={
+                'start_date':True,
+                'end_date':True,
+                'total_budget':True,
+                'job_operation_days':True,
+                # 'work_breakdown_structure':True,
+                'rig_name':True,
+                'rig_type':True,
+                'rig_horse_power':True,
+                'well' : {
+                    'unit_type',
+                    'uwi',
+                    'area_id',
+                    'field_id',
+                    'well_name',
+                    'alias_long_name',
+                    'well_type',
+                    'well_profile_type',
+                    'well_directional_type',
+                    'hydrocarbon_target',
+                    'environment_type',
+                    'surface_longitude',
+                    'surface_latitude',
+                    'bottom_hole_longitude',
+                    'bottom_hole_latitude',
+                    'maximum_inclination',
+                    'azimuth',
+                    'line_name',
+                    'spud_date',
+                    'final_drill_date',
+                    'completion_date',
+                    'rotary_table_elev',
+                    'kb_elev',
+                    'derrick_floor_elev',
+                    'ground_elev',
+                    'mean_sea_level',
+                    'depth_datum',
+                    'kick_off_point',
+                    'maximum_tvd',
+                    'final_md',
+                    'remark',
+                }
+            }
+        ))
+    else:
+        job_actual_temporary_schema = schema(**schema.model_validate(db_job.job_plan).model_dump(
+            exclude={
+                'job_hazards':True,
+                'job_documents':True,
+                'work_breakdown_structure':True,
+            }
+        ))
+    db_job.actual_job = job_schema_map[db_job.job_type]['model']['actual'](**parse_schema(job_actual_temporary_schema))
     db.commit()
     return {"message": "Job operation started successfully"}
 

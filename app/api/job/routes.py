@@ -11,30 +11,30 @@ router = APIRouter(prefix="/job", tags=["job"])
 
 @router.post("/planning/create/exploration")
 @authorize(role=[Role.KKKS])
-async def create_planning_exploration(plan: schemas.ExplorationJobPlan, db: Session = Depends(get_db), user = Depends(get_current_user)):
+async def create_planning_exploration(plan: schemas.CreateExplorationJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_id = crud.create_job_plan(db, JobType.EXPLORATION, plan, user)
     return create_api_response(success=True, message="Exploration job plan created successfully", data={"id": job_id})
 
 @router.post("/planning/create/development")
 @authorize(role=[Role.KKKS])
-async def create_planning_development(plan: schemas.DevelopmentJobPlan, db: Session = Depends(get_db), user = Depends(get_current_user)):
+async def create_planning_development(plan: schemas.CreateDevelopmentJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_id = crud.create_job_plan(db, JobType.DEVELOPMENT, plan, user)
     return create_api_response(success=True, message="Development job plan created successfully", data={"id": job_id})
 
 @router.post("/planning/create/workover")
 @authorize(role=[Role.KKKS])
-async def create_planning_workover(plan: schemas.WorkoverJobPlan, db: Session = Depends(get_db), user = Depends(get_current_user)):
+async def create_planning_workover(plan: schemas.CreateWorkoverJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_id = crud.create_job_plan(db, JobType.WORKOVER, plan, user)
     return create_api_response(success=True, message="Workover job plan created successfully", data={"id": job_id})
 
 @router.post("/planning/create/wellservice")
 @authorize(role=[Role.KKKS])
-async def create_planning_wellservice(plan: schemas.WellServiceJobPlan, db: Session = Depends(get_db), user = Depends(get_current_user)):
+async def create_planning_wellservice(plan: schemas.CreateWellServiceJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_id = crud.create_job_plan(db, JobType.WELLSERVICE, plan, user)
     return create_api_response(success=True, message="Well service job plan created successfully", data={"id": job_id})
 
 @router.delete('/planning/delete/{job_id}')
-@authorize(role=[Role.Admin])
+@authorize(role=[Role.Admin, Role.KKKS])
 async def delete_planning_exploration(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     deleted = crud.delete_job_plan(job_id, db, user)
     if not deleted:
@@ -66,7 +66,7 @@ async def view_plan(job_id: str, db: Session = Depends(get_db), user = Depends(g
     return create_api_response(success=True, message="Job plan retrieved successfully", data=job_plan)
 
 @router.patch('/operations/operate/{job_id}')
-@authorize(role=[Role.Admin])
+@authorize(role=[Role.Admin, Role.KKKS])
 async def operate_job(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     operated = crud.operate_job(job_id, db, user)
     if not operated:

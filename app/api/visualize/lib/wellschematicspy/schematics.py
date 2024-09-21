@@ -13,8 +13,8 @@ from .models import BridgePlug, OpenHole, Casing, Cement, Perforation, Sleeve, P
 
 class WellSchema(BaseModel):
     open_holes: List[OpenHole]  = Field(...)
-    casings: List[Optional[Casing]]  = Field(None)
-    completion: List[Optional[Union[Sleeve, Packer,Plug, BridgePlug, Tubing]]]  = Field(None)
+    casings: Optional[List[Casing]]  = Field(None)
+    completion: Optional[List[Union[Sleeve, Packer,Plug, BridgePlug, Tubing]]]  = Field(None)
     
     class Config:
         validate_assignment = True
