@@ -416,17 +416,6 @@ def get_wrm_data_by_job_id(db: Session, job_id: str) -> Optional[ActualExplorati
         wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
     )
 
-def get_wrmissues_data_by_job_id(db: Session, job_id: str) -> Optional[JobIssueCreate]:
-    wrm_data = db.query(JobIssue).filter(JobIssue.job_id == job_id).first()
-    
-    if wrm_data is None:
-        return None
-    
-    return JobIssueCreate(
-        job_id=wrm_data.job_id,
-        date_time=wrm_data.date_time,
-        severity=wrm_data.severity,
-        description=wrm_data.description,
-        resolved=wrm_data.resolved,        
-        resolved_date_time=wrm_data.resolved_date_time
-    )   
+def get_wrmissues_data_by_job_id(db: Session, job_id: str) -> List[JobIssueCreate]:
+    wrm_data = db.query(JobIssue).filter(JobIssue.job_id == job_id).all()
+    return wrm_data

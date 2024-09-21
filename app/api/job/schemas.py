@@ -795,3 +795,4 @@ class JobIssueUpdate(BaseModel):
     class Config:
         orm_mode = True
 
+
