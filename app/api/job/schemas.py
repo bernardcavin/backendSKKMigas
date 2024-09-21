@@ -708,7 +708,7 @@ class DailyOperationsReportCreate(DailyOperationsReportBase):
     personnel: List[PersonnelCreate]
     Incidents: List[IncidentCreate]
     time_breakdowns: List[TimeBreakdownCreate]
-    bit_records: BitRecordCreate
+    bit_records: List[BitRecordCreate]
     bottom_hole_assemblies: List[BottomHoleAssemblyCreate]
     drilling_fluids: List[DrillingFluidCreate]
     mud_additives: List[MudAdditiveCreate]
@@ -730,7 +730,7 @@ class DailyOperationsReportInDB(DailyOperationsReportBase):
     time_breakdowns: List[TimeBreakdownInDB]
     personnel: List[PersonnelInDB]
     Incidents: List[IncidentInDB]
-    bit_records: BitRecordInDB
+    bit_records: List[BitRecordInDB]
     bottom_hole_assemblies: List[BottomHoleAssemblyInDB]
     drilling_fluids: List[DrillingFluidInDB]
     mud_additives: List[MudAdditiveInDB]
@@ -787,3 +787,40 @@ job_schema_map = {
         }
     }
 }
+
+class ActualExplorationUpdate(BaseModel):
+    wrm_pembebasan_lahan: Optional[Percentage] = None
+    wrm_ippkh: Optional[Percentage] = None
+    wrm_ukl_upl: Optional[Percentage] = None
+    wrm_amdal: Optional[Percentage] = None
+    wrm_pengadaan_rig: Optional[Percentage] = None
+    wrm_pengadaan_drilling_services: Optional[Percentage] = None
+    wrm_pengadaan_lli: Optional[Percentage] = None
+    wrm_persiapan_lokasi: Optional[Percentage] = None
+    wrm_internal_kkks: Optional[Percentage] = None
+    wrm_evaluasi_subsurface: Optional[Percentage] = None
+
+    class Config:
+        orm_mode = True
+
+class JobIssueCreate(BaseModel):
+    job_id: str
+    date_time: datetime = Field(default_factory=datetime.utcnow)
+    severity: Severity
+    description: str
+    resolved: bool = False
+    resolved_date_time: Optional[datetime] = None
+
+    class Config:
+        orm_mode = True
+
+class JobIssueResponse(JobIssueCreate):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+
+class JobIssueUpdate(BaseModel):
+    resolved: Optional[bool] = None
+    resolved_date_time: Optional[datetime] = None
+
+    class Config:
+        orm_mode = True
+

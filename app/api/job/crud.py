@@ -278,24 +278,24 @@ def create_daily_operations_report(db: Session, report: DailyOperationsReportCre
             comments=incident.comments
         )
         db_report.Incidents.append(db_incident)
-
-    db_bit_record = BitRecord(
+    for br_data in report.bit_records:
+        db_bit_record = BitRecord(
             daily_operations_report_id=db_report.id,
-            bit_number=report.bit_records.bit_number,
-            bit_run=report.bit_records.bit_run,
-            bit_size=report.bit_records.bit_size,
-            manufacturer=report.bit_records.manufacturer,
-            iadc_code=report.bit_records.iadc_code,
-            jets=report.bit_records.jets,
-            serial=report.bit_records.serial,
-            depth_out=report.bit_records.depth_out,
-            depth_in=report.bit_records.depth_in,
-            meterage=report.bit_records.meterage,
-            bit_hours=report.bit_records.bit_hours,
-            nozzels=report.bit_records.nozzels,
-            dull_grade=report.bit_records.dull_grade
+            bit_number=br_data.bit_number,
+            bit_run=br_data.bit_run,
+            bit_size=br_data.bit_size,
+            manufacturer=br_data.manufacturer,
+            iadc_code=br_data.iadc_code,
+            jets=br_data.jets,
+            serial=br_data.serial,
+            depth_out=br_data.depth_out,
+            depth_in=br_data.depth_in,
+            meterage=br_data.meterage,
+            bit_hours=br_data.bit_hours,
+            nozzels=br_data.nozzels,
+            dull_grade=br_data.dull_grade
         )
-    db_report.bit_records=(db_bit_record)
+        db_report.bit_records.append(db_bit_record)
 
     for bha_data in report.bottom_hole_assemblies:
         db_bha = BottomHoleAssembly(
@@ -410,3 +410,83 @@ def create_daily_operations_report(db: Session, report: DailyOperationsReportCre
         success=True,
         message="Daily Operations Report created successfully",
     )
+
+def update_actual_exploration(
+    db: Session, 
+    exploration_id: str, 
+    exploration_update: ActualExplorationUpdate) -> ActualExploration:
+    db_exploration = db.query(ActualExploration).filter(ActualExploration.id == exploration_id).first()
+    if not db_exploration:
+        return None
+    
+    update_data = exploration_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_exploration, key, value)
+    
+    db.add(db_exploration)
+    db.commit()
+    db.refresh(db_exploration)
+    return db_exploration
+
+def create_job_issue(db: Session, job_issue: JobIssueCreate) -> JobIssue:
+    db_job_issue = JobIssue(
+        job_id=job_issue.job_id,
+        date_time=job_issue.date_time,
+        severity=job_issue.severity,
+        description=job_issue.description,
+        resolved=job_issue.resolved,
+        resolved_date_time=job_issue.resolved_date_time
+    )
+    db.add(db_job_issue)
+    db.commit()
+    db.refresh(db_job_issue)
+    return db_job_issue
+
+def update_job_issue(db: Session, job_issue_id: str, job_issue_update: JobIssueUpdate) -> Optional[JobIssue]:
+    db_job_issue = db.query(JobIssue).filter(JobIssue.id == job_issue_id).first()
+    if db_job_issue is None:
+        return None
+    
+    update_data = job_issue_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_job_issue, key, value)
+    
+    db.add(db_job_issue)
+    db.commit()
+    db.refresh(db_job_issue)
+    return db_job_issue
+
+def get_wrm_data_by_job_id(db: Session, job_id: str) -> Optional[ActualExplorationUpdate]:
+    wrm_data = db.query(ActualExploration).filter(ActualExploration.id == job_id).first()
+    
+    if wrm_data is None:
+        return None
+    
+    return ActualExplorationUpdate(
+        job_id=wrm_data.id,
+        wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
+        wrm_ippkh=wrm_data.wrm_ippkh,
+        wrm_ukl_upl=wrm_data.wrm_ukl_upl,
+        wrm_amdal=wrm_data.wrm_amdal,
+        wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
+        wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
+        wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
+        wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
+        wrm_internal_kkks=wrm_data.wrm_internal_kkks,
+        wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
+    )
+
+def get_wrmissues_data_by_job_id(db: Session, job_id: str) -> Optional[JobIssueCreate]:
+    wrm_data = db.query(JobIssue).filter(JobIssue.job_id == job_id).first()
+    
+    if wrm_data is None:
+        return None
+    
+    return JobIssueCreate(
+        job_id=wrm_data.job_id,
+        date_time=wrm_data.date_time,
+        severity=wrm_data.severity,
+        description=wrm_data.description,
+        resolved=wrm_data.resolved,        
+        resolved_date_time=wrm_data.resolved_date_time
+    )   
