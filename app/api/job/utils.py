@@ -4,8 +4,276 @@ import plotly.express as px
 from plotly import graph_objects as go
 from plotly.subplots import make_subplots
 import json
+from app.api.job.schemas import *
 
 colors = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52']
+
+def to_date(value):
+    return pd.to_datetime(value).date()
+
+meta_headers = {
+    "Area": str,
+    "Field": str,
+    "Contract Type": str,
+    "Afe Number": str,
+    "WP&B Year": int,
+}
+
+well_headers = {
+    "Unit Type": str,
+    "UWI": str,
+    "Well Name": str,
+    "Alias Long Name": str,
+    "Well Type": str,
+    "Well Profile Type": str,
+    "Well Directional Type": str,
+    "Hydrocarbon Target": str,
+    "Environment Type": str,
+    "Surface Longitude": float,
+    "Surface Latitude": float,
+    "Bottom Hole Longitude": float,
+    "Bottom Hole Latitude": float,
+    "Maximum Inclination": float,
+    "Azimuth": float,
+    "Line Name": str,
+    "Rotary Table Elev": float,
+    "Kb Elev": float,
+    "Derrick Floor Elev": float,
+    "Ground Elev": float,
+    "Mean Sea Level": float,
+    "Depth Datum": str,
+    "Kick Off Point": float,
+    "Maximum TVD": float,
+    "Final MD": float,
+    "Remark": str,
+}
+
+exploration_headers = {
+    "Area": str,
+    "Field": str,
+    "Contract Type": str,
+    "Afe Number": str,
+    "WP&B Year": int,
+    "Start Date": to_date,
+    "End Date": to_date,
+    "Total Budget": float,
+    "Rig Name": str,
+    "Rig Type": str,
+    "Rig Horse Power": float,
+    "Pembebasan Lahan": bool,
+    "IPPKH": bool,
+    "UKL UPL": bool,
+    "Amdal": bool,
+    "Pengadaan Rig": bool,
+    "Pengadaan Drilling Services": bool,
+    "Pengadaan LLI": bool,
+    "Persiapan Lokasi": bool,
+    "Internal KKKS": bool,
+    "Evaluasi Subsurface": bool
+}
+
+development_headers = {
+    "Area": str,
+    "Field": str,
+    "Contract Type": str,
+    "Afe Number": str,
+    "WP&B Year": int,
+    "Start Date": to_date,
+    "End Date": to_date,
+    "Total Budget": float,
+    "Rig Name": str,
+    "Rig Type": str,
+    "Rig Horse Power": float,
+    "Pembebasan Lahan": bool,
+    "IPPKH": bool,
+    "UKL UPL": bool,
+    "Amdal": bool,
+    "Cutting Dumping":bool,
+    "Pengadaan Rig": bool,
+    "Pengadaan Drilling Services": bool,
+    "Pengadaan LLI": bool,
+    "Persiapan Lokasi": bool,
+    "Internal KKKS": bool,
+    "Evaluasi Subsurface": bool,
+}
+
+wows_headers = {
+    "Start Date": to_date,
+    "End Date": to_date,
+    "Total Budget": float,
+    "Equipment": str,
+    "Equipment Specifications": str,
+    "Job Category": str,
+    "Job Description": str,
+    "Well Name": str,
+    "Onstream Oil": float,
+    "Onstream Gas": float,
+    "Onstream Water Cut": float,
+    "Target Oil": float,
+    "Target Gas": float,
+    "Target Water Cut": float,
+}
+
+plan_label_key_mapping = {
+    "Area": "area_name",
+    "Field": "field_name",
+    "Contract Type": "contract_type",
+    "Afe Number": "afe_number",
+    "WP&B Year": "wpb_year",
+    "Start Date": "start_date",
+    "End Date": "end_date",
+    "Total Budget": "total_budget",
+    "Job Category": "job_category",
+    "Job Description": "job_description",
+    "Rig Name": "rig_name",
+    "Rig Type": "rig_type",
+    "Rig Horse Power": "rig_horse_power",
+    "Equipment": "equipment",
+    "Equipment Specifications": "equipment_specifications",
+    "Well Name": "well_name",
+    "Onstream Oil": "onstream_oil",
+    "Onstream Gas": "onstream_gas",
+    "Onstream Water Cut": "onstream_water_cut",
+    "Target Oil": "target_oil",
+    "Target Gas": "target_gas",
+    "Target Water Cut": "target_water_cut",
+    "Unit Type": "unit_type",
+    "UWI": "uwi",
+    "Well Name": "well_name",
+    "Alias Long Name": "alias_long_name",
+    "Well Type": "well_type",
+    "Well Profile Type": "well_profile_type",
+    "Well Directional Type": "well_directional_type",
+    "Hydrocarbon Target": "hydrocarbon_target",
+    "Environment Type": "environment_type",
+    "Surface Longitude": "surface_longitude",
+    "Surface Latitude": "surface_latitude",
+    "Bottom Hole Longitude": "bottom_hole_longitude",
+    "Bottom Hole Latitude": "bottom_hole_latitude",
+    "Maximum Inclination": "maximum_inclination",
+    "Azimuth": "azimuth",
+    "Line Name": "line_name",
+    "Spud Date": "spud_date",
+    "Final Drill Date": "final_drill_date",
+    "Completion Date": "completion_date",
+    "Rotary Table Elev": "rotary_table_elev",
+    "Kb Elev": "kb_elev",
+    "Derrick Floor Elev": "derrick_floor_elev",
+    "Ground Elev": "ground_elev",
+    "Mean Sea Level": "mean_sea_level",
+    "Depth Datum": "depth_datum",
+    "Kick Off Point": "kick_off_point",
+    "Maximum TVD": "maximum_tvd",
+    "Final MD": "final_md",
+    "Remark": "remark",
+    "Pembebasan Lahan": "wrm_pembebasan_lahan",
+    "IPPKH": "wrm_ippkh",
+    "UKL UPL": "wrm_ukl_upl",
+    "Amdal": "wrm_amdal",
+    "Pengadaan Rig": "wrm_pengadaan_rig",
+    "Pengadaan Drilling Services": "wrm_pengadaan_drilling_services",
+    "Pengadaan LLI": "wrm_pengadaan_lli",
+    "Persiapan Lokasi": "wrm_persiapan_lokasi",
+    "Internal KKKS": "wrm_internal_kkks",
+    "Evaluasi Subsurface": "wrm_evaluasi_subsurface",
+    "Cutting Dumping": "wrm_cutting_dumping",
+}
+
+plan_key_label_mapping = {v: k for k, v in plan_label_key_mapping.items()}
+
+job_schema_map = {
+    JobType.EXPLORATION:{
+        'upload_headers':{
+            'plan':{
+                **meta_headers,
+                **well_headers,
+                **exploration_headers
+            },
+        },
+        'job':CreateExplorationJob,
+        'schema':{
+            'plan': CreatePlanExploration,
+            'actual': CreateActualExploration
+        },
+        'model':{
+            'plan': PlanExploration,
+            'actual': ActualExploration
+        }
+    },
+    JobType.DEVELOPMENT:{
+        'upload_headers':{
+            'plan':{
+                **meta_headers,
+                **well_headers,
+                **development_headers
+            },
+        },
+        'job':CreateDevelopmentJob,
+        'schema':{
+            'plan': CreatePlanDevelopment,
+            'actual': CreateActualDevelopment
+        },
+        'model':{
+            'plan': PlanDevelopment,
+            'actual': ActualDevelopment
+        }
+    },
+    JobType.WORKOVER:{  
+        'upload_headers':{
+            'plan':{
+                **meta_headers,
+                **wows_headers
+            },
+        },
+        'job':CreateWorkoverJob,
+        'schema':{
+            'plan': CreatePlanWorkover,
+            'actual': CreateActualWorkover
+        },
+        'model':{
+            'plan': PlanWorkover,
+            'actual': ActualWorkover
+        }
+    },
+    JobType.WELLSERVICE:{  
+        'upload_headers':{
+            'plan':{
+                **meta_headers,
+                **wows_headers
+            },
+        },
+        'job':CreateWellServiceJob,
+        'schema':{
+            'plan': CreatePlanWellService,
+            'actual': CreateActualWellService
+        },
+        'model':{
+            'plan': PlanWellService,
+            'actual': ActualWellService
+        }
+    }
+}
+
+class AreaDoesntExist(Exception):...
+
+class FieldDoesntExist(Exception):...
+
+class WellDoesntExist(Exception):...
+
+def build_nested_model(model: BaseModel, data):
+    result = {}
+    
+    for field, field_info in model.model_fields.items():
+        
+        field_type = field_info.annotation
+        
+        if isinstance(field_type, type) and issubclass(field_type, BaseModel):
+            # If the field is a nested Pydantic model, recursively build it
+            result[field] = build_nested_model(field_type, data)
+        else:
+            result[field] = data.get(field)
+    
+    return result
 
 def create_gantt_chart(
     events: list,

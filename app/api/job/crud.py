@@ -1,17 +1,21 @@
 from ast import parse
+from fastapi import UploadFile
 from fastapi.exceptions import HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from app.api.job.models import *
 from app.api.job.schemas import *
+from app.api.well.models import ActualWell
 from app.api.auth.schemas import GetUser
 from app.core.schema_operations import create_api_response, parse_schema
-from app.api.job.utils import create_gantt_chart, create_operation_plot, create_well_path
+from app.api.job.utils import *
 from app.api.visualize.schemas import VisualizeCasing
 from app.api.visualize.routes import request_visualize_casing
 from well_profile import load
 import pandas as pd
 from typing import Union
+from pydantic import ValidationError
+import io
 
 def create_job_plan(db: Session, job_type: JobType, plan: object, user):
     db_job = Job(**parse_schema(plan))
@@ -28,6 +32,125 @@ def create_job_plan(db: Session, job_type: JobType, plan: object, user):
     db.add(db_job)
     db.commit()
     return db_job.id
+
+def map_to_schema(schema, row):
+    data = {}
+    for field, field_type in schema.__fields__.items():
+        if hasattr(field_type.type_, '__fields__'):  # If it's a nested model
+            nested_data = {k.replace(f'{field}_', ''): v for k, v in row.items() if k.startswith(f'{field}_')}
+            data[field] = map_to_schema(field_type.type_, nested_data)
+        else:
+            data[field] = row.get(field)
+    return schema(**data)
+
+def upload_batch_exploration(db: Session, content: bytes, job_type: JobType, user):
+
+    error_list = []
+    validated_data = []
+    
+    dtype_map = job_schema_map[job_type]['upload_headers']['plan']
+
+    # try:
+    df = pd.read_excel(io.BytesIO(content), skiprows=1,
+        converters=dtype_map
+    )
+
+    # Check if all required columns are present
+    required_columns = set(dtype_map.keys())
+    missing_columns = required_columns - set(df.columns)
+    
+    if missing_columns:
+        raise ValueError(f"Missing required columns: {missing_columns}")
+
+    # Rename the columns based on the provided dictionary
+    df.rename(columns=plan_label_key_mapping, inplace=True)
+    
+    df = df.replace({float('nan'): None})
+
+    # except Exception as e:
+    #     raise HTTPException(status_code=400, detail="Invalid file format")
+    
+    area_names = db.query(Area.name).all()
+    field_names = db.query(Lapangan.name).all()
+
+    for index, row in df.iterrows():
+        
+        try:
+            
+            if row['area_name'] not in [area.name for area in area_names]:
+                raise AreaDoesntExist
+
+            if row['field_name'] not in [field.name for field in field_names]:
+                raise FieldDoesntExist
+            
+            if job_type in [JobType.WORKOVER,JobType.WELLSERVICE]:
+                if row.get('well_name',None):
+                    well = db.query(ActualWell).filter(ActualWell.well_name == row['well_name']).first()
+                    print(well)
+                    if well is None:
+                        row['well_id'] = 'not found'
+                        raise WellDoesntExist
+                    else:
+                        row['well_id'] = well.id
+                        
+            row['area_id'] = db.query(Area).filter(Area.name == row['area_name']).first().id
+            row['field_id'] = db.query(Lapangan).filter(Lapangan.name == row['field_name']).first().id
+            
+        except AreaDoesntExist:
+            error_list.append(f'Row {index + 2} in Area: Invalid area name')
+            
+        except FieldDoesntExist:
+            error_list.append(f'Row {index + 2} in Field: Invalid field name')
+            
+        except WellDoesntExist:
+            error_list.append(f'Row {index + 2} in Well: Invalid well name')
+        
+        try:
+            
+            job_schema = job_schema_map[job_type]['job']
+            job_plan_schema = job_schema_map[job_type]['schema']['plan']
+
+            data_dict = {
+                "area_id": row.get('area_id','not found'),
+                "field_id": row.get('field_id','not found'),
+                "contract_type": row['contract_type'],
+                "afe_number": row['afe_number'],
+                "wpb_year": row['wpb_year'],                
+                "job_plan": {
+                    **build_nested_model(job_plan_schema, row.to_dict())
+                }
+            }
+            
+            plan = job_schema(**data_dict)
+            
+            db_job = Job(**parse_schema(plan))
+            db_job.kkks_id = user.kkks_id
+            db_job.job_type = JobType.EXPLORATION
+            db_job.date_proposed = datetime.now().date()
+            db_job.planning_status = PlanningStatus.PROPOSED
+            db_job.created_by_id = user.id
+            db_job.time_created = datetime.now()
+            
+            if isinstance(plan, (CreateExplorationJob, CreateDevelopmentJob)):
+                db_job.job_plan.well.area_id = plan.area_id
+                db_job.job_plan.well.field_id = plan.field_id
+                db_job.job_plan.well.kkks_id = user.kkks_id
+            
+            validated_data.append(db_job)
+            
+        except ValidationError as e:
+            
+            for error in e.errors():
+                
+                error_list.append(f'Row {index + 2} in {plan_key_label_mapping.get(error["loc"][-1], error["loc"][-1])}: {error["msg"]}. Your input was {error['input']}')
+            
+    if error_list:
+        raise HTTPException(status_code=400, detail={"errors": error_list})
+    
+    db.add_all(validated_data)
+    db.commit()
+    
+    return {"message": "Data uploaded successfully", "validated_data": validated_data} 
 
 def update_job_plan(db: Session, job_id: str, plan: object, user):
     db_job = db.query(Job).filter_by(id=job_id).first()

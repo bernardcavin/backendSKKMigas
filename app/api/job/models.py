@@ -433,7 +433,7 @@ class PlanWorkover(JobInstance):
     well = relationship('ActualWell', foreign_keys=[JobInstance.well_id])
     
     equipment = Column(String(50))
-    equipment_sepesifications = Column(Text)
+    equipment_specifications = Column(Text)
     
     job_category = Column(Enum(WOWSJobType))
     job_description = Column(Text)
@@ -465,7 +465,7 @@ class PlanWellService(JobInstance):
     well = relationship('ActualWell', foreign_keys=[JobInstance.well_id])
     
     equipment = Column(String(50))
-    equipment_sepesifications = Column(Text)
+    equipment_specifications = Column(Text)
     
     job_category = Column(Enum(WOWSJobType))
     job_description = Column(Text)
@@ -553,7 +553,7 @@ class ActualWorkover(JobInstance):
     well = relationship('ActualWell', foreign_keys=[JobInstance.well_id])
     
     equipment = Column(String(50))
-    equipment_sepesifications = Column(Text)
+    equipment_specifications = Column(Text)
     
     job_category = Column(Enum(WOWSJobType))
     job_description = Column(Text)
@@ -584,7 +584,7 @@ class ActualWellService(JobInstance):
     well = relationship('ActualWell', foreign_keys=[JobInstance.well_id])
     
     equipment = Column(String(50))
-    equipment_sepesifications = Column(Text)
+    equipment_specifications = Column(Text)
     
     job_category = Column(Enum(WOWSJobType))
     job_description = Column(Text)

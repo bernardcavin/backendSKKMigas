@@ -155,7 +155,7 @@ class CreateDummyPlanDevelopment(CreatePlanDevelopment):
 class CreatePlanWorkover(JobPlanInstanceBase):
     
     equipment: str
-    equipment_sepesifications: str
+    equipment_specifications: str
     
     well_id: str
     
@@ -182,7 +182,7 @@ class CreatePlanWorkover(JobPlanInstanceBase):
 class CreatePlanWellService(JobPlanInstanceBase):
     
     equipment: str
-    equipment_sepesifications: str
+    equipment_specifications: str
     
     well_id: str
     
@@ -258,7 +258,7 @@ class CreateActualDevelopment(JobActualInstanceBase):
 class CreateActualWorkover(JobActualInstanceBase):
     
     equipment: str
-    equipment_sepesifications: str
+    equipment_specifications: str
     
     well_id: str
     
@@ -280,7 +280,7 @@ class CreateActualWorkover(JobActualInstanceBase):
 class CreateActualWellService(JobActualInstanceBase):
     
     equipment: str
-    equipment_sepesifications: str
+    equipment_specifications: str
     
     well_id: str
     
@@ -754,49 +754,6 @@ class DailyOperationsReportInDB(DailyOperationsReportBase):
 class ReportResponse(BaseModel):
     data: DailyOperationsReportInDB
     status: int
-
-job_schema_map = {
-    JobType.EXPLORATION:{
-        'schema':{
-            'plan': CreatePlanExploration,
-            'actual': CreateActualExploration
-        },
-        'model':{
-            'plan': PlanExploration,
-            'actual': ActualExploration
-        }
-    },
-    JobType.DEVELOPMENT:{
-        'schema':{
-            'plan': CreatePlanDevelopment,
-            'actual': CreateActualDevelopment
-        },
-        'model':{
-            'plan': PlanDevelopment,
-            'actual': ActualDevelopment
-        }
-    },
-    JobType.WORKOVER:{  
-        'schema':{
-            'plan': CreatePlanWorkover,
-            'actual': CreateActualWorkover
-        },
-        'model':{
-            'plan': PlanWorkover,
-            'actual': ActualWorkover
-        }
-    },
-    JobType.WELLSERVICE:{  
-        'schema':{
-            'plan': CreatePlanWellService,
-            'actual': CreateActualWellService
-        },
-        'model':{
-            'plan': PlanWellService,
-            'actual': ActualWellService
-        }
-    }
-}
 
 class ActualExplorationUpdate(BaseModel):
     wrm_pembebasan_lahan: Optional[Percentage] = None

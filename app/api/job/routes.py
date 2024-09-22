@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends,status,HTTPException
+from calendar import c
+from fastapi import APIRouter, Depends,status,HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from app.api.auth.models import Role
 from app.api.auth.schemas import GetUser
@@ -9,6 +10,30 @@ from app.core.schema_operations import create_api_response
 from typing import Any, Union, List
 
 router = APIRouter(prefix="/job", tags=["job"])
+
+@router.post("/planning/upload-batch/exploration")
+async def upload_batch_exploration(file: UploadFile = File(...), db: Session = Depends(get_db), user = Depends(get_current_user)):
+    content = file.file.read()
+    responses = crud.upload_batch_exploration(db, content, JobType.EXPLORATION, user)
+    return create_api_response(success=True, message="Job plan batch uploaded successfully")
+
+@router.post("/planning/upload-batch/development")
+async def upload_batch_development(file: UploadFile = File(...), db: Session = Depends(get_db), user = Depends(get_current_user)):
+    content = file.file.read()
+    responses = crud.upload_batch_exploration(db, content, JobType.DEVELOPMENT, user)
+    return create_api_response(success=True, message="Job plan batch uploaded successfully")
+
+@router.post("/planning/upload-batch/workover")
+async def upload_batch_workover(file: UploadFile = File(...), db: Session = Depends(get_db), user = Depends(get_current_user)):
+    content = file.file.read()
+    responses = crud.upload_batch_exploration(db, content, JobType.WORKOVER, user)
+    return create_api_response(success=True, message="Job plan batch uploaded successfully")
+
+@router.post("/planning/upload-batch/wellservice")
+async def upload_batch_wellservice(file: UploadFile = File(...), db: Session = Depends(get_db), user = Depends(get_current_user)):
+    content = file.file.read()
+    responses = crud.upload_batch_exploration(db, content, JobType.WELLSERVICE, user)
+    return create_api_response(success=True, message="Job plan batch uploaded successfully")
 
 @router.post("/planning/create/exploration")
 @authorize(role=[Role.KKKS])

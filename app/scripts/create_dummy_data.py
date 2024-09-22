@@ -445,7 +445,7 @@ def generate_dummy_data(db, n: int):
                         }
                         ],
                         "equipment": "string",
-                        "equipment_sepesifications": "string",
+                        "equipment_specifications": "string",
                         "well_id": well_id,
                         "job_category": random_enum_value(WOWSJobType).value,
                         "job_description": "string",
@@ -480,7 +480,7 @@ def generate_dummy_data(db, n: int):
                     }
                     ],
                     "equipment": "string",
-                    "equipment_sepesifications": "string",
+                    "equipment_specifications": "string",
                     "well_id": well_id,
                     "job_category": random_enum_value(WOWSJobType).value,
                     "job_description": "string",
