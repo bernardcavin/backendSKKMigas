@@ -486,7 +486,7 @@ def get_wrm_data_by_job_id(
     model: Type[Union[ActualExploration, ActualDevelopment, ActualWorkover, ActualWellService]]
 ) -> Optional[Union[ActualExplorationUpdate, ActualDevelopmentUpdate, ActualWorkoverUpdate, ActualWellServiceUpdate]]:
     # Query untuk mendapatkan data WRM berdasarkan model yang diberikan
-    wrm_data = db.query(model).filter(Job.actual_job_id == actual_job_id).first()
+    wrm_data = db.query(model).filter(model.id == actual_job_id).first()
 
     if wrm_data is None:
         return None

@@ -182,7 +182,7 @@ async def list_drilling_operations():
     ]
 
 @router.get("/bha/pyenum", response_model=List[schemas.BHAResponse])
-async def list_drilling_operations():
+async def list_bhacomponents():
     return [
         schemas.BHAResponse(bhacomponent=op)
         for op in models.BHAComponentType
