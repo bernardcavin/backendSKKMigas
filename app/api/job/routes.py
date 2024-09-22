@@ -7,6 +7,7 @@ from app.api.job import crud, schemas,models
 from app.api.job.models import JobType,Job
 from app.core.schema_operations import create_api_response
 from typing import Any, Union, List
+from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/job", tags=["job"])
 
@@ -196,12 +197,10 @@ def read_job_instance_dates(job_instance_id: str, db: Session = Depends(get_db))
     date_list = job_instance.get_job_date_list()
     colored_dates = []
     
-    for date in date_list:
-        if crud.check_daily_operation_report(db, job_instance_id, date):
-            color = "green"
-        else:
-            color = "red"
-        colored_dates.append(schemas.ColoredDate(date=date, color=color))
+    for date_str in date_list:
+        check_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        color = crud.get_date_color(db, job_instance_id, check_date)
+        colored_dates.append(schemas.ColoredDate(date=date_str, color=color))
     
     return colored_dates
 

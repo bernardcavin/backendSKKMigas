@@ -574,3 +574,27 @@ def check_daily_operation_report(db: Session, job_instance_id: str, date: str) -
         .filter(DailyOperationsReport.report_date == date)\
         .first() is not None
 
+def get_date_color(db: Session, job_instance_id: str, check_date: date) -> str:
+    """
+    Determine the color for a given date based on the specified conditions.
+    
+    :param db: Database session
+    :param job_instance_id: ID of the job instance
+    :param check_date: Date to check
+    :return: Color string ('white', 'red', or 'green')
+    """
+    today = date.today()
+    
+    if check_date > today:
+        return "white"
+    elif check_date < today:
+        if check_daily_operation_report(db, job_instance_id, check_date.strftime('%Y-%m-%d')):
+            return "green"
+        else:
+            return "red"
+    else:  # check_date == today
+        if check_daily_operation_report(db, job_instance_id, check_date.strftime('%Y-%m-%d')):
+            return "green"
+        else:
+            return "white"
+
