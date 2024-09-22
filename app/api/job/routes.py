@@ -180,3 +180,10 @@ async def list_drilling_operations():
         for op in models.DrillingOperation
     ]
 
+@router.get("/job-instances/{job_instance_id}/dates", response_model=List[str])
+def read_job_instance_dates(job_instance_id: str, db: Session = Depends(get_db)):
+    job_instance = crud.get_job_instance(db, job_instance_id)
+    if job_instance is None:
+        raise HTTPException(status_code=404, detail="Job instance not found")
+    return job_instance.get_job_date_list()
+

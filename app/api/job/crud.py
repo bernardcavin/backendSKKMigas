@@ -555,3 +555,9 @@ def get_drilling_operation(value: str) -> DrillingOperation:
         if value.lower() in operation.value.lower():
             return operation
     raise ValueError(f"No matching DrillingOperation found for: {value}")
+
+def get_job_instance(db: Session, job_instance_id: str):
+    return db.query(JobInstance).filter(JobInstance.job_instance_id == job_instance_id).first()
+
+
+
