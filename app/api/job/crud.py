@@ -586,7 +586,7 @@ def get_date_color(db: Session, job_instance_id: str, check_date: date) -> str:
     today = date.today()
     
     if check_date > today:
-        return "white"
+        return "gray"
     elif check_date < today:
         if check_daily_operation_report(db, job_instance_id, check_date.strftime('%Y-%m-%d')):
             return "green"
