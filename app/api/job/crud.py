@@ -275,7 +275,6 @@ def operate_job(id: str, db: Session, user):
         
         job_actual_temporary_schema = actual_schema(**job_plan_dict)
         
-        print(job_actual_temporary_schema)
     else:
         job_actual_temporary_schema = actual_schema(**plan_schema.model_validate(db_job.job_plan, from_attributes=True).model_dump(
             exclude={

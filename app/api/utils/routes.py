@@ -67,5 +67,4 @@ async def upload_trajectory_file(file: UploadFile = File(...), db: Session = Dep
             data={"file_info": file_info, "plot": fig_data}
         )
     except Exception as e:
-        print(e)
         return create_api_response(success=False, message="File cannot be processed", status_code=500)
