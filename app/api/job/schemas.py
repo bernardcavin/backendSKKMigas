@@ -813,6 +813,51 @@ class ActualExplorationUpdate(BaseModel):
     class Config:
         orm_mode = True
 
+class ActualDevelopmentUpdate(BaseModel):
+    wrm_pembebasan_lahan: Optional[Percentage] = None
+    wrm_ippkh: Optional[Percentage] = None
+    wrm_ukl_upl: Optional[Percentage] = None
+    wrm_amdal: Optional[Percentage] = None
+    wrm_pengadaan_rig: Optional[Percentage] = None
+    wrm_pengadaan_drilling_services: Optional[Percentage] = None
+    wrm_pengadaan_lli: Optional[Percentage] = None
+    wrm_persiapan_lokasi: Optional[Percentage] = None
+    wrm_internal_kkks: Optional[Percentage] = None
+    wrm_evaluasi_subsurface: Optional[Percentage] = None
+
+    class Config:
+        orm_mode = True
+
+class ActualWorkoverUpdate(BaseModel):
+    wrm_pembebasan_lahan: Optional[Percentage] = None
+    wrm_ippkh: Optional[Percentage] = None
+    wrm_ukl_upl: Optional[Percentage] = None
+    wrm_amdal: Optional[Percentage] = None
+    wrm_pengadaan_rig: Optional[Percentage] = None
+    wrm_pengadaan_drilling_services: Optional[Percentage] = None
+    wrm_pengadaan_lli: Optional[Percentage] = None
+    wrm_persiapan_lokasi: Optional[Percentage] = None
+    wrm_internal_kkks: Optional[Percentage] = None
+    wrm_evaluasi_subsurface: Optional[Percentage] = None
+
+    class Config:
+        orm_mode = True
+
+class ActualWellServiceUpdate(BaseModel):
+    wrm_pembebasan_lahan: Optional[Percentage] = None
+    wrm_ippkh: Optional[Percentage] = None
+    wrm_ukl_upl: Optional[Percentage] = None
+    wrm_amdal: Optional[Percentage] = None
+    wrm_pengadaan_rig: Optional[Percentage] = None
+    wrm_pengadaan_drilling_services: Optional[Percentage] = None
+    wrm_pengadaan_lli: Optional[Percentage] = None
+    wrm_persiapan_lokasi: Optional[Percentage] = None
+    wrm_internal_kkks: Optional[Percentage] = None
+    wrm_evaluasi_subsurface: Optional[Percentage] = None
+
+    class Config:
+        orm_mode = True
+
 class JobIssueCreate(BaseModel):
     job_id: str
     date_time: datetime = Field(default_factory=datetime.utcnow)

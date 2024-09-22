@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends,status,HTTPException
+from fastapi import APIRouter, Depends,status,HTTPException,Query
 from sqlalchemy.orm import Session
 from app.api.auth.models import Role
 from app.api.auth.schemas import GetUser
@@ -142,14 +142,28 @@ def update_job_issue(
         raise HTTPException(status_code=404, detail="Job issue not found")
     return updated_job_issue
 
-@router.get("/jobs/{job_id}/wrm", response_model=schemas.ActualExplorationUpdate)
-def get_wrm_data(
-    job_id: str,
+@router.get("/wrm-data/{actual_job_id}", response_model=Union[schemas.ActualExplorationUpdate, schemas.ActualDevelopmentUpdate, schemas.ActualWorkoverUpdate, schemas.ActualWellServiceUpdate])
+async def read_wrm_data(
+    actual_job_id: str,
+    model_type: str = Query(..., description="Type of actual data (exploration, development, workover, wellservice)"),
     db: Session = Depends(get_db)
-) -> Any:
-    wrm_data = crud.get_wrm_data_by_job_id(db=db, job_id=job_id)
+):
+    model_map = {
+        "exploration": models.ActualExploration,
+        "development": models.ActualDevelopment,
+        "workover": models.ActualWorkover,
+        "wellservice": models.ActualWellService
+    }
+
+    if model_type not in model_map:
+        raise HTTPException(status_code=400, detail="Invalid model type")
+
+    model = model_map[model_type]
+    wrm_data = crud.get_wrm_data_by_job_id(db, actual_job_id, model)
+
     if wrm_data is None:
-        raise HTTPException(status_code=404, detail="WRM data not found for this job")
+        raise HTTPException(status_code=404, detail=f"WRM data not found for {model_type} with actual_job_id {actual_job_id}")
+
     return wrm_data
 
 @router.get("/job-issues/{job_id}", response_model=List[schemas.JobIssueResponse])

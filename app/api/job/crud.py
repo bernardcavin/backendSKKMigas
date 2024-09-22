@@ -11,7 +11,7 @@ from app.api.visualize.schemas import VisualizeCasing
 from app.api.visualize.routes import request_visualize_casing
 from well_profile import load
 import pandas as pd
-from typing import Union
+from typing import Union,Type
 
 def create_job_plan(db: Session, job_type: JobType, plan: object, user):
     db_job = Job(**parse_schema(plan))
@@ -479,25 +479,72 @@ def update_job_issue(db: Session, job_issue_id: str, job_issue_update: JobIssueU
     db.refresh(db_job_issue)
     return db_job_issue
 
-def get_wrm_data_by_job_id(db: Session, job_id: str) -> Optional[ActualExplorationUpdate]:
-    wrm_data = db.query(ActualExploration).filter(ActualExploration.id == job_id).first()
-    
+def get_wrm_data_by_job_id(
+    db: Session, 
+    actual_job_id: str, 
+    model: Type[Union[ActualExploration, ActualDevelopment, ActualWorkover, ActualWellService]]
+) -> Optional[Union[ActualExplorationUpdate, ActualDevelopmentUpdate, ActualWorkoverUpdate, ActualWellServiceUpdate]]:
+    # Query untuk mendapatkan data WRM berdasarkan model yang diberikan
+    wrm_data = db.query(model).filter(Job.actual_job_id == actual_job_id).first()
+
     if wrm_data is None:
         return None
-    
-    return ActualExplorationUpdate(
-        job_id=wrm_data.id,
-        wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
-        wrm_ippkh=wrm_data.wrm_ippkh,
-        wrm_ukl_upl=wrm_data.wrm_ukl_upl,
-        wrm_amdal=wrm_data.wrm_amdal,
-        wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
-        wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
-        wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
-        wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
-        wrm_internal_kkks=wrm_data.wrm_internal_kkks,
-        wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
-    )
+
+    # Menentukan jenis Update berdasarkan model
+    if model == ActualExploration:
+        return ActualExplorationUpdate(
+            wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
+            wrm_ippkh=wrm_data.wrm_ippkh,
+            wrm_ukl_upl=wrm_data.wrm_ukl_upl,
+            wrm_amdal=wrm_data.wrm_amdal,
+            wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
+            wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
+            wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
+            wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
+            wrm_internal_kkks=wrm_data.wrm_internal_kkks,
+            wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
+        )
+    elif model == ActualDevelopment:
+        return ActualDevelopmentUpdate(
+            wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
+            wrm_ippkh=wrm_data.wrm_ippkh,
+            wrm_ukl_upl=wrm_data.wrm_ukl_upl,
+            wrm_amdal=wrm_data.wrm_amdal,
+            wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
+            wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
+            wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
+            wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
+            wrm_internal_kkks=wrm_data.wrm_internal_kkks,
+            wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
+        )
+    elif model == ActualWorkover:
+        return ActualWorkoverUpdate(
+           wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
+            wrm_ippkh=wrm_data.wrm_ippkh,
+            wrm_ukl_upl=wrm_data.wrm_ukl_upl,
+            wrm_amdal=wrm_data.wrm_amdal,
+            wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
+            wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
+            wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
+            wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
+            wrm_internal_kkks=wrm_data.wrm_internal_kkks,
+            wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
+        )
+    elif model == ActualWellService:
+        return ActualWellServiceUpdate(
+            wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
+            wrm_ippkh=wrm_data.wrm_ippkh,
+            wrm_ukl_upl=wrm_data.wrm_ukl_upl,
+            wrm_amdal=wrm_data.wrm_amdal,
+            wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
+            wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
+            wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
+            wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
+            wrm_internal_kkks=wrm_data.wrm_internal_kkks,
+            wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
+        )
+    else:
+        raise ValueError("Unsupported model type")
 
 def get_wrmissues_data_by_job_id(db: Session, job_id: str) -> List[JobIssueResponse]:
     wrm_data = db.query(JobIssue).filter(JobIssue.job_id == job_id).all()
