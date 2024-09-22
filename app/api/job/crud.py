@@ -271,6 +271,7 @@ def operate_job(id: str, db: Session, user):
         
         job_plan_dict['well']['area_id'] = db_job.job_plan.well.area_id
         job_plan_dict['well']['field_id'] = db_job.job_plan.well.field_id
+        job_plan_dict['well']['kkks_id'] = db_job.job_plan.well.kkks_id
         
         job_actual_temporary_schema = actual_schema(**job_plan_dict)
         

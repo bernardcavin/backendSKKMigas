@@ -214,6 +214,7 @@ class CreateActualWell(WellBase):
     
     area_id: str
     field_id: str
+    kkks_id: str
     
     well_documents: Optional[List[WellDocumentBase]] = []
     well_summary: Optional[List[WellSummaryBase]] = []
