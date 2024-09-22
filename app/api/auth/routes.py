@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
 from app.core.schema_operations import create_api_response
 from app.core.config import settings
-from app.core.security import authenticate_user, create_access_token, get_current_user, get_db, authorize
+from app.core.security import authenticate_user, create_access_token, get_current_user, get_db, authorize,refresh_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -19,6 +19,10 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
     
     return {"access_token": access_token, "token_type": "bearer"}
+
+@router.post("/refresh-token")
+async def refresh_token_route(new_token: dict = Depends(refresh_token)):
+    return new_token
 
 @router.post("/user/create-admin")
 async def create_admin(admin: schemas.CreateAdmin, db: Session = Depends(get_db)):

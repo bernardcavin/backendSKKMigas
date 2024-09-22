@@ -37,14 +37,28 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         user_name: str = payload.get("sub")
         if user_name is None:
             raise credentials_exception
+        
+        # Check if token has expired based on last usage
+        last_used = datetime.fromtimestamp(payload.get("last_used"))
+        if datetime.utcnow() - last_used > timedelta(days=1):
+            raise credentials_exception
+        
+        # Update last_used time
+        new_payload = payload.copy()
+        new_payload["last_used"] = datetime.utcnow().timestamp()
+        new_token = jwt.encode(new_payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+        
     except JWTError:
         raise credentials_exception
     
     user = crud.get_user_by_username(db, username=user_name)
     if user is None:
         raise credentials_exception
+    
+    # Here you might want to update the token in the response
+    # This depends on how you're handling token storage and refresh
+    
     return user
-
 def authenticate_user(username: str, password: str, db: Session = Depends(get_db)):
     user = crud.get_user_by_username(db, username)
     if not user or not verify_password(password, user.hashed_password):
@@ -57,11 +71,8 @@ def verify_password(plain_password, hashed_password):
 # Create access token
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
+    expire = datetime.utcnow() + timedelta(days=7)  # Token valid for 7 days max
+    to_encode.update({"exp": expire, "last_used": datetime.utcnow().timestamp()})
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
@@ -85,3 +96,17 @@ def authorize(role: list):
             return await func(*args, **kwargs)
         return wrapper
     return decorator
+
+def refresh_token(current_token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(current_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        new_payload = payload.copy()
+        new_payload["last_used"] = datetime.utcnow().timestamp()
+        new_token = jwt.encode(new_payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+        return {"access_token": new_token, "token_type": "bearer"}
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token for refresh",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
