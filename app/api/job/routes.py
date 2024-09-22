@@ -180,10 +180,28 @@ async def list_drilling_operations():
         for op in models.DrillingOperation
     ]
 
-@router.get("/job-instances/{job_instance_id}/dates", response_model=List[str])
+# @router.get("/job-instances/{job_instance_id}/dates", response_model=List[str])
+# def read_job_instance_dates(job_instance_id: str, db: Session = Depends(get_db)):
+#     job_instance = crud.get_job_instance(db, job_instance_id)
+#     if job_instance is None:
+#         raise HTTPException(status_code=404, detail="Job instance not found")
+#     return job_instance.get_job_date_list()
+
+@router.get("/job-instances/{job_instance_id}/dates", response_model=List[schemas.ColoredDate])
 def read_job_instance_dates(job_instance_id: str, db: Session = Depends(get_db)):
     job_instance = crud.get_job_instance(db, job_instance_id)
     if job_instance is None:
         raise HTTPException(status_code=404, detail="Job instance not found")
-    return job_instance.get_job_date_list()
+    
+    date_list = job_instance.get_job_date_list()
+    colored_dates = []
+    
+    for date in date_list:
+        if crud.check_daily_operation_report(db, job_instance_id, date):
+            color = "green"
+        else:
+            color = "red"
+        colored_dates.append(schemas.ColoredDate(date=date, color=color))
+    
+    return colored_dates
 

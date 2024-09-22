@@ -882,3 +882,7 @@ class JobIssueUpdate(BaseModel):
 class DrillingOperationResponse(BaseModel):
     operation: DrillingOperation
 
+
+class ColoredDate(BaseModel):
+    date: str
+    color: str

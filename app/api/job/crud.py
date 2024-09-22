@@ -12,6 +12,7 @@ from app.api.visualize.routes import request_visualize_casing
 from well_profile import load
 import pandas as pd
 from typing import Union,Type
+from sqlalchemy.sql import and_
 
 def create_job_plan(db: Session, job_type: JobType, plan: object, user):
     db_job = Job(**parse_schema(plan))
@@ -559,5 +560,17 @@ def get_drilling_operation(value: str) -> DrillingOperation:
 def get_job_instance(db: Session, job_instance_id: str):
     return db.query(JobInstance).filter(JobInstance.job_instance_id == job_instance_id).first()
 
-
+def check_daily_operation_report(db: Session, job_instance_id: str, date: str) -> bool:
+    """
+    Check if a daily operation report exists for the given job instance and date.
+    
+    :param db: Database session
+    :param job_instance_id: ID of the job instance
+    :param date: Date to check
+    :return: True if a report exists, False otherwise
+    """
+    return db.query(DailyOperationsReport)\
+        .join(Job, and_(Job.id == DailyOperationsReport.job_id, Job.job_plan_id == job_instance_id))\
+        .filter(DailyOperationsReport.report_date == date)\
+        .first() is not None
 
