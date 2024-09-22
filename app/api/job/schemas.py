@@ -882,6 +882,8 @@ class JobIssueUpdate(BaseModel):
 class DrillingOperationResponse(BaseModel):
     operation: DrillingOperation
 
+class BHAResponse(BaseModel):
+    bhacomponent: BHAComponentType
 
 class ColoredDate(BaseModel):
     date: str

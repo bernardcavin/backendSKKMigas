@@ -181,6 +181,13 @@ async def list_drilling_operations():
         for op in models.DrillingOperation
     ]
 
+@router.get("/bha/pyenum", response_model=List[schemas.BHAResponse])
+async def list_drilling_operations():
+    return [
+        schemas.BHAResponse(bhacomponent=op)
+        for op in models.BHAComponentType
+    ]
+
 # @router.get("/job-instances/{job_instance_id}/dates", response_model=List[str])
 # def read_job_instance_dates(job_instance_id: str, db: Session = Depends(get_db)):
 #     job_instance = crud.get_job_instance(db, job_instance_id)

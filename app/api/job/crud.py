@@ -557,6 +557,12 @@ def get_drilling_operation(value: str) -> DrillingOperation:
             return operation
     raise ValueError(f"No matching DrillingOperation found for: {value}")
 
+def get_BHA(value: str) -> BHAComponentType:
+    for bhacomponent in BHAComponentType:
+        if value.lower() in bhacomponent.value.lower():
+            return bhacomponent
+    raise ValueError(f"No matching DrillingOperation found for: {value}")
+
 def get_job_instance(db: Session, job_instance_id: str):
     return db.query(JobInstance).filter(JobInstance.job_instance_id == job_instance_id).first()
 
