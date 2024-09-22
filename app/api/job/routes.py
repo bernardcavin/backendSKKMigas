@@ -1,5 +1,5 @@
 from calendar import c
-from fastapi import APIRouter, Depends,status,HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends,status,HTTPException, UploadFile, File,Query
 from sqlalchemy.orm import Session
 from app.api.auth.models import Role
 from app.api.auth.schemas import GetUser
@@ -8,6 +8,7 @@ from app.api.job import crud, schemas,models
 from app.api.job.models import JobType,Job
 from app.core.schema_operations import create_api_response
 from typing import Any, Union, List
+from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/job", tags=["job"])
 
@@ -167,17 +168,31 @@ def update_job_issue(
         raise HTTPException(status_code=404, detail="Job issue not found")
     return updated_job_issue
 
-@router.get("/jobs/{job_id}/wrm", response_model=schemas.ActualExplorationUpdate)
-def get_wrm_data(
-    job_id: str,
+@router.get("/wrm-data/{actual_job_id}", response_model=Union[schemas.ActualExplorationUpdate, schemas.ActualDevelopmentUpdate, schemas.ActualWorkoverUpdate, schemas.ActualWellServiceUpdate])
+async def read_wrm_data(
+    actual_job_id: str,
+    model_type: str = Query(..., description="Type of actual data (exploration, development, workover, wellservice)"),
     db: Session = Depends(get_db)
-) -> Any:
-    wrm_data = crud.get_wrm_data_by_job_id(db=db, job_id=job_id)
+):
+    model_map = {
+        "exploration": models.ActualExploration,
+        "development": models.ActualDevelopment,
+        "workover": models.ActualWorkover,
+        "wellservice": models.ActualWellService
+    }
+
+    if model_type not in model_map:
+        raise HTTPException(status_code=400, detail="Invalid model type")
+
+    model = model_map[model_type]
+    wrm_data = crud.get_wrm_data_by_job_id(db, actual_job_id, model)
+
     if wrm_data is None:
-        raise HTTPException(status_code=404, detail="WRM data not found for this job")
+        raise HTTPException(status_code=404, detail=f"WRM data not found for {model_type} with actual_job_id {actual_job_id}")
+
     return wrm_data
 
-@router.get("/job-issues/{job_id}", response_model=List[schemas.JobIssueCreate])
+@router.get("/job-issues/{job_id}", response_model=List[schemas.JobIssueResponse])
 def read_job_issues(job_id: str, db: Session = Depends(get_db)):
     job_issues = crud.get_wrmissues_data_by_job_id(db, job_id)
     if job_issues is None:
@@ -190,4 +205,34 @@ async def list_drilling_operations():
         schemas.DrillingOperationResponse(operation=op, description=op.value)
         for op in models.DrillingOperation
     ]
+
+@router.get("/bha/pyenum", response_model=List[schemas.BHAResponse])
+async def list_bhacomponents():
+    return [
+        schemas.BHAResponse(bhacomponent=op)
+        for op in models.BHAComponentType
+    ]
+
+# @router.get("/job-instances/{job_instance_id}/dates", response_model=List[str])
+# def read_job_instance_dates(job_instance_id: str, db: Session = Depends(get_db)):
+#     job_instance = crud.get_job_instance(db, job_instance_id)
+#     if job_instance is None:
+#         raise HTTPException(status_code=404, detail="Job instance not found")
+#     return job_instance.get_job_date_list()
+
+@router.get("/job-instances/{job_instance_id}/dates", response_model=List[schemas.ColoredDate])
+def read_job_instance_dates(job_instance_id: str, db: Session = Depends(get_db)):
+    job_instance = crud.get_job_instance(db, job_instance_id)
+    if job_instance is None:
+        raise HTTPException(status_code=404, detail="Job instance not found")
+    
+    date_list = job_instance.get_job_date_list()
+    colored_dates = []
+    
+    for date_str in date_list:
+        check_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        color = crud.get_date_color(db, job_instance_id, check_date)
+        colored_dates.append(schemas.ColoredDate(date=date_str, color=color))
+    
+    return colored_dates
 

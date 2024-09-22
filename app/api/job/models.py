@@ -11,6 +11,8 @@ from app.core.constants import uom, UnitType
 from sqlalchemy.ext.hybrid import hybrid_property
 from app.api.spatial.models import Area,Lapangan
 from app.api.auth.models import KKKS
+from typing import List
+from datetime import datetime, timedelta
 
 class Percentage(PyEnum):
     P0 = "0%"
@@ -180,7 +182,7 @@ class CreateBase:
 
 class EditBase:
     
-    last_edited = Column(DateTime, onupdate=func.utcnow())
+    last_edited = Column(DateTime, onupdate=func.now())
     
     @declared_attr
     def last_edited_by_id(cls):
@@ -366,6 +368,30 @@ class JobInstance(Base):
     __mapper_args__ = {
         "polymorphic_on": "job_phase_type",
     }
+    def get_job_date_list(self) -> List[str]:
+        """
+        Generate a list of dates for the job instance.
+        
+        :return: A list of date strings in 'YYYY-MM-DD' format
+        """
+        if self.start_date and self.end_date:
+            return generate_date_list(self.start_date, self.end_date)
+        return []
+
+def generate_date_list(start_date: datetime, end_date: datetime) -> List[str]:
+    """
+    Generate a list of dates between start_date and end_date (inclusive).
+    
+    :param start_date: The start date
+    :param end_date: The end date
+    :return: A list of date strings in 'YYYY-MM-DD' format
+    """
+    date_list = []
+    current_date = start_date
+    while current_date <= end_date:
+        date_list.append(current_date.strftime('%Y-%m-%d'))
+        current_date += timedelta(days=1)
+    return date_list
 
 class PlanExploration(JobInstance):
     

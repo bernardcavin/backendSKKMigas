@@ -13,7 +13,8 @@ from app.api.visualize.schemas import VisualizeCasing
 from app.api.visualize.routes import request_visualize_casing
 from well_profile import load
 import pandas as pd
-from typing import Union
+from typing import Union,Type
+from sqlalchemy.sql import and_
 from pydantic import ValidationError
 import io
 
@@ -602,27 +603,74 @@ def update_job_issue(db: Session, job_issue_id: str, job_issue_update: JobIssueU
     db.refresh(db_job_issue)
     return db_job_issue
 
-def get_wrm_data_by_job_id(db: Session, job_id: str) -> Optional[ActualExplorationUpdate]:
-    wrm_data = db.query(ActualExploration).filter(ActualExploration.id == job_id).first()
-    
+def get_wrm_data_by_job_id(
+    db: Session, 
+    actual_job_id: str, 
+    model: Type[Union[ActualExploration, ActualDevelopment, ActualWorkover, ActualWellService]]
+) -> Optional[Union[ActualExplorationUpdate, ActualDevelopmentUpdate, ActualWorkoverUpdate, ActualWellServiceUpdate]]:
+    # Query untuk mendapatkan data WRM berdasarkan model yang diberikan
+    wrm_data = db.query(model).filter(model.id == actual_job_id).first()
+
     if wrm_data is None:
         return None
-    
-    return ActualExplorationUpdate(
-        job_id=wrm_data.id,
-        wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
-        wrm_ippkh=wrm_data.wrm_ippkh,
-        wrm_ukl_upl=wrm_data.wrm_ukl_upl,
-        wrm_amdal=wrm_data.wrm_amdal,
-        wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
-        wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
-        wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
-        wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
-        wrm_internal_kkks=wrm_data.wrm_internal_kkks,
-        wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
-    )
 
-def get_wrmissues_data_by_job_id(db: Session, job_id: str) -> List[JobIssueCreate]:
+    # Menentukan jenis Update berdasarkan model
+    if model == ActualExploration:
+        return ActualExplorationUpdate(
+            wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
+            wrm_ippkh=wrm_data.wrm_ippkh,
+            wrm_ukl_upl=wrm_data.wrm_ukl_upl,
+            wrm_amdal=wrm_data.wrm_amdal,
+            wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
+            wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
+            wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
+            wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
+            wrm_internal_kkks=wrm_data.wrm_internal_kkks,
+            wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
+        )
+    elif model == ActualDevelopment:
+        return ActualDevelopmentUpdate(
+            wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
+            wrm_ippkh=wrm_data.wrm_ippkh,
+            wrm_ukl_upl=wrm_data.wrm_ukl_upl,
+            wrm_amdal=wrm_data.wrm_amdal,
+            wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
+            wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
+            wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
+            wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
+            wrm_internal_kkks=wrm_data.wrm_internal_kkks,
+            wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
+        )
+    elif model == ActualWorkover:
+        return ActualWorkoverUpdate(
+           wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
+            wrm_ippkh=wrm_data.wrm_ippkh,
+            wrm_ukl_upl=wrm_data.wrm_ukl_upl,
+            wrm_amdal=wrm_data.wrm_amdal,
+            wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
+            wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
+            wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
+            wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
+            wrm_internal_kkks=wrm_data.wrm_internal_kkks,
+            wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
+        )
+    elif model == ActualWellService:
+        return ActualWellServiceUpdate(
+            wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
+            wrm_ippkh=wrm_data.wrm_ippkh,
+            wrm_ukl_upl=wrm_data.wrm_ukl_upl,
+            wrm_amdal=wrm_data.wrm_amdal,
+            wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
+            wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
+            wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
+            wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
+            wrm_internal_kkks=wrm_data.wrm_internal_kkks,
+            wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
+        )
+    else:
+        raise ValueError("Unsupported model type")
+
+def get_wrmissues_data_by_job_id(db: Session, job_id: str) -> List[JobIssueResponse]:
     wrm_data = db.query(JobIssue).filter(JobIssue.job_id == job_id).all()
     return wrm_data
 
@@ -631,3 +679,51 @@ def get_drilling_operation(value: str) -> DrillingOperation:
         if value.lower() in operation.value.lower():
             return operation
     raise ValueError(f"No matching DrillingOperation found for: {value}")
+
+def get_BHA(value: str) -> BHAComponentType:
+    for bhacomponent in BHAComponentType:
+        if value.lower() in bhacomponent.value.lower():
+            return bhacomponent
+    raise ValueError(f"No matching DrillingOperation found for: {value}")
+
+def get_job_instance(db: Session, job_instance_id: str):
+    return db.query(JobInstance).filter(JobInstance.job_instance_id == job_instance_id).first()
+
+def check_daily_operation_report(db: Session, job_instance_id: str, date: str) -> bool:
+    """
+    Check if a daily operation report exists for the given job instance and date.
+    
+    :param db: Database session
+    :param job_instance_id: ID of the job instance
+    :param date: Date to check
+    :return: True if a report exists, False otherwise
+    """
+    return db.query(DailyOperationsReport)\
+        .join(Job, and_(Job.id == DailyOperationsReport.job_id, Job.job_plan_id == job_instance_id))\
+        .filter(DailyOperationsReport.report_date == date)\
+        .first() is not None
+
+def get_date_color(db: Session, job_instance_id: str, check_date: date) -> str:
+    """
+    Determine the color for a given date based on the specified conditions.
+    
+    :param db: Database session
+    :param job_instance_id: ID of the job instance
+    :param check_date: Date to check
+    :return: Color string ('white', 'red', or 'green')
+    """
+    today = date.today()
+    
+    if check_date > today:
+        return "gray"
+    elif check_date < today:
+        if check_daily_operation_report(db, job_instance_id, check_date.strftime('%Y-%m-%d')):
+            return "green"
+        else:
+            return "red"
+    else:  # check_date == today
+        if check_daily_operation_report(db, job_instance_id, check_date.strftime('%Y-%m-%d')):
+            return "green"
+        else:
+            return "white"
+
