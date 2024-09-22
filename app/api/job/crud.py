@@ -67,7 +67,7 @@ def approve_job_plan(id: str, db: Session, user):
     if not db_job:
         raise HTTPException(status_code=404, detail="Job plan not found")
     db_job.planning_status = PlanningStatus.APPROVED
-    db_job.date_approved = date.today()
+    db_job.date_approved = datetime.now().date()
     db_job.approved_by_id = user.id
     db.commit()
     return {"message": "Job plan approved successfully"}
