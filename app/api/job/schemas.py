@@ -103,16 +103,16 @@ class CreatePlanExploration(JobPlanInstanceBase):
 
     well: CreatePlanWell
     
-    wrm_pembebasan_lahan: bool
-    wrm_ippkh: bool
-    wrm_ukl_upl: bool
-    wrm_amdal: bool
-    wrm_pengadaan_rig: bool
-    wrm_pengadaan_drilling_services: bool
-    wrm_pengadaan_lli: bool
-    wrm_persiapan_lokasi: bool
-    wrm_internal_kkks: bool
-    wrm_evaluasi_subsurface: bool
+    wrm_pembebasan_lahan: Optional[bool] = True
+    wrm_ippkh: Optional[bool] = True
+    wrm_ukl_upl: Optional[bool] = True
+    wrm_amdal: Optional[bool] = True
+    wrm_pengadaan_rig: Optional[bool] = True
+    wrm_pengadaan_drilling_services: Optional[bool] = True
+    wrm_pengadaan_lli: Optional[bool] = True
+    wrm_persiapan_lokasi: Optional[bool] = True
+    wrm_internal_kkks: Optional[bool] = True
+    wrm_evaluasi_subsurface: Optional[bool] = True
 
     class Meta:
         orm_model = PlanExploration
@@ -131,17 +131,17 @@ class CreatePlanDevelopment(JobPlanInstanceBase):
 
     well: CreatePlanWell
     
-    wrm_pembebasan_lahan: bool
-    wrm_ippkh: bool
-    wrm_ukl_upl: bool
-    wrm_amdal: bool
-    wrm_cutting_dumping: bool
-    wrm_pengadaan_rig: bool
-    wrm_pengadaan_drilling_services: bool
-    wrm_pengadaan_lli: bool
-    wrm_persiapan_lokasi: bool
-    wrm_internal_kkks: bool
-    wrm_evaluasi_subsurface: bool
+    wrm_pembebasan_lahan: Optional[bool] = True
+    wrm_ippkh: Optional[bool] = True
+    wrm_ukl_upl: Optional[bool] = True
+    wrm_amdal: Optional[bool] = True
+    wrm_cutting_dumping: Optional[bool] = True
+    wrm_pengadaan_rig: Optional[bool] = True
+    wrm_pengadaan_drilling_services: Optional[bool] = True
+    wrm_pengadaan_lli: Optional[bool] = True
+    wrm_persiapan_lokasi: Optional[bool] = True
+    wrm_internal_kkks: Optional[bool] = True
+    wrm_evaluasi_subsurface: Optional[bool] = True
     
     class Meta:
         orm_model = PlanDevelopment
@@ -214,16 +214,16 @@ class CreateActualExploration(JobActualInstanceBase):
 
     well: CreateActualWell
     
-    wrm_pembebasan_lahan: Percentage
-    wrm_ippkh: Percentage
-    wrm_ukl_upl: Percentage
-    wrm_amdal: Percentage
-    wrm_pengadaan_rig: Percentage
-    wrm_pengadaan_drilling_services: Percentage
-    wrm_pengadaan_lli: Percentage
-    wrm_persiapan_lokasi: Percentage
-    wrm_internal_kkks: Percentage
-    wrm_evaluasi_subsurface: Percentage
+    wrm_pembebasan_lahan: Optional[Percentage] = Percentage.P0
+    wrm_ippkh: Optional[Percentage] = Percentage.P0
+    wrm_ukl_upl: Optional[Percentage] = Percentage.P0
+    wrm_amdal: Optional[Percentage] = Percentage.P0
+    wrm_pengadaan_rig: Optional[Percentage] = Percentage.P0
+    wrm_pengadaan_drilling_services: Optional[Percentage] = Percentage.P0
+    wrm_pengadaan_lli: Optional[Percentage] = Percentage.P0
+    wrm_persiapan_lokasi: Optional[Percentage] = Percentage.P0
+    wrm_internal_kkks: Optional[Percentage] = Percentage.P0
+    wrm_evaluasi_subsurface: Optional[Percentage] = Percentage.P0
     
     class Meta:
         orm_model = ActualExploration
@@ -238,17 +238,17 @@ class CreateActualDevelopment(JobActualInstanceBase):
 
     well: CreateActualWell
     
-    wrm_pembebasan_lahan: Percentage
-    wrm_ippkh: Percentage
-    wrm_ukl_upl: Percentage
-    wrm_amdal: Percentage
-    wrm_cutting_dumping: Percentage
-    wrm_pengadaan_rig: Percentage
-    wrm_pengadaan_drilling_services: Percentage
-    wrm_pengadaan_lli: Percentage
-    wrm_persiapan_lokasi: Percentage
-    wrm_internal_kkks: Percentage
-    wrm_evaluasi_subsurface: Percentage
+    wrm_pembebasan_lahan: Optional[Percentage] = Percentage.P0
+    wrm_ippkh: Optional[Percentage] = Percentage.P0
+    wrm_ukl_upl: Optional[Percentage] = Percentage.P0
+    wrm_amdal: Optional[Percentage] = Percentage.P0
+    wrm_cutting_dumping: Optional[Percentage] = Percentage.P0
+    wrm_pengadaan_rig: Optional[Percentage] = Percentage.P0
+    wrm_pengadaan_drilling_services: Optional[Percentage] = Percentage.P0
+    wrm_pengadaan_lli: Optional[Percentage] = Percentage.P0
+    wrm_persiapan_lokasi: Optional[Percentage] = Percentage.P0
+    wrm_internal_kkks: Optional[Percentage] = Percentage.P0
+    wrm_evaluasi_subsurface: Optional[Percentage] = Percentage.P0
     
     class Meta:
         orm_model = ActualDevelopment
@@ -830,7 +830,7 @@ class JobIssueResponse(JobIssueCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
 
 class JobIssueUpdate(BaseModel):
-    resolved: Optional[bool] = None
+    resolved: bool = True
     resolved_date_time: Optional[datetime] = None
 
     class Config:

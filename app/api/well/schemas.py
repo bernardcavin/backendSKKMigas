@@ -65,10 +65,16 @@ class WellDocumentBase(BaseModel):
     class Meta:
         orm_model = WellDocument
 
+    class Config:
+        from_attributes = True
+
 class WellDigitalDataBase(BaseModel):
     
     file_id: Optional[str]
     data_format: Optional[DataFormat]
+    
+    class Config:
+        from_attributes = True
 
 class WellLogBase(WellDigitalDataBase):
     class Meta:
@@ -175,6 +181,9 @@ class WellSchematicBase(BaseModel):
 
     class Meta:
         orm_model = WellSchematic
+    
+    class Config:
+        from_attributes = True
 
 class CreatePlanWell(WellBase):
     
@@ -187,8 +196,6 @@ class CreatePlanWell(WellBase):
     well_stratigraphy: Optional[List[WellStratigraphyBase]] = []
     well_schematic: Optional[WellSchematicBase] = None
 
-
-    
     class Meta:
         orm_model = PlanWell
 
@@ -218,12 +225,8 @@ class CreateActualWell(WellBase):
     well_casing: Optional[List[WellCasingBase]] = []
     well_stratigraphy: Optional[List[WellStratigraphyBase]] = []
 
-
-    
     class Meta:
         orm_model = ActualWell
     
     class Config:
         from_attributes = True
-
-

@@ -87,7 +87,6 @@ def upload_batch_exploration(db: Session, content: bytes, job_type: JobType, use
             if job_type in [JobType.WORKOVER,JobType.WELLSERVICE]:
                 if row.get('well_name',None):
                     well = db.query(ActualWell).filter(ActualWell.well_name == row['well_name']).first()
-                    print(well)
                     if well is None:
                         row['well_id'] = 'not found'
                         raise WellDoesntExist
@@ -215,56 +214,69 @@ def operate_job(id: str, db: Session, user):
     db_job.operation_status = OperationStatus.OPERATING
     db_job.date_started = datetime.now().date()
     
-    schema = job_schema_map[db_job.job_type]['schema']['actual']
+    actual_schema = job_schema_map[db_job.job_type]['schema']['actual']
+    plan_schema = job_schema_map[db_job.job_type]['schema']['plan']
     
     if db_job.job_type in [JobType.EXPLORATION, JobType.DEVELOPMENT]:
-        job_actual_temporary_schema = schema(**schema.model_validate(db_job.job_plan).model_dump(
-            include={
-                'start_date':True,
-                'end_date':True,
-                'total_budget':True,
-                'job_operation_days':True,
-                # 'work_breakdown_structure':True,
-                'rig_name':True,
-                'rig_type':True,
-                'rig_horse_power':True,
-                'well' : {
-                    'unit_type',
-                    'uwi',
-                    'area_id',
-                    'field_id',
-                    'well_name',
-                    'alias_long_name',
-                    'well_type',
-                    'well_profile_type',
-                    'well_directional_type',
-                    'hydrocarbon_target',
-                    'environment_type',
-                    'surface_longitude',
-                    'surface_latitude',
-                    'bottom_hole_longitude',
-                    'bottom_hole_latitude',
-                    'maximum_inclination',
-                    'azimuth',
-                    'line_name',
-                    'spud_date',
-                    'final_drill_date',
-                    'completion_date',
-                    'rotary_table_elev',
-                    'kb_elev',
-                    'derrick_floor_elev',
-                    'ground_elev',
-                    'mean_sea_level',
-                    'depth_datum',
-                    'kick_off_point',
-                    'maximum_tvd',
-                    'final_md',
-                    'remark',
+        
+        job_plan_schema = plan_schema.model_validate(db_job.job_plan, from_attributes=True)
+        
+        job_plan_dict = {
+            **job_plan_schema.model_dump(
+                include={
+                    'start_date':True,
+                    'end_date':True,
+                    'total_budget':True,
+                    'job_operation_days':True,
+                    # 'work_breakdown_structure':True,
+                    'rig_name':True,
+                    'rig_type':True,
+                    'rig_horse_power':True,
+                    'well' : {
+                        'unit_type',
+                        'uwi',
+                        'area_id',
+                        'field_id',
+                        'well_name',
+                        'alias_long_name',
+                        'well_type',
+                        'well_profile_type',
+                        'well_directional_type',
+                        'hydrocarbon_target',
+                        'environment_type',
+                        'surface_longitude',
+                        'surface_latitude',
+                        'bottom_hole_longitude',
+                        'bottom_hole_latitude',
+                        'maximum_inclination',
+                        'azimuth',
+                        'line_name',
+                        'spud_date',
+                        'final_drill_date',
+                        'completion_date',
+                        'rotary_table_elev',
+                        'kb_elev',
+                        'derrick_floor_elev',
+                        'ground_elev',
+                        'mean_sea_level',
+                        'depth_datum',
+                        'kick_off_point',
+                        'maximum_tvd',
+                        'final_md',
+                        'remark',
+                    }
                 }
-            }
-        ))
+            )
+        }
+        
+        job_plan_dict['well']['area_id'] = db_job.job_plan.well.area_id
+        job_plan_dict['well']['field_id'] = db_job.job_plan.well.field_id
+        
+        job_actual_temporary_schema = actual_schema(**job_plan_dict)
+        
+        print(job_actual_temporary_schema)
     else:
-        job_actual_temporary_schema = schema(**schema.model_validate(db_job.job_plan).model_dump(
+        job_actual_temporary_schema = actual_schema(**plan_schema.model_validate(db_job.job_plan, from_attributes=True).model_dump(
             exclude={
                 'job_hazards':True,
                 'job_documents':True,
