@@ -711,7 +711,10 @@ def get_actual_well_status_by_job_type(db: Session, job_type: JobType, user):
     if result:
         output = {}
         for row in result:
-            output[row.well_status.value] = row.count
+            try:
+                output[row.well_status.value] = row.count
+            except:
+                pass
         return output
     else:
         return None
