@@ -10,54 +10,94 @@ from app.api.utils.models import *
 import pandas as pd
 
 from app.core.config import settings
-
-
+from uuid import uuid4
+import os
 
 
 
 def save_upload_file(db: Session, upload_file: UploadFile, user) -> FileInfo:
+    
+    if os.path.exists(settings.upload_dir):
+        os.makedirs(settings.upload_dir, exist_ok=True)
+    
+    try:
+    
+        file_id = str(uuid4())
+        file_extension = os.path.splitext(upload_file.filename)[1]
+        file_location = os.path.join(settings.upload_dir, f'{file_id}{file_extension}')
+        with open(file_location, "wb+") as file_object:
+            shutil.copyfileobj(upload_file.file, file_object)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to upload file")
 
-    file_location = os.path.join(settings.upload_dir, upload_file.filename)
-    with open(file_location, "wb+") as file_object:
-        shutil.copyfileobj(upload_file.file, file_object)
+    try:
+        db_file = FileDB(
+            id=file_id,
+            filename=upload_file.filename,
+            file_location=file_location,
+            file_extension=file_extension,
+            uploaded_by_id=user.id
+        )
 
-    db_file = FileDB(
-        filename=upload_file.filename,
-        size=os.path.getsize(file_location),
-        content_type=upload_file.content_type,
-        upload_time=datetime.now(),
-        file_location=file_location,
-        uploaded_by_id=user.id
-    )
-
-    db.add(db_file)
-    db.commit()
-    db.refresh(db_file)
+        db.add(db_file)
+        db.commit()
+        db.refresh(db_file)
+    
+    except Exception as e:
+        os.remove(file_location)
+        raise HTTPException(status_code=500, detail="Failed to save file")
 
     return FileInfo.model_validate(db_file)
     
 def save_upload_multiple_files(db: Session, upload_files: List[UploadFile], user) -> List[FileInfo]:
 
     file_objs = []
+    file_locations = []
+
+    if os.path.exists(settings.upload_dir):
+        os.makedirs(settings.upload_dir, exist_ok=True)
 
     for upload_file in upload_files:
-        file_location = os.path.join(settings.upload_dir, upload_file.filename)
-        with open(file_location, "wb+") as file_object:
-            shutil.copyfileobj(upload_file.file, file_object)
+        try:
+            file_id = str(uuid4())
+            file_extension = os.path.splitext(upload_file.filename)[1]
+            file_location = os.path.join(settings.upload_dir, f'{file_id}{file_extension}')
+            with open(file_location, "wb+") as file_object:
+                shutil.copyfileobj(upload_file.file, file_object)
+            file_locations.append(file_location)
+            
+        except Exception as e:
+            if file_locations:
+                for file_location in file_locations:
+                    os.remove(file_location)
+            raise HTTPException(status_code=500, detail="Failed to upload files")
 
-        db_file = FileDB(
-            filename=upload_file.filename,
-            size=os.path.getsize(file_location),
-            content_type=upload_file.content_type,
-            upload_time=datetime.now(),
-            file_location=file_location,
-            uploaded_by_id=user.id
-        )
+        try:
+            db_file = FileDB(
+                id=file_id,
+                filename=upload_file.filename,
+                file_location=file_location,
+                file_extension=file_extension,
+                uploaded_by_id=user.id
+            )
+            file_objs.append(db_file)
+        
+        except Exception as e:
+            if file_locations:
+                for file_location in file_locations:
+                    os.remove(file_location)
+            raise HTTPException(status_code=500, detail="Failed to save files")
 
-        file_objs.append(db_file)
+    try:
+        db.add_all(file_objs)
+        db.commit()
+    except Exception as e:
+            if file_locations:
+                for file_location in file_locations:
+                    os.remove(file_location)
+            raise HTTPException(status_code=500, detail="Failed to save files")
 
-    db.add_all(file_objs)
-    db.commit()
     return [FileInfo.model_validate(file_obj) for file_obj in file_objs]
 
 def jsonify_tabular_file(file: UploadFile):

@@ -8,9 +8,6 @@ from datetime import datetime
 class FileInfo(BaseModel):
     id: str
     filename: str
-    size: int
-    content_type: str
-    upload_time: datetime
     file_location: str
 
     class Config:

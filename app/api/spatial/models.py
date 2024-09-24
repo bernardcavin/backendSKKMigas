@@ -38,20 +38,20 @@ class StratType(PyEnum):
     RADIOMETRIC = 'RADIOMETRIC'
     OTHER = 'OTHER'
 
-class StratUnitType(PyEnum):
-    EON = 'EON'
-    EPOCH = 'EPOCH'
-    BED = 'BED'
-    FORMATION = 'FORMATION'
-    FAULT = 'FAULT'
-    THRUST_SHEET = 'THRUST_SHEET'
-    UNCONFORMITY = 'UNCONFORMITY'
+# class StratUnitType(PyEnum):
+#     EON = 'EON'
+#     EPOCH = 'EPOCH'
+#     BED = 'BED'
+#     FORMATION = 'FORMATION'
+#     FAULT = 'FAULT'
+#     THRUST_SHEET = 'THRUST_SHEET'
+#     UNCONFORMITY = 'UNCONFORMITY'
 
-class PetroleumSystem(PyEnum):
-    SOURCE = 'SOURCE'
-    RESERVOIR = 'RESERVOIR'
-    SEAL = 'SEAL'
-    OVERBURDEN = 'OVERBURDEN'
+# class PetroleumSystem(PyEnum):
+#     SOURCE = 'SOURCE'
+#     RESERVOIR = 'RESERVOIR'
+#     SEAL = 'SEAL'
+#     OVERBURDEN = 'OVERBURDEN'
 
 class Area(Base):
     
@@ -73,7 +73,7 @@ class Area(Base):
     fields = relationship("Lapangan", back_populates="area")
     jobs = relationship("Job", back_populates='area')
     well_instances = relationship("WellInstance", back_populates='area')
-    strat_units = relationship("StratUnit", back_populates="area")
+    # strat_units = relationship("StratUnit", back_populates="area")
     
     # geojson = Column(JSON)
 
@@ -90,17 +90,17 @@ class Lapangan(Base):
     jobs = relationship("Job", back_populates='field', cascade="all, delete-orphan")
     well_instances = relationship("WellInstance", back_populates="field", cascade="all, delete-orphan")
 
-class StratUnit(Base):
+# class StratUnit(Base):
     
-    __tablename__ = 'area_strat'
+#     __tablename__ = 'area_strat'
     
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
-    area_id = Column(String(36), ForeignKey('area.id'))
-    area = relationship("Area", back_populates="strat_units")
+#     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+#     area_id = Column(String(36), ForeignKey('area.id'))
+#     area = relationship("Area", back_populates="strat_units")
     
-    strat_unit_name = Column(String(50))
-    strat_type = Column(Enum(StratType))
-    strat_unit_type = Column(Enum(StratUnitType))
-    strat_petroleum_system = Column(Enum(PetroleumSystem))
+#     strat_unit_name = Column(String(50))
+#     strat_type = Column(Enum(StratType))
+#     strat_unit_type = Column(Enum(StratUnitType))
+#     strat_petroleum_system = Column(Enum(PetroleumSystem))
     
-    remark = Column(Text)
+#     remark = Column(Text)

@@ -1,29 +1,22 @@
-from pydantic import BaseModel, Field, UUID4, model_validator
+from pydantic import BaseModel
 from typing import Optional, List
-from datetime import datetime
-from uuid import uuid4
 from datetime import date
-
 from app.api.well.models import *
 from app.core.constants import UnitType
-
 
 class WellBase(BaseModel):
     
     unit_type: UnitType
 
-    uwi: Optional[str]
-    # area_id:Optional[str]
-    # field_id: Optional[str]
-    well_name: Optional[str]
+    #uwi: Optional[str]
+    well_name: str
     alias_long_name: Optional[str]
 
-    well_type: Optional[WellType]
-    # well_status: Optional[WellStatus]
-    well_profile_type: Optional[WellProfileType]
-    well_directional_type: Optional[WellDirectionalType]
+    well_type: WellType
+    well_profile_type: WellProfileType
+    well_directional_type: WellDirectionalType
     hydrocarbon_target: Optional[HydrocarbonTarget]
-    environment_type: Optional[EnvironmentType]
+    environment_type: EnvironmentType
 
     surface_longitude: Optional[float]
     surface_latitude: Optional[float]
@@ -44,13 +37,6 @@ class WellBase(BaseModel):
     kick_off_point: Optional[float]
     maximum_tvd: Optional[float]
     final_md: Optional[float]
-    remark: Optional[str]
-
-    class Config:
-        from_attributes = True
-
-class WellNameResponse(BaseModel):
-    well_name: Optional[str]
 
     class Config:
         from_attributes = True
@@ -71,7 +57,6 @@ class WellDocumentBase(BaseModel):
 class WellDigitalDataBase(BaseModel):
     
     file_id: Optional[str]
-    data_format: Optional[DataFormat]
     
     class Config:
         from_attributes = True
@@ -92,18 +77,37 @@ class WellDrillingParameterBase(WellDigitalDataBase):
     class Meta:
         orm_model = WellDrillingParameter
 
+class WellSummaryMudProgramBase(BaseModel):
+    
+    mud_type: Optional[MudType]
+    weight: Optional[float]
+    viscosity: Optional[float]
+    ph_level: Optional[float]
+    
+    class Meta:
+        orm_model = WellSummaryMudProgram
+
+class WellSummaryCementingProgramBase(BaseModel):
+    
+    slurry_volume: Optional[float]
+    slurry_mix: Optional[str]
+    
+    class Meta:
+        orm_model = WellSummaryCementingProgram
+
 class WellSummaryBase(BaseModel):
     
     unit_type: UnitType
     
     depth_datum: Optional[DepthDatum]
-    depth: Optional[float]
+    top_depth: Optional[float]
+    bottom_depth: Optional[float]
     hole_diameter: Optional[float]
     bit: Optional[str]
     casing_outer_diameter: Optional[float]
     logging: Optional[str]
-    mud_program: Optional[str]
-    cementing_program: Optional[str]
+    mud_program: Optional[WellSummaryCementingProgramBase]
+    cementing_program: Optional[WellSummaryCementingProgramBase]
     bottom_hole_temperature: Optional[float]
     rate_of_penetration: Optional[float]
     remarks: Optional[str]
@@ -120,8 +124,8 @@ class WellTestBase(BaseModel):
     
     depth_datum: Optional[DepthDatum]
     zone_name: Optional[str]
-    zone_top_depth: Optional[float]
-    zone_bottom_depth: Optional[float]
+    top_depth: Optional[float]
+    bottom_depth: Optional[float]
     
     class Meta:
         orm_model = WellTest
@@ -134,23 +138,14 @@ class WellCasingBase(BaseModel):
     unit_type: UnitType
     
     depth_datum: Optional[DepthDatum]
-    
     depth: Optional[float]
-    
     length: Optional[float]
-    
     hole_diameter: Optional[float]
-    
     casing_outer_diameter: Optional[float]
-    
     casing_inner_diameter: Optional[float]
-    
     casing_grade: Optional[str]
-    
     casing_weight: Optional[float]
-    
     connection: Optional[str]
-    
     description: Optional[str]
     
     class Meta:
@@ -163,11 +158,13 @@ class WellStratigraphyBase(BaseModel):
     
     unit_type: UnitType
     
-    depth_datum: Optional[DepthDatum]
+    depth_datum: DepthDatum
     
-    depth: Optional[float]
+    top_depth: float
+    bottom_depth: float
     
-    stratigraphy_id: str
+    formation_name: str
+    lithology: str
     
     class Meta:
         orm_model = WellStratigraphy
@@ -185,16 +182,18 @@ class WellSchematicBase(BaseModel):
     class Config:
         from_attributes = True
 
-class CreatePlanWell(WellBase):
+class WellBaseWithNests(WellBase):
     
-    well_documents: Optional[List[WellDocumentBase]] = []
     well_summary: Optional[List[WellSummaryBase]] = []
-    well_test: Optional[List[WellTestBase]] = []
     well_trajectory: Optional[WellTrajectoryBase] = None
     well_ppfg: Optional[WellPPFGBase] = None
     well_casing: Optional[List[WellCasingBase]] = []
-    well_stratigraphy: Optional[List[WellStratigraphyBase]] = []
     well_schematic: Optional[WellSchematicBase] = None
+    well_stratigraphy: Optional[List[WellStratigraphyBase]] = []
+
+class CreatePlanWell(WellBaseWithNests):
+    
+    well_test: Optional[List[WellTestBase]] = []
 
     class Meta:
         orm_model = PlanWell
@@ -210,21 +209,18 @@ class CreateDummyPlanWell(CreatePlanWell):
     class Config:
         from_attributes = True
 
-class CreateActualWell(WellBase):
+class CreateActualWell(WellBaseWithNests):
     
     area_id: str
     field_id: str
     kkks_id: str
-    
+
     well_documents: Optional[List[WellDocumentBase]] = []
-    well_summary: Optional[List[WellSummaryBase]] = []
-    well_test: Optional[List[WellTestBase]] = []
-    well_trajectory: Optional[WellTrajectoryBase] = None
-    well_ppfg: Optional[WellPPFGBase] = None
     well_logs: Optional[List[WellLogBase]] = []
     well_drilling_parameter: Optional[WellDrillingParameterBase] = None
-    well_casing: Optional[List[WellCasingBase]] = []
-    well_stratigraphy: Optional[List[WellStratigraphyBase]] = []
+
+    well_status: WellStatus
+    remark: str
 
     class Meta:
         orm_model = ActualWell
