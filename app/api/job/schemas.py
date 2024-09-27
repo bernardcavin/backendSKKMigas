@@ -11,15 +11,84 @@ import re
 
 from app.core.constants import UnitType
 
-class WorkBreakdownStructureBase(BaseModel):
-    
+class WBCustomSEventSchema(BaseModel):
     event: str
     start_date: date
     end_date: date
     remarks: Optional[str]
     
     class Meta:
-        orm_model = WorkBreakdownStructure
+        orm_model = WBSCustomEvent
+
+class WBSWRMEventSchema(BaseModel):
+    start_date: date
+    end_date: date
+    remarks: Optional[str]
+    
+    class Meta:
+        orm_model = WBSWRMEvent
+    
+class WBSExplorationSchema(BaseModel):
+    
+    wrm_pembebasan_lahan: WBSWRMEventSchema
+    wrm_ippkh: WBSWRMEventSchema
+    wrm_ukl_upl: WBSWRMEventSchema
+    wrm_amdal: WBSWRMEventSchema
+    wrm_pengadaan_rig: WBSWRMEventSchema
+    wrm_pengadaan_drilling_services: WBSWRMEventSchema
+    wrm_pengadaan_lli: WBSWRMEventSchema
+    wrm_persiapan_lokasi: WBSWRMEventSchema
+    wrm_internal_kkks: WBSWRMEventSchema
+    wrm_evaluasi_subsurface: WBSWRMEventSchema
+    
+    events: List[WBCustomSEventSchema]
+    
+    class Meta:
+        orm_model = WorkBreakdownStructureDrilling
+    
+    class Config:
+        from_attributes = True
+
+class WBSDevelopmentSchema(BaseModel):
+    
+    wrm_pembebasan_lahan: WBSWRMEventSchema
+    wrm_ippkh: WBSWRMEventSchema
+    wrm_ukl_upl: WBSWRMEventSchema
+    wrm_amdal: WBSWRMEventSchema
+    wrm_pengadaan_rig: WBSWRMEventSchema
+    wrm_pengadaan_drilling_services: WBSWRMEventSchema
+    wrm_pengadaan_lli: WBSWRMEventSchema
+    wrm_persiapan_lokasi: WBSWRMEventSchema
+    wrm_internal_kkks: WBSWRMEventSchema
+    wrm_evaluasi_subsurface: WBSWRMEventSchema
+    wrm_cutting_dumping: WBSWRMEventSchema
+    
+    events: List[WBCustomSEventSchema]
+    
+    class Meta:
+        orm_model = WorkBreakdownStructureDrilling
+    
+    class Config:
+        from_attributes = True
+
+class WBSWOWSSchema(BaseModel):
+    
+    wrm_internal_kkks: WBSWRMEventSchema
+    wrm_pengadaan_equipment: WBSWRMEventSchema
+    wrm_pengadaan_services: WBSWRMEventSchema
+    wrm_pengadaan_handak: WBSWRMEventSchema
+    wrm_pengadaan_octg: WBSWRMEventSchema
+    wrm_pengadaan_lli: WBSWRMEventSchema
+    wrm_pengadaan_artificial_lift: WBSWRMEventSchema
+    wrm_sumur_berproduksi: WBSWRMEventSchema
+    wrm_fasilitas_produksi: WBSWRMEventSchema
+    wrm_persiapan_lokasi: WBSWRMEventSchema 
+    wrm_well_integrity: WBSWRMEventSchema
+    
+    events: List[WBCustomSEventSchema]
+    
+    class Meta:
+        orm_model = WorkBreakdownStructureWOWS
     
     class Config:
         from_attributes = True
@@ -72,7 +141,6 @@ class JobPlanInstanceBase(BaseModel):
     total_budget: Decimal = Field(default=None, max_digits=10, decimal_places=2)
     
     job_operation_days: Optional[List[JobOperationDayBase]] = []
-    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]] = []
     job_hazards: Optional[List[JobHazardBase]] = []
     job_documents: Optional[List[JobDocumentBase]] = []
 
@@ -86,7 +154,6 @@ class JobActualInstanceBase(BaseModel):
     total_budget: Decimal = Field(default=None, max_digits=10, decimal_places=2)
     
     job_operation_days: Optional[List[JobOperationDayBase]] = []
-    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]] = []
     job_hazards: Optional[List[JobHazardBase]] = []
     job_documents: Optional[List[JobDocumentBase]] = []
 
@@ -94,6 +161,8 @@ class JobActualInstanceBase(BaseModel):
         from_attributes = True
 
 class CreatePlanExploration(JobPlanInstanceBase):
+    
+    work_breakdown_structure: Optional[WBSExplorationSchema] = None
     
     rig_name: str
     rig_type: RigType
@@ -122,6 +191,8 @@ class CreateDummyPlanExploration(CreatePlanExploration):
     well: CreateDummyPlanWell
         
 class CreatePlanDevelopment(JobPlanInstanceBase):
+    
+    work_breakdown_structure: Optional[WBSDevelopmentSchema] = None
     
     rig_name: str
     rig_type: RigType
@@ -152,6 +223,8 @@ class CreateDummyPlanDevelopment(CreatePlanDevelopment):
         
 class CreatePlanWorkover(JobPlanInstanceBase):
     
+    work_breakdown_structure: Optional[WBSWOWSSchema] = None
+    
     equipment: str
     equipment_specifications: str
     
@@ -178,6 +251,8 @@ class CreatePlanWorkover(JobPlanInstanceBase):
         from_attributes = True
         
 class CreatePlanWellService(JobPlanInstanceBase):
+    
+    work_breakdown_structure: Optional[WBSWOWSSchema] = None
     
     equipment: str
     equipment_specifications: str
@@ -206,6 +281,8 @@ class CreatePlanWellService(JobPlanInstanceBase):
         
 class CreateActualExploration(JobActualInstanceBase):
     
+    work_breakdown_structure: Optional[WBSExplorationSchema] = None
+    
     rig_name: str
     rig_type: RigType
     rig_horse_power: Decimal
@@ -229,6 +306,8 @@ class CreateActualExploration(JobActualInstanceBase):
         from_attributes = True
         
 class CreateActualDevelopment(JobActualInstanceBase):
+    
+    work_breakdown_structure: Optional[WBSDevelopmentSchema] = None
     
     rig_name: str
     rig_type: RigType
@@ -255,6 +334,8 @@ class CreateActualDevelopment(JobActualInstanceBase):
            
 class CreateActualWorkover(JobActualInstanceBase):
     
+    work_breakdown_structure: Optional[WBSWOWSSchema] = None
+    
     equipment: str
     equipment_specifications: str
     
@@ -277,6 +358,8 @@ class CreateActualWorkover(JobActualInstanceBase):
            
 class CreateActualWellService(JobActualInstanceBase):
     
+    work_breakdown_structure: Optional[WBSWOWSSchema] = None
+    
     equipment: str
     equipment_specifications: str
     
@@ -296,7 +379,7 @@ class CreateActualWellService(JobActualInstanceBase):
         orm_model = ActualWellService
     class Config:
         from_attributes = True
-
+        
 class JobBase(BaseModel):
     
     #kkks information
@@ -338,6 +421,7 @@ class CreateWellServiceJob(JobBase):
     
     job_plan: CreatePlanWellService
 
+
 def validate_time(v):
     if isinstance(v, time):
         return v
@@ -357,6 +441,8 @@ def validate_time(v):
         elif simple_match:
             hour, minute, second = map(int, simple_match.groups())
             return time(hour, minute, second)
+    
+
 
 # Definisikan TimeField sebagai Annotated type
 TimeField = Annotated[time, Field(json_schema_extra={"type": "string", "format": "time"})]

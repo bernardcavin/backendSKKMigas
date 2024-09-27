@@ -342,7 +342,7 @@ def get_job_plan(id: str, db: Session) -> dict:
         }
     }
 
-    job_wbs = db_plan.work_breakdown_structure
+    job_wbs = db_plan.work_breakdown_structure.events
     view_plan['operational']['work_breakdown_structure'] = create_gantt_chart(
         [wbs.event for wbs in job_wbs],
         [wbs.start_date for wbs in job_wbs],

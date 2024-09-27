@@ -88,7 +88,7 @@ async def return_planning_exploration(job_id: str, db: Session = Depends(get_db)
 
 @router.get("/planning/get/{job_id}", summary="View Job Plan (Raw)", tags=["Job"])
 @authorize(role=[Role.Admin, Role.KKKS])
-def view_plan(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
+async def view_plan(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_plan = db.query(Job).get(job_id)
     if not job_plan:
         return create_api_response(success=False, message="Job plan not found", status_code=404)
@@ -104,7 +104,7 @@ def view_plan(job_id: str, db: Session = Depends(get_db), user = Depends(get_cur
 
 @router.put("/planning/update/{job_id}", summary="Update Job Plan (KKKS Only)", tags=["Job"])
 @authorize(role=[Role.KKKS])
-def update_planning_exploration(
+async def update_planning_exploration(
     job_id: str,
     plan: Union[schemas.CreateExplorationJob, schemas.CreateDevelopmentJob, schemas.CreateWorkoverJob, schemas.CreateWellServiceJob],
     db: Session = Depends(get_db),

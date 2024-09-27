@@ -73,19 +73,159 @@ def generate_dummy_data(db, n: int):
             }
         )
     
-    wbs = pd.read_excel('app/scripts/dummy_data/wbs.xlsx')
+    wbs_wrm_date = random_datetime_within_year(2024)
     
-    plan_wbs = []
+    drilling_plan_wbs = {
+      "wrm_pembebasan_lahan": {
+        "start_date": wbs_wrm_date.date(),
+        "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+        "remarks": "string"
+      },
+      "wrm_ippkh": {
+        "start_date": wbs_wrm_date.date(),
+        "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+        "remarks": "string"
+      },
+      "wrm_ukl_upl": {
+        "start_date": wbs_wrm_date.date(),
+        "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+        "remarks": "string"
+      },
+      "wrm_amdal": {
+        "start_date": wbs_wrm_date.date(),
+        "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+        "remarks": "string"
+      },
+      "wrm_pengadaan_rig": {
+        "start_date": wbs_wrm_date.date(),
+        "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+        "remarks": "string"
+      },
+      "wrm_pengadaan_drilling_services": {
+        "start_date": wbs_wrm_date.date(),
+        "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+        "remarks": "string"
+      },
+      "wrm_pengadaan_lli": {
+        "start_date": wbs_wrm_date.date(),
+        "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+        "remarks": "string"
+      },
+      "wrm_persiapan_lokasi": {
+        "start_date": wbs_wrm_date.date(),
+        "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+        "remarks": "string"
+      },
+      "wrm_internal_kkks": {
+        "start_date": wbs_wrm_date.date(),
+        "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+        "remarks": "string"
+      },
+      "wrm_evaluasi_subsurface": {
+        "start_date": wbs_wrm_date.date(),
+        "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+        "remarks": "string"
+      },
+      "wrm_cutting_dumping": {
+        "start_date": wbs_wrm_date.date(),
+        "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+        "remarks": "string"
+      },
+      "events": [
+        {
+          "event": "Drilling",
+          "start_date": (wbs_wrm_date + timedelta(days=random.randint(30,60))).date(),
+          "end_date": (wbs_wrm_date + timedelta(days=random.randint(60,80))).date(),
+          "remarks": "string"
+        },{
+          "event": "P3",
+          "start_date": (wbs_wrm_date + timedelta(days=random.randint(80,100))).date(),
+          "end_date": (wbs_wrm_date + timedelta(days=random.randint(100,110))).date(),
+          "remarks": "string"
+        },{
+          "event": "Close Out",
+          "start_date": (wbs_wrm_date + timedelta(days=random.randint(110,120))).date(),
+          "end_date": (wbs_wrm_date + timedelta(days=random.randint(120,130))).date(),
+          "remarks": "string"
+        }
+      ]
+    }
     
-    for i, row in wbs.iterrows():
-        plan_wbs.append(
+    wows_plan_wbs = {
+        "wrm_internal_kkks": {
+            "start_date": wbs_wrm_date.date(),
+            "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+            "remarks": "string"
+        },
+        "wrm_pengadaan_equipment": {
+            "start_date": wbs_wrm_date.date(),
+            "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+            "remarks": "string"
+        },
+        "wrm_pengadaan_services": {
+            "start_date": wbs_wrm_date.date(),
+            "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+            "remarks": "string"
+        },
+        "wrm_pengadaan_handak": {
+            "start_date": wbs_wrm_date.date(),
+            "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+            "remarks": "string"
+        },
+        "wrm_pengadaan_octg": {
+            "start_date": wbs_wrm_date.date(),
+            "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+            "remarks": "string"
+        },
+        "wrm_pengadaan_artificial_lift": {
+            "start_date": wbs_wrm_date.date(), 
+            "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+            "remarks": "string"
+        },
+        "wrm_pengadaan_lli": {
+            "start_date": wbs_wrm_date.date(),
+            "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+            "remarks": "string"
+        },
+        "wrm_persiapan_lokasi": {
+            "start_date": wbs_wrm_date.date(),
+             "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+             "remarks": "string"
+         },
+        "wrm_sumur_berproduksi": {
+            "start_date": wbs_wrm_date.date(),
+            "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+            "remarks": "string"
+        },
+        "wrm_fasilitas_produksi": {
+            "start_date": wbs_wrm_date.date(),
+            "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+            "remarks": "string"
+        },
+        "wrm_well_integrity": {
+            "start_date": wbs_wrm_date.date(),
+            "end_date": (wbs_wrm_date + timedelta(days=random.randint(0,30))).date(),
+            "remarks": "string"
+        },
+        "events": [
             {
-                "event": row["Event"],
-                "start_date": row["Start Date"].date(),
-                "end_date": row["End Date"].date(),
-                "remarks": "Nothing"
+                "event": "Drilling",
+                "start_date": (wbs_wrm_date + timedelta(days=random.randint(30,60))).date(),
+                "end_date": (wbs_wrm_date + timedelta(days=random.randint(60,80))).date(),
+                "remarks": "string"
+            },{
+                "event": "P3",
+                "start_date": (wbs_wrm_date + timedelta(days=random.randint(80,100))).date(),
+                "end_date": (wbs_wrm_date + timedelta(days=random.randint(100,110))).date(),
+                "remarks": "string"
+            },{
+                "event": "Close Out",
+                "start_date": (wbs_wrm_date + timedelta(days=random.randint(110,120))).date(),
+                "end_date": (wbs_wrm_date + timedelta(days=random.randint(120,130))).date(),
+                "remarks": "string"
             }
-        )
+        ]
+    }
     
     casing = pd.read_excel('app/scripts/dummy_data/casing.xlsx')
         
@@ -224,7 +364,7 @@ def generate_dummy_data(db, n: int):
                     id =  drilling_trajectory_file_id,
                     filename = 'drilling_trajectory.xlsx',
                     file_extension = 'xlsx',
-                    file_location = f'app/scripts/dummy_data/{str(uuid.uuid4())}.xlsx',
+                    file_location = f'app/scripts/dummy_data/drilling_trajectory.xlsx',
                     uploaded_by_id = user_id,
                 ),
             ]
@@ -313,7 +453,7 @@ def generate_dummy_data(db, n: int):
                     "rig_type": rig_type,
                     "rig_horse_power": rig_hp,
                     "job_operation_days": plan_job_operation_days,
-                    "work_breakdown_structure": plan_wbs,
+                    "work_breakdown_structure": drilling_plan_wbs,
                     "job_hazards": [
                     {
                         "hazard_type": "GAS KICK",
@@ -345,7 +485,7 @@ def generate_dummy_data(db, n: int):
                     "rig_type": rig_type,
                     "rig_horse_power": rig_hp,
                     "job_operation_days": actual_job_operation_days,
-                    "work_breakdown_structure": plan_wbs,
+                    "work_breakdown_structure": drilling_plan_wbs,
                     "job_hazards": [
                     {
                         "hazard_type": "GAS KICK",
@@ -404,7 +544,7 @@ def generate_dummy_data(db, n: int):
                     "end_date": plan_end_date,
                     "total_budget": plan_total_budget,
                     "job_operation_days": plan_job_operation_days,
-                    "work_breakdown_structure": plan_wbs,
+                    "work_breakdown_structure": wows_plan_wbs,
                     "job_hazards": [
                         {
                             "hazard_type": "GAS KICK",
@@ -439,7 +579,7 @@ def generate_dummy_data(db, n: int):
                     "end_date": actual_end_date,
                     "total_budget": actual_total_budget,
                     "job_operation_days": plan_job_operation_days,
-                    "work_breakdown_structure": plan_wbs,
+                    "work_breakdown_structure": wows_plan_wbs,
                     "job_hazards": [
                     {
                         "hazard_type": "GAS KICK",
