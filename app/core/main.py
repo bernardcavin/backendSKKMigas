@@ -22,13 +22,10 @@ from fastapi.routing import APIRoute
 from app.core.config import settings
 import os
 
-def custom_generate_unique_id(route: APIRoute) -> str:
-    return f"{route.tags[0]}-{route.name}"
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    generate_unique_id_function=custom_generate_unique_id,
 )
 
 if settings.app_CORS_ORIGINS:
@@ -44,7 +41,6 @@ if settings.app_CORS_ORIGINS:
     
 init_db()
 os.makedirs(settings.upload_dir, exist_ok=True)
-
 
 # app.add_exception_handler(HTTPException, custom_http_exception_handler)
 # app.add_exception_handler(Exception, custom_exception_handler)

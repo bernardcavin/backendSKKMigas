@@ -64,8 +64,6 @@ class JobOperationDayBase(BaseModel):
         orm_model = JobOperationDay
     class Config:
         from_attributes = True
-
-
         
 class JobPlanInstanceBase(BaseModel):
     
@@ -298,7 +296,7 @@ class CreateActualWellService(JobActualInstanceBase):
         orm_model = ActualWellService
     class Config:
         from_attributes = True
-        
+
 class JobBase(BaseModel):
     
     #kkks information
@@ -340,7 +338,6 @@ class CreateWellServiceJob(JobBase):
     
     job_plan: CreatePlanWellService
 
-
 def validate_time(v):
     if isinstance(v, time):
         return v
@@ -360,8 +357,6 @@ def validate_time(v):
         elif simple_match:
             hour, minute, second = map(int, simple_match.groups())
             return time(hour, minute, second)
-    
-
 
 # Definisikan TimeField sebagai Annotated type
 TimeField = Annotated[time, Field(json_schema_extra={"type": "string", "format": "time"})]
@@ -768,7 +763,7 @@ class ActualExplorationUpdate(BaseModel):
     wrm_evaluasi_subsurface: Optional[Percentage] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ActualDevelopmentUpdate(BaseModel):
     wrm_pembebasan_lahan: Optional[Percentage] = None
@@ -783,7 +778,7 @@ class ActualDevelopmentUpdate(BaseModel):
     wrm_evaluasi_subsurface: Optional[Percentage] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ActualWorkoverUpdate(BaseModel):
     wrm_pembebasan_lahan: Optional[Percentage] = None
@@ -798,7 +793,7 @@ class ActualWorkoverUpdate(BaseModel):
     wrm_evaluasi_subsurface: Optional[Percentage] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ActualWellServiceUpdate(BaseModel):
     wrm_pembebasan_lahan: Optional[Percentage] = None
@@ -813,7 +808,7 @@ class ActualWellServiceUpdate(BaseModel):
     wrm_evaluasi_subsurface: Optional[Percentage] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class JobIssueCreate(BaseModel):
     job_id: str
@@ -824,7 +819,7 @@ class JobIssueCreate(BaseModel):
     resolved_date_time: Optional[datetime] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class JobIssueResponse(JobIssueCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -834,7 +829,7 @@ class JobIssueUpdate(BaseModel):
     resolved_date_time: Optional[datetime] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class DrillingOperationResponse(BaseModel):
     operation: DrillingOperation

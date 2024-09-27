@@ -7,9 +7,9 @@ from app.core.schema_operations import create_api_response
 from app.core.config import settings
 from app.core.security import authenticate_user, create_access_token, get_current_user, get_db, authorize,refresh_token
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/auth")
 
-@router.post("/token")
+@router.post("/token", summary='Generate Token', tags=['Token'])
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
@@ -20,22 +20,22 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.post("/refresh-token")
+@router.post("/refresh-token", summary='Refresh Token', tags=['Token'])
 async def refresh_token_route(new_token: dict = Depends(refresh_token)):
     return new_token
 
-@router.post("/user/create-admin")
+@router.post("/user/create-admin", summary='Create Admin', tags=['User'])
 async def create_admin(admin: schemas.CreateAdmin, db: Session = Depends(get_db)):
     created_admin = crud.create_admin(db, admin)
     if not created_admin:
         return create_api_response(success=False, message="Failed to create admin user", status_code=400)
     return create_api_response(success=True, message="Admin created successfully")
 
-@router.get('/user/me', summary='Get details of currently logged in user', response_model=schemas.GetUser)
+@router.get('/user/me', summary='Get details of currently logged in user', response_model=schemas.GetUser, tags=['User'])
 async def get_me(user: schemas.GetUser = Depends(get_current_user)):
     return user
 
-@router.post('/user/verify/{user_id}', response_model=schemas.VerifyUser)
+@router.patch('/user/verify/{user_id}', response_model=schemas.VerifyUser, summary='Verify User (Admin Only)', tags=['User'])
 @authorize(role=[models.Role.Admin])
 async def verify_user(user_id: str, db: Session = Depends(get_db), user: schemas.GetUser = Depends(get_current_user)):
     db_user = db.query(models.User).get(user_id)
@@ -46,7 +46,7 @@ async def verify_user(user_id: str, db: Session = Depends(get_db), user: schemas
     db.refresh(db_user)
     return db_user
 
-@router.post("/kkks/create", response_model=schemas.GetKKKS)
+@router.post("/kkks/create", response_model=schemas.GetKKKS, summary='Create KKKS (Admin Only)', tags=['KKKS'])
 @authorize(role=[models.Role.Admin])
 async def create_user(kkks: schemas.CreateKKKS, db: Session = Depends(get_db), user: schemas.GetUser = Depends(get_current_user)):
     created_kkks = crud.create_kkks(db, kkks)
@@ -54,8 +54,8 @@ async def create_user(kkks: schemas.CreateKKKS, db: Session = Depends(get_db), u
         raise HTTPException(status_code=400, detail="Failed to create KKKS")
     return created_kkks
 
-@router.get("/kkks/{kkks_id}", response_model=schemas.GetKKKS)
-@authorize(role=[models.Role.Admin])
+@router.get("/kkks/{kkks_id}", response_model=schemas.GetKKKS, summary='Gett KKKS Info (Admin Only)', tags=['KKKS'])
+@authorize(role=[models.Role.Admin , models.Role.KKKS])
 async def get_user(kkks_id: str, db: Session = Depends(get_db), user: schemas.GetUser = Depends(get_current_user)):
     kkks = crud.get_kkks(db, kkks_id)
     if kkks is None:

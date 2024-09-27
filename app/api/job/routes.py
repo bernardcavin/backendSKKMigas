@@ -1,66 +1,68 @@
-from calendar import c
-from fastapi import APIRouter, Depends,status,HTTPException, UploadFile, File,Query
+from fastapi import APIRouter, Depends,HTTPException, UploadFile, File,Query
 from sqlalchemy.orm import Session
 from app.api.auth.models import Role
-from app.api.auth.schemas import GetUser
 from app.core.security import authorize, get_db, get_current_user
 from app.api.job import crud, schemas,models
 from app.api.job.models import JobType,Job
 from app.core.schema_operations import create_api_response
 from typing import Any, Union, List
-from datetime import datetime, timedelta
+from datetime import datetime
 
-router = APIRouter(prefix="/job", tags=["job"])
+router = APIRouter(prefix="/job")
 
-@router.post("/planning/upload-batch/exploration")
+@router.post("/planning/upload-batch/exploration", summary="Upload Batch Job Exploration", tags=["Upload Batch Job"])
+@authorize(role=[Role.KKKS])
 async def upload_batch_exploration(file: UploadFile = File(...), db: Session = Depends(get_db), user = Depends(get_current_user)):
     content = file.file.read()
-    responses = crud.upload_batch_exploration(db, content, JobType.EXPLORATION, user)
+    responses = crud.upload_batch(db, content, JobType.EXPLORATION, user)
     return create_api_response(success=True, message="Job plan batch uploaded successfully")
 
-@router.post("/planning/upload-batch/development")
+@router.post("/planning/upload-batch/development", summary="Upload Batch Job Development", tags=["Upload Batch Job"])
+@authorize(role=[Role.KKKS])
 async def upload_batch_development(file: UploadFile = File(...), db: Session = Depends(get_db), user = Depends(get_current_user)):
     content = file.file.read()
-    responses = crud.upload_batch_exploration(db, content, JobType.DEVELOPMENT, user)
+    responses = crud.upload_batch(db, content, JobType.DEVELOPMENT, user)
     return create_api_response(success=True, message="Job plan batch uploaded successfully")
 
-@router.post("/planning/upload-batch/workover")
+@router.post("/planning/upload-batch/workover", summary="Upload Batch Job Workover", tags=["Upload Batch Job"])
+@authorize(role=[Role.KKKS])
 async def upload_batch_workover(file: UploadFile = File(...), db: Session = Depends(get_db), user = Depends(get_current_user)):
     content = file.file.read()
-    responses = crud.upload_batch_exploration(db, content, JobType.WORKOVER, user)
+    responses = crud.upload_batch(db, content, JobType.WORKOVER, user)
     return create_api_response(success=True, message="Job plan batch uploaded successfully")
 
-@router.post("/planning/upload-batch/wellservice")
+@router.post("/planning/upload-batch/wellservice", summary="Upload Batch Job Well Service", tags=["Upload Batch Job"])
+@authorize(role=[Role.KKKS])
 async def upload_batch_wellservice(file: UploadFile = File(...), db: Session = Depends(get_db), user = Depends(get_current_user)):
     content = file.file.read()
-    responses = crud.upload_batch_exploration(db, content, JobType.WELLSERVICE, user)
+    responses = crud.upload_batch(db, content, JobType.WELLSERVICE, user)
     return create_api_response(success=True, message="Job plan batch uploaded successfully")
 
-@router.post("/planning/create/exploration")
+@router.post("/planning/create/exploration", summary="Create Job Exploration (KKKS Only)" , tags=["Job"])
 @authorize(role=[Role.KKKS])
-async def create_planning_exploration(plan: schemas.CreateExplorationJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
+async def create_planning(plan: schemas.CreateExplorationJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_id = crud.create_job_plan(db, JobType.EXPLORATION, plan, user)
     return create_api_response(success=True, message="Exploration job plan created successfully")
 
-@router.post("/planning/create/development")
+@router.post("/planning/create/development", summary="Create Job Development (KKKS Only)", tags=["Job"])
 @authorize(role=[Role.KKKS])
 async def create_planning_development(plan: schemas.CreateDevelopmentJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_id = crud.create_job_plan(db, JobType.DEVELOPMENT, plan, user)
     return create_api_response(success=True, message="Development job plan created successfully")
 
-@router.post("/planning/create/workover")
+@router.post("/planning/create/workover", summary="Create Job Workover (KKKS Only)", tags=["Job"])
 @authorize(role=[Role.KKKS])
 async def create_planning_workover(plan: schemas.CreateWorkoverJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_id = crud.create_job_plan(db, JobType.WORKOVER, plan, user)
     return create_api_response(success=True, message="Workover job plan created successfully")
 
-@router.post("/planning/create/wellservice")
+@router.post("/planning/create/wellservice", summary="Create Job Well Service (KKKS Only)", tags=["Job"])
 @authorize(role=[Role.KKKS])
 async def create_planning_wellservice(plan: schemas.CreateWellServiceJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_id = crud.create_job_plan(db, JobType.WELLSERVICE, plan, user)
     return create_api_response(success=True, message="Well service job plan created successfully")
 
-@router.delete('/planning/delete/{job_id}')
+@router.delete('/planning/delete/{job_id}', summary="Delete Job Plan", tags=["Job"])
 @authorize(role=[Role.Admin, Role.KKKS])
 async def delete_planning_exploration(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     deleted = crud.delete_job_plan(job_id, db, user)
@@ -68,7 +70,7 @@ async def delete_planning_exploration(job_id: str, db: Session = Depends(get_db)
         return create_api_response(success=False, message="Job plan not found", status_code=404)
     return create_api_response(success=True, message="Job plan deleted successfully")
 
-@router.patch('/planning/approve/{job_id}')
+@router.patch('/planning/approve/{job_id}', summary="Approve Job Plan (Admin Only)", tags=["Job"])
 @authorize(role=[Role.Admin])
 async def approve_planning_exploration(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     approved = crud.approve_job_plan(job_id, db, user)
@@ -76,7 +78,7 @@ async def approve_planning_exploration(job_id: str, db: Session = Depends(get_db
         return create_api_response(success=False, message="Job plan not found", status_code=404)
     return create_api_response(success=True, message="Job plan approved successfully")
 
-@router.patch('/planning/return/{job_id}')
+@router.patch('/planning/return/{job_id}', summary="Return Job Plan (Admin Only)", tags=["Job"])
 @authorize(role=[Role.Admin])
 async def return_planning_exploration(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     returned = crud.return_job_plan(job_id, db, user)
@@ -84,7 +86,8 @@ async def return_planning_exploration(job_id: str, db: Session = Depends(get_db)
         return create_api_response(success=False, message="Job plan not found", status_code=404)
     return create_api_response(success=True, message="Job plan returned successfully")
 
-@router.get("/planning/view-raw/{job_id}")
+@router.get("/planning/get/{job_id}", summary="View Job Plan (Raw)", tags=["Job"])
+@authorize(role=[Role.Admin, Role.KKKS])
 def view_plan(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_plan = db.query(Job).get(job_id)
     if not job_plan:
@@ -99,7 +102,8 @@ def view_plan(job_id: str, db: Session = Depends(get_db), user = Depends(get_cur
         data = schemas.CreateWellServiceJob.model_validate(job_plan, from_attributes=True)
     return create_api_response(success=True, message="Job plan retrieved successfully", data=data)
 
-@router.put("/planning/update/{job_id}")
+@router.put("/planning/update/{job_id}", summary="Update Job Plan (KKKS Only)", tags=["Job"])
+@authorize(role=[Role.KKKS])
 def update_planning_exploration(
     job_id: str,
     plan: Union[schemas.CreateExplorationJob, schemas.CreateDevelopmentJob, schemas.CreateWorkoverJob, schemas.CreateWellServiceJob],
@@ -109,7 +113,7 @@ def update_planning_exploration(
     crud.update_job_plan(db, job_id, plan, user)
     return create_api_response(success=True, message="Job Updated Successfully")
 
-@router.get('/planning/view/{job_id}')
+@router.get('/planning/view/{job_id}', summary="View Job Plan", tags=["Job"])
 @authorize(role=[Role.Admin, Role.KKKS])
 async def view_plan(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_plan = crud.get_job_plan(job_id, db)
@@ -117,8 +121,8 @@ async def view_plan(job_id: str, db: Session = Depends(get_db), user = Depends(g
         return create_api_response(success=False, message="Job plan not found", status_code=404)
     return create_api_response(success=True, message="Job plan retrieved successfully", data=job_plan)
 
-@router.patch('/operations/operate/{job_id}')
-@authorize(role=[Role.Admin, Role.KKKS])
+@router.patch('/operations/operate/{job_id}', summary="Operate Job (KKKS Only)", tags=["Job"])
+@authorize(role=[Role.KKKS])
 async def operate_job(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     operated = crud.operate_job(job_id, db, user)
     if not operated:
@@ -131,7 +135,6 @@ async def operate_job(job_id: str, db: Session = Depends(get_db), user = Depends
 #     if not job:
 #         raise HTTPException(status_code=404, detail="Job not found")
 #     return job
-
 
 @router.post("/daily-operations-reports/")
 def create_daily_operations_report(report: schemas.DailyOperationsReportCreate, db: Session = Depends(get_db)):
