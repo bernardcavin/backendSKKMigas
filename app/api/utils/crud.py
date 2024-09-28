@@ -100,6 +100,13 @@ def save_upload_multiple_files(db: Session, upload_files: List[UploadFile], user
 
     return [FileInfo.model_validate(file_obj) for file_obj in file_objs]
 
+def delete_uploaded_file(db: Session, file_id: str):
+    file_info = db.query(FileDB).filter(FileDB.id == file_id).first()
+    if file_info is None:
+        raise HTTPException(status_code=404, detail="File not found")
+    db.delete(file_info)
+    db.commit()
+
 def jsonify_tabular_file(file: UploadFile):
 
     if file.content_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
