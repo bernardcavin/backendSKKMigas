@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.api.auth.models import Role
-from app.api.auth.schemas import GetUser
 from app.core.security import authorize, get_db, get_current_user
 from app.api.well import crud, schemas
 from app.core.schema_operations import create_api_response
 
-router = APIRouter(prefix="/well", tags=["well"])
+router = APIRouter(prefix="/well", tags=["Well"])
 
 @router.post("/create")
 @authorize(role=[Role.KKKS, Role.Admin])

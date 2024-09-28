@@ -1,10 +1,13 @@
 import matplotlib
 from fastapi import Response, BackgroundTasks, APIRouter, Depends
+from sqlalchemy.orm import Session
 from app.api.auth.models import Role
+from app.core.security import authorize, get_db, get_current_user
 from app.api.auth.schemas import GetUser
 from app.core.security import authorize, get_current_user
-from app.api.visualize import schemas, utils
+from app.api.visualize import schemas, utils, crud
 from app.core.schema_operations import create_api_response
+from fastapi.responses import HTMLResponse
 import uuid
 
 matplotlib.use('AGG')
@@ -57,6 +60,15 @@ async def visualize_casing(session_id: str, background_tasks: BackgroundTasks, u
         return Response(img_buf.getvalue(), headers=headers, media_type='image/png')
     except Exception as e:
         return create_api_response(success=False, message="Failed to generate casing visualization", status_code=500)
+
+@router.get("/wbs/{job_id}", response_class=HTMLResponse)
+async def visualize_wbs(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    # try:
+    wbs_data = crud.visualize_work_breakdown_structure(db, job_id)
+    return wbs_data
+    # except Exception as e:
+    #     print(e)
+    #     return create_api_response(success=False, message="Failed to generate Work Breakdown Structure visualization", status_code=500)
 
 # Uncomment and adjust the following endpoint as needed if you want to use it
 # @router.get("/well-log/{well_id}")

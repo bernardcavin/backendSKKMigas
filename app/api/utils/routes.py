@@ -13,7 +13,7 @@ from app.api.visualize.lib.well_profile_func import render_well_profile
 
 router = APIRouter(prefix="/utils", tags=["utils"])
 
-@router.post("/upload/file", tags=['file'])
+@router.post("/upload/file", tags=['File'], summary="Upload file")
 @authorize(role=[Role.Admin, Role.KKKS])
 async def create_upload_file(file: UploadFile = File(...), db: Session = Depends(get_db), user = Depends(get_current_user)):
     try:
@@ -26,7 +26,7 @@ async def create_upload_file(file: UploadFile = File(...), db: Session = Depends
     except Exception as e:
         return create_api_response(success=False, message="Failed to upload file", status_code=500)
 
-@router.post("/upload/files")
+@router.post("/upload/files", tags=['File'], summary="Upload multiple files")
 @authorize(role=[Role.Admin, Role.KKKS])
 async def create_upload_files(files: List[UploadFile] = File(...), db: Session = Depends(get_db), user = Depends(get_current_user)):
     try:
@@ -39,7 +39,7 @@ async def create_upload_files(files: List[UploadFile] = File(...), db: Session =
     except Exception as e:
         return create_api_response(success=False, message="Failed to upload files", status_code=500)
 
-@router.delete("/delete/file/{file_id}", tags=['file'])
+@router.delete("/delete/file/{file_id}", tags=['File'], summary="Delete file")
 @authorize(role=[Role.Admin, Role.KKKS])
 async def delete_file(file_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     try:
@@ -48,14 +48,15 @@ async def delete_file(file_id: str, db: Session = Depends(get_db), user = Depend
     except Exception as e:
         return create_api_response(success=False, message="Failed to delete file", status_code=500)
 
-@router.get("/download/file/{file_id}", tags=['file'])
+@router.get("/download/file/{file_id}", tags=['File'], summary="Download file")
+@authorize(role=[Role.Admin, Role.KKKS])
 async def download_file(file_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     file_info = db.query(FileDB).filter(FileDB.id == file_id).first()
     if file_info is None:
         raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(file_info.file_location)
 
-@router.post("/read/tabular", response_model=TabularData)
+@router.post("/read/tabular", response_model=TabularData, tags=['File'], summary="Read tabular file")
 @authorize(role=[Role.Admin, Role.KKKS])
 async def read_tabular_file(file: UploadFile = File(...), user = Depends(get_current_user)):
     try:
@@ -64,7 +65,8 @@ async def read_tabular_file(file: UploadFile = File(...), user = Depends(get_cur
     except Exception as e:
         return create_api_response(success=False, message="Failed to read tabular file", status_code=500)
 
-@router.post("/upload/trajectory")
+@router.post("/upload/trajectory", tags=['File'], summary="Upload trajectory file")
+@authorize(role=[Role.Admin, Role.KKKS])
 async def upload_trajectory_file(file: UploadFile = File(...), db: Session = Depends(get_db), user = Depends(get_current_user)):
 
     file_info = save_upload_file(db, file, user)
