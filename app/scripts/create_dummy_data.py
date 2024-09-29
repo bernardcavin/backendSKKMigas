@@ -184,18 +184,18 @@ def generate_dummy_data(db, n: int):
 
         db.commit()
 
-        db.add_all(
-            [
-                spatial_models.StratUnit(
-                    area_id = area_id,
-                    strat_unit_name = f'STRAT00{j}',
-                    strat_type = random_enum_value(StratType),
-                    strat_unit_type = random_enum_value(StratUnitType),
-                    strat_petroleum_system =random_enum_value(PetroleumSystem),
-                    remark = '-',
-                ) for j in range(5)
-            ]
-        )
+        # db.add_all(
+        #     [
+        #         spatial_models.StratUnit(
+        #             area_id = area_id,
+        #             strat_unit_name = f'STRAT00{j}',
+        #             strat_type = random_enum_value(StratType),
+        #             strat_unit_type = random_enum_value(StratUnitType),
+        #             strat_petroleum_system =random_enum_value(PetroleumSystem),
+        #             remark = '-',
+        #         ) for j in range(5)
+        #     ]
+        # )
 
         db.commit()
 
@@ -217,16 +217,14 @@ def generate_dummy_data(db, n: int):
         db.commit()
         
         drilling_trajectory_file_id = str(uuid.uuid4())
-        
+
         db.add_all(
             [
                 utils_models.FileDB(
                     id =  drilling_trajectory_file_id,
                     filename = 'drilling_trajectory.xlsx',
-                    size  = 10000,
-                    content_type = 'xlsx',
-                    upload_time = datetime.now(),
-                    file_location = 'app/scripts/dummy_data/drilling_trajectory.xlsx',
+                    file_extension = 'xlsx',
+                    file_location = f'app/scripts/dummy_data/{str(uuid.uuid4())}.xlsx',
                     uploaded_by_id = user_id,
                 ),
             ]
@@ -281,29 +279,8 @@ def generate_dummy_data(db, n: int):
                 "final_md": 0,
                 "remark": "string",
                 "well_summary": [
-                    {
-                    "unit_type": "Metrics",
-                    "depth_datum": "RT",
-                    "depth": 0,
-                    "hole_diameter": 0,
-                    "bit": "string",
-                    "casing_outer_diameter": 0,
-                    "logging": "string",
-                    "mud_program": "string",
-                    "cementing_program": "string",
-                    "bottom_hole_temperature": 0,
-                    "rate_of_penetration": 0,
-                    "remarks": "string"
-                    }
                 ],
                 "well_test": [
-                    {
-                    "unit_type": "Metrics",
-                    "depth_datum": "RT",
-                    "zone_name": "string",
-                    "zone_top_depth": 0,
-                    "zone_bottom_depth": 0,
-                    }
                 ],
                 "well_trajectory": 
                     {

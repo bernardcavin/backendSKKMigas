@@ -1,12 +1,9 @@
-from ast import parse
-from fastapi import UploadFile
 from fastapi.exceptions import HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from app.api.job.models import *
 from app.api.job.schemas import *
 from app.api.well.models import ActualWell
-from app.api.auth.schemas import GetUser
 from app.core.schema_operations import create_api_response, parse_schema
 from app.api.job.utils import *
 from app.api.visualize.schemas import VisualizeCasing
@@ -17,6 +14,7 @@ from typing import Union,Type
 from sqlalchemy.sql import and_
 from pydantic import ValidationError
 import io
+from uuid import uuid4
 
 def create_job_plan(db: Session, job_type: JobType, plan: object, user):
     db_job = Job(**parse_schema(plan))
@@ -228,7 +226,6 @@ def operate_job(id: str, db: Session, user):
                     'end_date':True,
                     'total_budget':True,
                     'job_operation_days':True,
-                    # 'work_breakdown_structure':True,
                     'rig_name':True,
                     'rig_type':True,
                     'rig_horse_power':True,
@@ -738,4 +735,19 @@ def get_date_color(db: Session, job_instance_id: str, check_date: date) -> str:
             return "green"
         else:
             return "white"
+        
+
+def update_operation_actual(db: Session, job_id: str, actual: CreateActualExploration, user):
+    print(ActualExploration(**parse_schema(actual)))
+    db_job = db.query(Job).filter(Job.id ==job_id).first()
+    db_job_actual=db_job.actual_job
+    db_job_actual_new = ActualExploration(**parse_schema(actual))
+    db_job_actual_new.id = db_job_actual.id
+    db_job.actual_job = db_job_actual_new
+    
+    db.commit()
+    db.refresh(db_job_actual_new)
+    return db_job_actual_new
+
+
 

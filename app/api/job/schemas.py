@@ -836,12 +836,8 @@ class JobIssueUpdate(BaseModel):
     class Config:
         orm_mode = True
 
-class DrillingOperationResponse(BaseModel):
-    operation: DrillingOperation
-
-class BHAResponse(BaseModel):
-    bhacomponent: BHAComponentType
 
 class ColoredDate(BaseModel):
     date: str
     color: str
+

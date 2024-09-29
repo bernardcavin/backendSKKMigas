@@ -1,11 +1,8 @@
-from sqlalchemy.orm import relationship,Mapped
+from sqlalchemy.orm import relationship
 from sqlalchemy import Column, String, ForeignKey, Enum, Text, Float, Date
 from enum import Enum as PyEnum
-from app.api.visualize.lib.well_profile import well
 from app.core.database import Base
 import uuid
-from typing import Optional, List,ClassVar
-from app.api.spatial.models import StratUnit
 
 from app.core.constants import uom, UnitType
 
@@ -84,8 +81,8 @@ class DataFormat(PyEnum):
     PDF = 'PDF'
     PLAIN_TEXT = 'PLAIN TEXT'
     
-
 class WellInstance(Base):
+    
     __tablename__ = 'well_instances'
     
     unit_type = Column(Enum(UnitType))
@@ -109,7 +106,6 @@ class WellInstance(Base):
         
     # Well Status and Classification
     well_type = Column(Enum(WellType))
-    well_status = Column(Enum(WellStatus))
     well_profile_type = Column(Enum(WellProfileType))
     well_directional_type = Column(Enum(WellDirectionalType))
     hydrocarbon_target = Column(Enum(HydrocarbonTarget))
@@ -158,23 +154,14 @@ class WellInstance(Base):
     
     final_md = Column(Float)
     final_md_uom = Column(String(20))
-
-    remark = Column(Text)
     
-    well_documents = relationship('WellDocument', back_populates='well_instance')
     well_summary = relationship('WellSummary', back_populates='well_instance')
     well_trajectory = relationship('WellTrajectory', back_populates='well_instance', uselist=False)
-    well_test = relationship('WellTest', back_populates='well_instance')
     well_ppfg = relationship('WellPPFG', back_populates='well_instance', uselist=False)
-    well_logs = relationship('WellLog', back_populates='well_instance')
-    well_drilling_parameter = relationship('WellDrillingParameter', back_populates='well_instance', uselist=False)
     well_casing = relationship('WellCasing', back_populates='well_instance')
+    well_schematic = relationship('WellSchematic', back_populates='well_instance', uselist=False)
     well_stratigraphy = relationship('WellStratigraphy', back_populates='well_instance')
-
-    #well schematic
-    well_schematic_id = Column(String(36), ForeignKey('job_well_schematics.id'))
-    well_schematic = relationship('WellSchematic', foreign_keys=[well_schematic_id])
-
+    
     __mapper_args__ = {
         "polymorphic_on": "well_phase",
     }
@@ -201,7 +188,9 @@ class PlanWell(WellInstance):
     __tablename__ = 'well_plans'
     
     id = Column(String(36), ForeignKey('well_instances.well_instance_id'), primary_key=True)
-        
+    
+    well_test = relationship('WellTest', back_populates='plan_well')
+
     __mapper_args__ = {
         "polymorphic_identity": "plan",
     }
@@ -211,6 +200,14 @@ class ActualWell(WellInstance):
     __tablename__ = 'well_actuals'
     
     id = Column(String(36), ForeignKey('well_instances.well_instance_id'), primary_key=True)
+    
+    well_documents = relationship('WellDocument', back_populates='actual_well')
+    well_logs = relationship('WellLog', back_populates='actual_well')
+    well_drilling_parameter = relationship('WellDrillingParameter', back_populates='actual_well', uselist=False)
+    
+    well_status = Column(Enum(WellStatus))
+    
+    remark = Column(Text)
     
     __mapper_args__ = {
         "polymorphic_identity": "actual",
@@ -242,6 +239,7 @@ class WellDocumentType(PyEnum):
     HSE_REPORT = "HSE Report"
 
 class WellDocument(Base):
+    
     __tablename__ = 'well_documents'
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
@@ -249,8 +247,8 @@ class WellDocument(Base):
     file_id = Column(String(36), ForeignKey('files.id'), nullable=True)
     file = relationship('FileDB', foreign_keys=[file_id])
 
-    well_id = Column(String(36), ForeignKey('well_instances.well_instance_id'))
-    well_instance = relationship('WellInstance', back_populates='well_documents')
+    actual_well_id = Column(String(36), ForeignKey('well_actuals.id'))
+    actual_well = relationship('ActualWell', back_populates='well_documents')
 
     document_type = Column(Enum(WellDocumentType))
     
@@ -265,8 +263,7 @@ class WellDigitalData(Base):
     file_id = Column(String(36), ForeignKey('files.id'), nullable=True)
     file = relationship('FileDB', foreign_keys=[file_id])
     
-    data_format = Column(Enum(DataFormat))
-
+    # data_format = Column(Enum(DataFormat))
     data_class = Column(Enum(DataClass))
 
     __mapper_args__ = {
@@ -283,8 +280,8 @@ class WellLog(WellDigitalData):
         'polymorphic_identity': DataClass.WELL_LOG,
     }
 
-    well_id = Column(String(36), ForeignKey('well_instances.well_instance_id'))
-    well_instance = relationship('WellInstance', back_populates='well_logs')
+    actual_well_id = Column(String(36), ForeignKey('well_actuals.id'))
+    actual_well = relationship('ActualWell', back_populates='well_logs')
 
 class WellTrajectory(WellDigitalData):
     
@@ -322,9 +319,9 @@ class WellDrillingParameter(WellDigitalData):
         'polymorphic_identity': DataClass.DRILLING_PARAMETER,
     }
 
-    well_id = Column(String(36), ForeignKey('well_instances.well_instance_id'))
-    well_instance = relationship('WellInstance', back_populates='well_drilling_parameter', single_parent=True)
-
+    actual_well_id = Column(String(36), ForeignKey('well_actuals.id'))
+    actual_well = relationship('ActualWell', back_populates='well_drilling_parameter', single_parent=True)
+    
 class WellSummary(Base):
     
     __tablename__ = 'well_summary'
@@ -338,7 +335,8 @@ class WellSummary(Base):
 
     depth_datum = Column(Enum(DepthDatum))  # Changed to String if not using Enums
     
-    depth = Column(Float)
+    top_depth = Column(Float)
+    bottom_depth = Column(Float)
     depth_uom = Column(String(20))  # Changed to String if not using Enums
     
     hole_diameter = Column(Float)
@@ -350,8 +348,12 @@ class WellSummary(Base):
     casing_outer_diameter_uom = Column(String(20))  # Changed to String if not using Enums
     
     logging = Column(String(255))
-    mud_program = Column(String(255))
-    cementing_program = Column(String(255))
+    
+    mud_program_id = Column(String(36), ForeignKey('well_summary_mud_program.id'))
+    mud_program = relationship('WellSummaryMudProgram', foreign_keys=[mud_program_id])
+    
+    cementing_program_id = Column(String(36), ForeignKey('well_summary_cementing_program.id'))
+    cementing_program = relationship('WellSummaryCementingProgram', foreign_keys=[cementing_program_id])
     
     bottom_hole_temperature = Column(Float)
     bottom_hole_temperature_uom = Column(String(20))
@@ -373,6 +375,28 @@ class WellSummary(Base):
         
         super().__init__(*args, **kwargs)
 
+class MudType(PyEnum):
+    WATER_BASED_MUD = 'WATER BASED MUD'
+    OIL_BASED_MUD = 'OIL BASED MUD'
+
+class WellSummaryMudProgram(Base):
+    __tablename__ = 'well_summary_mud_program'
+    
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+    
+    mud_type = Column(Enum(MudType))
+    weight = Column(Float)
+    viscosity = Column(Float)
+    ph_level = Column(Float)
+
+class WellSummaryCementingProgram(Base):
+    __tablename__ = 'well_summary_cementing_program'
+    
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+
+    slurry_volume = Column(Float)
+    slurry_mix = Column(String)
+
 class WellTest(Base):
     __tablename__ = 'well_test'
 
@@ -380,14 +404,14 @@ class WellTest(Base):
     
     unit_type = Column(Enum(UnitType))
     
-    well_id = Column(String(36), ForeignKey('well_instances.well_instance_id'), nullable=True)
-    well_instance = relationship('WellInstance', back_populates='well_test')
+    well_id = Column(String(36), ForeignKey('well_plans.id'), nullable=True)
+    plan_well = relationship('PlanWell', back_populates='well_test')
     
     depth_datum = Column(Enum(DepthDatum))  # Changed to String if not using Enums
     
     zone_name = Column(String(50))
-    zone_top_depth = Column(Float)
-    zone_bottom_depth = Column(Float)
+    top_depth = Column(Float)
+    bottom_depth = Column(Float)
     depth_uom = Column(String(50))  # Changed to String if not using Enums
 
     def __init__(self, unit_type, *args, **kwargs):
@@ -450,24 +474,36 @@ class WellCasing(Base):
         
         super().__init__(*args, **kwargs)
 
+class WellSchematic(Base):
+
+    __tablename__ = 'job_well_schematics'
+
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+    well_id = Column(String(36), ForeignKey('well_instances.well_instance_id'), nullable=True)
+    well_instance = relationship('WellInstance', back_populates='well_schematic')
+    
+    file_id = Column(String(36), ForeignKey('files.id'), nullable=True)
+    file = relationship('FileDB', foreign_keys=[file_id])
+
 class WellStratigraphy(Base):
     __tablename__ = 'well_stratigraphy'
     
-    id: Mapped[str] = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     
     unit_type = Column(Enum(UnitType))
     
-    well_id: Mapped[Optional[str]] = Column(String(36), ForeignKey('well_instances.well_instance_id'))
-    well_instance: Mapped["WellInstance"] = relationship("WellInstance", back_populates='well_stratigraphy')
+    well_id = Column(String(36), ForeignKey('well_instances.well_instance_id'))
+    well_instance = relationship("WellInstance", back_populates='well_stratigraphy')
     
-    depth_datum: Mapped[Optional[DepthDatum]] = Column(Enum(DepthDatum))
+    depth_datum = Column(Enum(DepthDatum))
     
-    depth: Mapped[Optional[float]] = Column(Float)
-    depth_uom: Mapped[str] = Column(String(20))
+    top_depth = Column(Float)
+    bottom_depth = Column(Float)
+    depth_uom = Column(String(20))
     
-    stratigraphy_id: Mapped[str] = Column(String(36), ForeignKey('area_strat.id'))
-    stratigraphy: Mapped["StratUnit"] = relationship("StratUnit", foreign_keys=[stratigraphy_id])
-    
+    formation_name = Column(String(50))
+    lithology = Column(String(255))
+
     def __init__(self, unit_type: str, *args, **kwargs):
         self.unit_type = unit_type
 
@@ -478,12 +514,3 @@ class WellStratigraphy(Base):
             self.depth_uom = 'm'  # Default value
         
         super().__init__(*args, **kwargs)
-
-class WellSchematic(Base):
-
-    __tablename__ = 'job_well_schematics'
-
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
-    
-    file_id = Column(String(36), ForeignKey('files.id'), nullable=True)
-    file = relationship('FileDB', foreign_keys=[file_id])

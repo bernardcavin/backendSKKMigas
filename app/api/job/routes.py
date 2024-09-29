@@ -133,14 +133,14 @@ async def operate_job(job_id: str, db: Session = Depends(get_db), user = Depends
 #     return job
 
 
-@router.post("/daily-operations-reports/")
+@router.post("/operation/create/daily-operations-reports/")
 def create_daily_operations_report(report: schemas.DailyOperationsReportCreate, db: Session = Depends(get_db)):
     job = db.query(Job).filter(Job.id == report.job_id).first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     return crud.create_daily_operations_report(db=db, report=report)
 
-@router.patch("/actual-exploration/{actual_exploration_id}", response_model=schemas.ActualExplorationUpdate)
+@router.patch("/operation/update/wrm/{actual_exploration_id}", response_model=schemas.ActualExplorationUpdate)
 def update_actual_exploration(
     exploration_id: str,
     exploration_update: schemas.ActualExplorationUpdate,
@@ -150,14 +150,14 @@ def update_actual_exploration(
         raise HTTPException(status_code=404, detail="Actual Exploration not found")
     return updated_exploration
 
-@router.post("/create-job-issues/", response_model=schemas.JobIssueResponse)
+@router.post("/operation/create/issues/", response_model=schemas.JobIssueResponse)
 def create_job_issue(
     job_issue: schemas.JobIssueCreate,
     db: Session = Depends(get_db)
 ) -> Any:
     return crud.create_job_issue(db=db, job_issue=job_issue)
 
-@router.patch("/job-issues/{job_issue_id}", response_model=schemas.JobIssueResponse)
+@router.patch("/operation/update/job-issues/{job_issue_id}", response_model=schemas.JobIssueResponse)
 def update_job_issue(
     job_issue_id: str,
     job_issue_update: schemas.JobIssueUpdate,
@@ -168,7 +168,7 @@ def update_job_issue(
         raise HTTPException(status_code=404, detail="Job issue not found")
     return updated_job_issue
 
-@router.get("/wrm-data/{actual_job_id}", response_model=Union[schemas.ActualExplorationUpdate, schemas.ActualDevelopmentUpdate, schemas.ActualWorkoverUpdate, schemas.ActualWellServiceUpdate])
+@router.get("/operation/update/wrm/{actual_job_id}", response_model=Union[schemas.ActualExplorationUpdate, schemas.ActualDevelopmentUpdate, schemas.ActualWorkoverUpdate, schemas.ActualWellServiceUpdate])
 async def read_wrm_data(
     actual_job_id: str,
     model_type: str = Query(..., description="Type of actual data (exploration, development, workover, wellservice)"),
@@ -192,26 +192,12 @@ async def read_wrm_data(
 
     return wrm_data
 
-@router.get("/job-issues/{job_id}", response_model=List[schemas.JobIssueResponse])
+@router.get("/operatrion/get/job-issues/{job_id}", response_model=List[schemas.JobIssueResponse])
 def read_job_issues(job_id: str, db: Session = Depends(get_db)):
     job_issues = crud.get_wrmissues_data_by_job_id(db, job_id)
     if job_issues is None:
         raise HTTPException(status_code=404, detail="Job issues not found")
     return job_issues
-
-@router.get("/drilling-operations/pyenum", response_model=List[schemas.DrillingOperationResponse])
-async def list_drilling_operations():
-    return [
-        schemas.DrillingOperationResponse(operation=op, description=op.value)
-        for op in models.DrillingOperation
-    ]
-
-@router.get("/bha/pyenum", response_model=List[schemas.BHAResponse])
-async def list_bhacomponents():
-    return [
-        schemas.BHAResponse(bhacomponent=op)
-        for op in models.BHAComponentType
-    ]
 
 # @router.get("/job-instances/{job_instance_id}/dates", response_model=List[str])
 # def read_job_instance_dates(job_instance_id: str, db: Session = Depends(get_db)):
@@ -220,7 +206,7 @@ async def list_bhacomponents():
 #         raise HTTPException(status_code=404, detail="Job instance not found")
 #     return job_instance.get_job_date_list()
 
-@router.get("/job-instances/{job_instance_id}/dates", response_model=List[schemas.ColoredDate])
+@router.get("/operationn/get/dor-dates/{job_instance_id}", response_model=List[schemas.ColoredDate])
 def read_job_instance_dates(job_instance_id: str, db: Session = Depends(get_db)):
     job_instance = crud.get_job_instance(db, job_instance_id)
     if job_instance is None:
@@ -235,4 +221,13 @@ def read_job_instance_dates(job_instance_id: str, db: Session = Depends(get_db))
         colored_dates.append(schemas.ColoredDate(date=date_str, color=color))
     
     return colored_dates
-
+@router.post("/operation/update/actual_exploration/{job_id}", response_model=schemas.CreateActualExploration)
+def patch_actual_exploration_route(
+    job_id: str,
+    actual: schemas.CreateActualExploration,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    print(job_id)
+    exploration_update = crud.update_operation_actual(db, job_id, actual,user)
+    return exploration_update

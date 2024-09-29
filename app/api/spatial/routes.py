@@ -29,13 +29,13 @@ async def create_field(field: schemas.CreateFieldSchema, db: Session = Depends(g
         return create_api_response(success=False, message="Failed to create field", status_code=400)
     return create_api_response(success=True, message="Field created successfully", data=created_field)
 
-@router.post("/strat-unit/create")
-@authorize(role=[Role.KKKS])
-async def create_strat_unit(strat_unit: schemas.CreateStratUnitSchema, db: Session = Depends(get_db), user = Depends(get_current_user)):
-    created_strat_unit = crud.create_strat_unit(db, strat_unit)
-    if not created_strat_unit:
-        return create_api_response(success=False, message="Failed to create stratigraphic unit", status_code=400)
-    return create_api_response(success=True, message="Stratigraphic unit created successfully", data=created_strat_unit)
+# @router.post("/strat-unit/create")
+# @authorize(role=[Role.KKKS])
+# async def create_strat_unit(strat_unit: schemas.CreateStratUnitSchema, db: Session = Depends(get_db), user = Depends(get_current_user)):
+#     created_strat_unit = crud.create_strat_unit(db, strat_unit)
+#     if not created_strat_unit:
+#         return create_api_response(success=False, message="Failed to create stratigraphic unit", status_code=400)
+#     return create_api_response(success=True, message="Stratigraphic unit created successfully", data=created_strat_unit)
 
 @router.get("/api/areas", response_model=List[AreaResponse])
 def get_areas(db: Session = Depends(get_db)):
@@ -59,22 +59,22 @@ def get_well_instances(db: Session = Depends(get_db)):
         for well_instance_id, well_name in well_instances
     ]
 
-@router.get("/api/strat-units/{area_id}", response_model=List[StratUnitResponse])
-def get_strat_units_by_area(area_id: str, db: Session = Depends(get_db)):
-    strat_units = (
-        db.query(StratUnit)
-        .filter(StratUnit.area_id == area_id)
-        .all()
-    )
+# @router.get("/api/strat-units/{area_id}", response_model=List[StratUnitResponse])
+# def get_strat_units_by_area(area_id: str, db: Session = Depends(get_db)):
+#     strat_units = (
+#         db.query(StratUnit)
+#         .filter(StratUnit.area_id == area_id)
+#         .all()
+#     )
     
-    if not strat_units:
-        raise HTTPException(status_code=404, detail="No strat units found for this area")
+#     if not strat_units:
+#         raise HTTPException(status_code=404, detail="No strat units found for this area")
     
-    return [
-        StratUnitResponse(
-            id=unit.id,
-            strat_unit_info=f"{unit.strat_unit_name} ({unit.strat_petroleum_system.name})"
-        )
-        for unit in strat_units
-    ]
+#     return [
+#         StratUnitResponse(
+#             id=unit.id,
+#             strat_unit_info=f"{unit.strat_unit_name} ({unit.strat_petroleum_system.name})"
+#         )
+#         for unit in strat_units
+#     ]
 

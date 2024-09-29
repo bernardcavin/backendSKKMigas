@@ -10,12 +10,9 @@ class FileDB(Base):
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     
-    filename = Column(String(50))
-    size  = Column(Integer)
-    content_type = Column(String(50))
-    upload_time = Column(DateTime)
-
-    file_location = Column(String(50))
+    filename = Column(String(255))
+    file_location = Column(String(255))
+    file_extension = Column(String(5))
 
     uploaded_by_id = Column(String(36), ForeignKey('users.id'))
     uploaded_by = relationship('User', foreign_keys=[uploaded_by_id])

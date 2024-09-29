@@ -1,6 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from pydantic import BaseModel, Field
 from typing import List, Optional
+from app.api.job.models import *
 import shutil
 import os
 from datetime import datetime
@@ -8,9 +9,6 @@ from datetime import datetime
 class FileInfo(BaseModel):
     id: str
     filename: str
-    size: int
-    content_type: str
-    upload_time: datetime
     file_location: str
 
     class Config:
@@ -27,3 +25,9 @@ class MultiUploadResponse(BaseModel):
 class TabularData(BaseModel):
     headers: List[str]
     records: List[dict]
+
+class DrillingOperationResponse(BaseModel):
+    operation: DrillingOperation
+
+class BHAResponse(BaseModel):
+    bhacomponent: BHAComponentType

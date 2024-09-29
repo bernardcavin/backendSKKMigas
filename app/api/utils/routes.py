@@ -1,24 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
+from fastapi import APIRouter, Depends, File, UploadFile
 from typing import List
 from sqlalchemy.orm import Session
 from app.api.auth.models import Role
 from app.core.security import authorize, get_db, get_current_user
-from app.api.spatial.models import Lapangan as OilField
-from app.api.job.models import ContractType, HazardType, RigType, Severity, WOWSJobType
-from app.api.well.models import CasingType, DepthDatum, EnvironmentType, LogType, MediaType, WellType, WellStatus, WellProfileType
-from app.api.utils.schemas import UploadResponse, MultiUploadResponse, TabularData
+from app.api.utils.schemas import TabularData,DrillingOperationResponse,BHAResponse
+from app.api.job.models import *
 from app.api.utils.crud import save_upload_file, save_upload_multiple_files, jsonify_tabular_file
-from app.api.auth.schemas import GetUser
 from well_profile import load
-import json
-import pandas as pd
-import plotly.graph_objects as go
 from app.core.schema_operations import create_api_response
 from app.api.visualize.lib.well_profile_func import render_well_profile
 
 router = APIRouter(prefix="/utils", tags=["utils"])
 
-@router.post("/upload/file")
+@router.post("/upload/file", tags=['file'])
 @authorize(role=[Role.Admin, Role.KKKS])
 async def create_upload_file(file: UploadFile = File(...), db: Session = Depends(get_db), user = Depends(get_current_user)):
     try:
@@ -55,10 +49,11 @@ async def read_tabular_file(file: UploadFile = File(...), user = Depends(get_cur
 
 @router.post("/upload/trajectory")
 async def upload_trajectory_file(file: UploadFile = File(...), db: Session = Depends(get_db), user = Depends(get_current_user)):
+
+    file_info = save_upload_file(db, file, user)
+    
     try:
-        file_info = save_upload_file(db, file, user)
         well_profile = load(file_info.file_location)
-        
         fig_data = render_well_profile(well_profile)
 
         return create_api_response(
@@ -66,5 +61,25 @@ async def upload_trajectory_file(file: UploadFile = File(...), db: Session = Dep
             message="Trajectory file uploaded and processed successfully",
             data={"file_info": file_info, "plot": fig_data}
         )
+        
     except Exception as e:
-        return create_api_response(success=False, message="File cannot be processed", status_code=500)
+        
+        return create_api_response(
+            success=True,
+            message="Trajectory file uploaded successfully",
+        )
+    
+@router.get("/drilling-operations/pyenum", response_model=List[DrillingOperationResponse])
+async def list_drilling_operations():
+    return [
+        DrillingOperationResponse(operation=op, description=op.value)
+        for op in DrillingOperation
+    ]
+
+@router.get("/bha/pyenum", response_model=List[BHAResponse])
+async def list_bhacomponents():
+    return [
+       BHAResponse(bhacomponent=op)
+        for op in BHAComponentType
+    ]
+
