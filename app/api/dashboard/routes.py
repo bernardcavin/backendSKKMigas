@@ -14,7 +14,7 @@ from app.api.dashboard.crud import (
     get_kkks_info
 )
 from app.core.security import authorize, get_current_user, get_db
-from app.api.auth.models import Role, Admin, KKKS
+from app.api.auth.models import Role, Admin
 from app.api.job.models import JobType
 from app.core.schema_operations import create_api_response
 
@@ -76,8 +76,7 @@ async def get_job_type_dashboard_endpoint(job_type: str, db: Session = Depends(g
 @router.get("/view-kkks/{kkks_id}")
 @authorize(role=[Role.Admin, Role.KKKS])
 async def view_kkks(kkks_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
-    kkks = db.query(KKKS).filter(KKKS.id == kkks_id).first()
-    if kkks is None:
+    if get_kkks(db, kkks_id) is None:
         raise HTTPException(status_code=404, detail="KKKS not found")
     result = get_kkks_info(db, kkks_id, user)
     return create_api_response(success=True, message="KKKS info retrieved successfully", data=result)

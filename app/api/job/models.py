@@ -335,61 +335,7 @@ class Job(Base, CreateBase, ValidationBase, EditBase):
     
     closeout_status = Column(Enum(CloseOutStatus))
 
-    @hybrid_property
-    def job_current_status(self):
-        if self.closeout_status is not None:
-            return self.closeout_status
-        elif self.ppp_status is not None:
-            return self.ppp_status
-        elif self.operation_status is not None:
-            return self.operation_status
-        else:
-            return self.planning_status
-
-    @job_current_status.expression
-    def job_current_status(cls):
-        return case(
-            
-            (
-                and_(
-                    cls.closeout_status.is_(None),
-                    cls.ppp_status.is_(None),
-                    cls.operation_status.is_(None),
-                    cls.planning_status.isnot(None),
-                ),
-                cls.planning_status
-            ),
-            # (
-            #     and_(
-            #         cls.closeout_status.is_(None),
-            #         cls.ppp_status.is_(None),
-            #         cls.operation_status.isnot(None),
-            #         cls.planning_status.isnot(None),
-            #     ),
-            #     cls.operation_status
-            # ),
-            # (
-            #     and_(
-            #         cls.closeout_status.is_(None),
-            #         cls.ppp_status.isnot(None),
-            #         cls.operation_status.isnot(None),
-            #         cls.planning_status.isnot(None),
-            #     ),
-            #     cls.ppp_status
-            # ),
-            # (
-            #     and_(
-            #         cls.closeout_status.isnot(None),
-            #         cls.ppp_status.isnot(None),
-            #         cls.operation_status.isnot(None),
-            #         cls.planning_status.isnot(None),
-            #     ),
-            #     cls.closeout_status
-            # )
-        )
-        
-    
-    # @property
+    # @hybrid_property
     # def job_current_status(self):
     #     if self.closeout_status is not None:
     #         return self.closeout_status
@@ -399,6 +345,60 @@ class Job(Base, CreateBase, ValidationBase, EditBase):
     #         return self.operation_status
     #     else:
     #         return self.planning_status
+
+    # @job_current_status.expression
+    # def job_current_status(cls):
+    #     return case(
+            
+    #         (
+    #             and_(
+    #                 cls.closeout_status.is_(None),
+    #                 cls.ppp_status.is_(None),
+    #                 cls.operation_status.is_(None),
+    #                 cls.planning_status.isnot(None),
+    #             ),
+    #             cls.planning_status
+    #         ),
+    #         # (
+    #         #     and_(
+    #         #         cls.closeout_status.is_(None),
+    #         #         cls.ppp_status.is_(None),
+    #         #         cls.operation_status.isnot(None),
+    #         #         cls.planning_status.isnot(None),
+    #         #     ),
+    #         #     cls.operation_status
+    #         # ),
+    #         # (
+    #         #     and_(
+    #         #         cls.closeout_status.is_(None),
+    #         #         cls.ppp_status.isnot(None),
+    #         #         cls.operation_status.isnot(None),
+    #         #         cls.planning_status.isnot(None),
+    #         #     ),
+    #         #     cls.ppp_status
+    #         # ),
+    #         # (
+    #         #     and_(
+    #         #         cls.closeout_status.isnot(None),
+    #         #         cls.ppp_status.isnot(None),
+    #         #         cls.operation_status.isnot(None),
+    #         #         cls.planning_status.isnot(None),
+    #         #     ),
+    #         #     cls.closeout_status
+    #         # )
+    #     )
+        
+    
+    @property
+    def job_current_status(self):
+        if self.closeout_status is not None:
+            return self.closeout_status
+        elif self.ppp_status is not None:
+            return self.ppp_status
+        elif self.operation_status is not None:
+            return self.operation_status
+        else:
+            return self.planning_status
     
 class JobInstance(Base):
     
