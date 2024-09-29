@@ -3,7 +3,8 @@ from typing import List
 from sqlalchemy.orm import Session
 from app.api.auth.models import Role
 from app.core.security import authorize, get_db, get_current_user
-from app.api.utils.schemas import TabularData
+from app.api.utils.schemas import TabularData,DrillingOperationResponse,BHAResponse
+from app.api.job.models import *
 from app.api.utils.crud import save_upload_file, save_upload_multiple_files, jsonify_tabular_file
 from well_profile import load
 from app.core.schema_operations import create_api_response
@@ -67,4 +68,18 @@ async def upload_trajectory_file(file: UploadFile = File(...), db: Session = Dep
             success=True,
             message="Trajectory file uploaded successfully",
         )
+    
+@router.get("/drilling-operations/pyenum", response_model=List[DrillingOperationResponse])
+async def list_drilling_operations():
+    return [
+        DrillingOperationResponse(operation=op, description=op.value)
+        for op in DrillingOperation
+    ]
+
+@router.get("/bha/pyenum", response_model=List[BHAResponse])
+async def list_bhacomponents():
+    return [
+       BHAResponse(bhacomponent=op)
+        for op in BHAComponentType
+    ]
 
