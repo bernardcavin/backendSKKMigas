@@ -219,9 +219,6 @@ class CreateActualWell(WellBaseWithNests):
     well_logs: Optional[List[WellLogBase]] = []
     well_drilling_parameter: Optional[WellDrillingParameterBase] = None
 
-    well_status: WellStatus
-    remark: str
-
     class Meta:
         orm_model = ActualWell
     

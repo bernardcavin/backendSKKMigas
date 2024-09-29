@@ -881,3 +881,58 @@ def get_job_type_dashboard(db: Session, job_type: JobType, user):
             output['environment_type_graph'] = environment_type_graph
     
     return output
+
+def get_kkks_info(db: Session, kkks_id: str, user):
+    
+    summary = db.query(
+        Job.job_type,
+        func.count(Job.id).filter(Job.planning_status == PlanningStatus.APPROVED).label('rencana'),
+        func.count(Job.id).filter(Job.operation_status.in_([OperationStatus.OPERATING, OperationStatus.FINISHED])).label('realisasi'),
+        func.count(Job.id).filter(Job.operation_status == OperationStatus.FINISHED).label('selesai'),
+    ).filter(Job.kkks_id == kkks_id).group_by(Job.job_type).all()
+    
+    jobs = db.query(
+        Job
+    ).filter(Job.planning_status == PlanningStatus.APPROVED).filter(Job.kkks_id==kkks_id).all()
+    
+    job_dict = {job_type:[] for job_type in job_type_map.values()}
+    
+    for job in jobs:
+        job_dict[job.job_type].append({
+            "id": job.id,
+            "NAMA SUMUR": job.well_name if job.well_name else "N/A",
+            "WILAYAH KERJA": job.area_name if job.area_name else "N/A",
+            "LAPANGAN": job.field_name if job.field_name else "N/A",
+            "KKKS": job.kkks_name if job.kkks_name else "N/A",
+            "RENCANA MULAI": job.plan_start_date.strftime("%d %b %Y") if job.plan_start_date else "N/A",
+            "RENCANA SELESAI": job.plan_end_date.strftime("%d %b %Y") if job.plan_end_date else "N/A",
+            "REALISASI MULAI": job.actual_start_date.strftime("%d %b %Y") if job.actual_start_date else "N/A",
+            "REALISASI SELESAI": job.actual_end_date.strftime("%d %b %Y") if job.actual_end_date else "N/A",
+            "STATUS": job.job_current_status
+        })
+    
+    summary_dict = {
+        summary_item.job_type:{
+            "rencana": summary_item.rencana,
+            "realisasi": summary_item.realisasi,
+            "change": summary_item.selesai,
+        } for summary_item in summary
+    }
+    
+    output = []
+    
+    for job_type_label, job_type in job_type_map.items():
+        output.append(
+            {
+                job_type_label:{
+                    "rencana": summary_dict.get(job_type, {}).get("rencana", 0),
+                    "realisasi": summary_dict.get(job_type, {}).get("realisasi", 0),
+                    "selesai": summary_dict.get(job_type, {}).get("selesai", 0),
+                    "jobs": job_dict.get(job_type, [])
+                }
+            }
+        )
+    
+    return output
+    
+    

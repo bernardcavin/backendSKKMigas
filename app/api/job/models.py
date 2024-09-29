@@ -1,6 +1,6 @@
 from os import close
 from sqlalchemy import Column, String, Enum as SQLAlchemyEnum
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, Enum, Text, Boolean, Float, Date, func, select
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, Enum, Text, Boolean, Float, Date, func, select, case, and_
 from app.api.well.models import ActualWell, DepthDatum, PlanWell, WellInstance
 from sqlalchemy.orm import relationship, declared_attr, with_polymorphic, aliased
 from app.core.database import Base
@@ -334,17 +334,71 @@ class Job(Base, CreateBase, ValidationBase, EditBase):
     date_co_approved = Column(Date)
     
     closeout_status = Column(Enum(CloseOutStatus))
-    
-    @property
+
+    @hybrid_property
     def job_current_status(self):
-        if self.closeout_status:
+        if self.closeout_status is not None:
             return self.closeout_status
-        elif self.ppp_status:
+        elif self.ppp_status is not None:
             return self.ppp_status
-        elif self.operation_status:
+        elif self.operation_status is not None:
             return self.operation_status
         else:
             return self.planning_status
+
+    @job_current_status.expression
+    def job_current_status(cls):
+        return case(
+            
+            (
+                and_(
+                    cls.closeout_status.is_(None),
+                    cls.ppp_status.is_(None),
+                    cls.operation_status.is_(None),
+                    cls.planning_status.isnot(None),
+                ),
+                cls.planning_status
+            ),
+            # (
+            #     and_(
+            #         cls.closeout_status.is_(None),
+            #         cls.ppp_status.is_(None),
+            #         cls.operation_status.isnot(None),
+            #         cls.planning_status.isnot(None),
+            #     ),
+            #     cls.operation_status
+            # ),
+            # (
+            #     and_(
+            #         cls.closeout_status.is_(None),
+            #         cls.ppp_status.isnot(None),
+            #         cls.operation_status.isnot(None),
+            #         cls.planning_status.isnot(None),
+            #     ),
+            #     cls.ppp_status
+            # ),
+            # (
+            #     and_(
+            #         cls.closeout_status.isnot(None),
+            #         cls.ppp_status.isnot(None),
+            #         cls.operation_status.isnot(None),
+            #         cls.planning_status.isnot(None),
+            #     ),
+            #     cls.closeout_status
+            # )
+        )
+        
+    
+    # @property
+    # def job_current_status(self):
+    #     if self.closeout_status is not None:
+    #         return self.closeout_status
+    #     elif self.ppp_status is not None:
+    #         return self.ppp_status
+    #     elif self.operation_status is not None:
+    #         return self.operation_status
+    #     else:
+    #         return self.planning_status
     
 class JobInstance(Base):
     

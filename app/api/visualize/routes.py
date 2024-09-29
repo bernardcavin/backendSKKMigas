@@ -61,14 +61,23 @@ async def visualize_casing(session_id: str, background_tasks: BackgroundTasks, u
     except Exception as e:
         return create_api_response(success=False, message="Failed to generate casing visualization", status_code=500)
 
-@router.get("/wbs/{job_id}", response_class=HTMLResponse)
+@router.get("/wbs/plan/{job_id}", response_class=HTMLResponse)
+@authorize(role=[Role.Admin, Role.KKKS])
 async def visualize_wbs(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
-    # try:
-    wbs_data = crud.visualize_work_breakdown_structure(db, job_id)
-    return wbs_data
-    # except Exception as e:
-    #     print(e)
-    #     return create_api_response(success=False, message="Failed to generate Work Breakdown Structure visualization", status_code=500)
+    try:
+        wbs_data = crud.visualize_work_breakdown_structure(db, job_id, 'plan')
+        return wbs_data
+    except Exception as e:
+        return create_api_response(success=False, message="Failed to generate Work Breakdown Structure visualization", status_code=500)
+
+@router.get("/wbs/actual/{job_id}", response_class=HTMLResponse)
+@authorize(role=[Role.Admin, Role.KKKS])
+async def visualize_actual_wbs(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    try:
+        wbs_data = crud.visualize_work_breakdown_structure(db, job_id, 'actual')
+        return wbs_data
+    except Exception as e:
+        return create_api_response(success=False, message="Failed to generate Work Breakdown Structure visualization", status_code=500)
 
 # Uncomment and adjust the following endpoint as needed if you want to use it
 # @router.get("/well-log/{well_id}")

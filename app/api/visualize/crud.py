@@ -1,3 +1,4 @@
+from typing import Literal
 from app.api.job.models import *
 from app.api.utils.schemas import *
 from sqlalchemy.orm import Session
@@ -7,7 +8,7 @@ import app.api.visualize.lib.gantt_chart as gantt
 def get_well_data(data_class: DataClass, db: Session, well_id: str):
     return db.query(WellDigitalData).filter(WellDigitalData.data_class == data_class, WellDigitalData.well_id == well_id).first()
 
-def visualize_work_breakdown_structure(db: Session, job_id: str):
+def visualize_work_breakdown_structure(db: Session, job_id: str, wbs_type: Literal['plan', 'actual']):
     
     db_job = db.query(Job).filter(Job.id == job_id).first()
     
@@ -271,8 +272,14 @@ def visualize_work_breakdown_structure(db: Session, job_id: str):
         
         plans.append(plan)
         actuals.append(actual)
+    
+    if wbs_type == 'actual':
         
-    all_data = all_data + plans + actuals
+        all_data = all_data + plans + actuals
+        
+    elif wbs_type == 'plan':
+        
+        all_data = all_data + plans
 
     data = gantt.Data()
     index = 1
