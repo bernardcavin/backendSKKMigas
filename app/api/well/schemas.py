@@ -44,7 +44,7 @@ class WellBase(BaseModel):
     kick_off_point: Optional[float]
     maximum_tvd: Optional[float]
     final_md: Optional[float]
-    remark: Optional[str]
+    # remark: Optional[str]
 
     class Config:
         from_attributes = True
@@ -206,6 +206,7 @@ class CreateDummyPlanWell(CreatePlanWell):
     
     area_id: str
     field_id: str
+    kkks_id: str
 
     class Config:
         from_attributes = True
