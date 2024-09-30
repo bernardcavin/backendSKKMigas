@@ -227,3 +227,12 @@ class CreateActualWell(WellBaseWithNests):
     
     class Config:
         from_attributes = True
+
+class GetWell(BaseModel):
+    well_name: str
+    area:str
+    field: str
+    well_status: Optional[str]  # Izinkan None untuk status
+    kkks_id: Optional[str]
+    class Config:
+        orm_mode = True

@@ -276,7 +276,7 @@ class CreateActualWorkover(JobActualInstanceBase):
         orm_model = ActualWorkover
     class Config:
         from_attributes = True
-           
+               
 class CreateActualWellService(JobActualInstanceBase):
     
     equipment: str

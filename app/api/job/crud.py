@@ -738,13 +738,41 @@ def get_date_color(db: Session, job_instance_id: str, check_date: date) -> str:
         
 
 def update_operation_actual(db: Session, job_id: str, actual: CreateActualExploration, user):
-    print(ActualExploration(**parse_schema(actual)))
     db_job = db.query(Job).filter(Job.id ==job_id).first()
     db_job_actual=db_job.actual_job
     db_job_actual_new = ActualExploration(**parse_schema(actual))
     db_job_actual_new.id = db_job_actual.id
     db_job.actual_job = db_job_actual_new
-    
+    db.commit()
+    db.refresh(db_job_actual_new)
+    return db_job_actual_new
+
+def update_operation_actual_development(db: Session, job_id: str, actual: CreateActualDevelopment, user):
+    db_job = db.query(Job).filter(Job.id ==job_id).first()
+    db_job_actual=db_job.actual_job
+    db_job_actual_new = ActualDevelopment(**parse_schema(actual))
+    db_job_actual_new.id = db_job_actual.id
+    db_job.actual_job = db_job_actual_new
+    db.commit()
+    db.refresh(db_job_actual_new)
+    return db_job_actual_new
+
+def update_operation_actual_workover(db: Session, job_id: str, actual: CreateActualWorkover, user):
+    db_job = db.query(Job).filter(Job.id ==job_id).first()
+    db_job_actual=db_job.actual_job
+    db_job_actual_new = ActualWorkover(**parse_schema(actual))
+    db_job_actual_new.id = db_job_actual.id
+    db_job.actual_job = db_job_actual_new
+    db.commit()
+    db.refresh(db_job_actual_new)
+    return db_job_actual_new
+
+def update_operation_actual_wellservice(db: Session, job_id: str, actual: CreateActualWellService, user):
+    db_job = db.query(Job).filter(Job.id ==job_id).first()
+    db_job_actual=db_job.actual_job
+    db_job_actual_new = ActualWellService(**parse_schema(actual))
+    db_job_actual_new.id = db_job_actual.id
+    db_job.actual_job = db_job_actual_new
     db.commit()
     db.refresh(db_job_actual_new)
     return db_job_actual_new

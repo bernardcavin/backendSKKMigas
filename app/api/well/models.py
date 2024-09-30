@@ -100,6 +100,9 @@ class WellInstance(Base):
     kkks_id = Column(String(36), ForeignKey('kkks.id')) 
     kkks = relationship('KKKS', back_populates='well_instances')
 
+    # actual= relationship('ActualWell', back_populates='well_instances')
+
+
     # Basic Information
     well_name = Column(String(50))
     alias_long_name = Column(String(50))
@@ -200,7 +203,6 @@ class ActualWell(WellInstance):
     __tablename__ = 'well_actuals'
     
     id = Column(String(36), ForeignKey('well_instances.well_instance_id'), primary_key=True)
-    
     well_documents = relationship('WellDocument', back_populates='actual_well')
     well_logs = relationship('WellLog', back_populates='actual_well')
     well_drilling_parameter = relationship('WellDrillingParameter', back_populates='actual_well', uselist=False)

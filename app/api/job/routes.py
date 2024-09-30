@@ -231,3 +231,36 @@ def patch_actual_exploration_route(
     print(job_id)
     exploration_update = crud.update_operation_actual(db, job_id, actual,user)
     return exploration_update
+
+@router.post("/operation/update/actual_development/{job_id}", response_model=schemas.CreateActualDevelopment)
+def patch_actual_development_route(
+    job_id: str,
+    actual: schemas.CreateActualDevelopment,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    print(job_id)
+    exploration_update = crud.update_operation_actual_development(db, job_id, actual,user)
+    return exploration_update
+
+@router.post("/operation/update/actual_workover/{job_id}", response_model=schemas.CreateActualWorkover)
+def patch_actual_workover_route(
+    job_id: str,
+    actual: schemas.CreateActualWorkover,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    print(job_id)
+    exploration_update = crud.update_operation_actual_workover(db, job_id, actual,user)
+    return exploration_update
+
+@router.post("/operation/update/actual_wellservice/{job_id}", response_model=schemas.CreateActualWellService)
+def patch_actual_wellservice_route(
+    job_id: str,
+    actual: schemas.CreateActualWellService,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    print(job_id)
+    exploration_update = crud.update_operation_actual_wellservice(db, job_id, actual,user)
+    return exploration_update
