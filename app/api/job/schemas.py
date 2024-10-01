@@ -1,5 +1,7 @@
 from typing import List, ClassVar
 
+from sqlalchemy import Update
+
 from app.api.job.models import *
 from app.api.well.schemas import *
 
@@ -73,10 +75,10 @@ class JobPlanInstanceBase(BaseModel):
     end_date: date
     total_budget: Decimal = Field(default=None, max_digits=10, decimal_places=2)
     
-    job_operation_days: Optional[List[JobOperationDayBase]] = []
-    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]] = []
-    job_hazards: Optional[List[JobHazardBase]] = []
-    job_documents: Optional[List[JobDocumentBase]] = []
+    job_operation_days: Optional[List[JobOperationDayBase]]
+    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]]
+    job_hazards: Optional[List[JobHazardBase]]
+    job_documents: Optional[List[JobDocumentBase]]
 
     class Config:
         from_attributes = True
@@ -87,10 +89,10 @@ class JobActualInstanceBase(BaseModel):
     end_date: date
     total_budget: Decimal = Field(default=None, max_digits=10, decimal_places=2)
     
-    job_operation_days: Optional[List[JobOperationDayBase]] = []
-    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]] = []
-    job_hazards: Optional[List[JobHazardBase]] = []
-    job_documents: Optional[List[JobDocumentBase]] = []
+    job_operation_days: Optional[List[JobOperationDayBase]]
+    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]]
+    job_hazards: Optional[List[JobHazardBase]]
+    job_documents: Optional[List[JobDocumentBase]]
 
     class Config:
         from_attributes = True
@@ -212,7 +214,7 @@ class CreateActualExploration(JobActualInstanceBase):
     rig_type: RigType
     rig_horse_power: Decimal
 
-    well: CreateActualWell
+    well: UpdateActualWell
     
     wrm_pembebasan_lahan: Optional[Percentage] = Percentage.P0
     wrm_ippkh: Optional[Percentage] = Percentage.P0
@@ -236,7 +238,7 @@ class CreateActualDevelopment(JobActualInstanceBase):
     rig_type: RigType
     rig_horse_power: Decimal
 
-    well: CreateActualWell
+    well: UpdateActualWell
     
     wrm_pembebasan_lahan: Optional[Percentage] = Percentage.P0
     wrm_ippkh: Optional[Percentage] = Percentage.P0
