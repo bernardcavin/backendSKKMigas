@@ -221,10 +221,10 @@ def read_job_instance_dates(job_instance_id: str, db: Session = Depends(get_db))
         colored_dates.append(schemas.ColoredDate(date=date_str, color=color))
     
     return colored_dates
-@router.post("/operation/update/actual_exploration/{job_id}", response_model=schemas.CreateActualExploration)
+@router.post("/operation/update/actual_exploration/{job_id}", response_model=schemas.UpdateActualExploration)
 def patch_actual_exploration_route(
     job_id: str,
-    actual: schemas.CreateActualExploration,
+    actual: schemas.UpdateActualExploration,
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
@@ -232,10 +232,10 @@ def patch_actual_exploration_route(
     exploration_update = crud.update_operation_actual(db, job_id, actual,user)
     return exploration_update
 
-@router.post("/operation/update/actual_development/{job_id}", response_model=schemas.CreateActualDevelopment)
+@router.post("/operation/update/actual_development/{job_id}", response_model=schemas.UpdateActualDevelopment)
 def patch_actual_development_route(
     job_id: str,
-    actual: schemas.CreateActualDevelopment,
+    actual: schemas.UpdateActualDevelopment,
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
@@ -243,10 +243,10 @@ def patch_actual_development_route(
     exploration_update = crud.update_operation_actual_development(db, job_id, actual,user)
     return exploration_update
 
-@router.post("/operation/update/actual_workover/{job_id}", response_model=schemas.CreateActualWorkover)
+@router.post("/operation/update/actual_workover/{job_id}", response_model=schemas.UpdateActualWorkover)
 def patch_actual_workover_route(
     job_id: str,
-    actual: schemas.CreateActualWorkover,
+    actual: schemas.UpdateActualWorkover,
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
@@ -254,7 +254,7 @@ def patch_actual_workover_route(
     exploration_update = crud.update_operation_actual_workover(db, job_id, actual,user)
     return exploration_update
 
-@router.post("/operation/update/actual_wellservice/{job_id}", response_model=schemas.CreateActualWellService)
+@router.post("/operation/update/actual_wellservice/{job_id}", response_model=schemas.UpdateActualWellService)
 def patch_actual_wellservice_route(
     job_id: str,
     actual: schemas.CreateActualWellService,
