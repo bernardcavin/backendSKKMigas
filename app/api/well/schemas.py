@@ -186,20 +186,20 @@ class WellSchematicBase(BaseModel):
 
 class WellBaseWithNests(WellBase):
     
-    well_summary: Optional[List[WellSummaryBase]]
-    well_trajectory: Optional[WellTrajectoryBase]
-    well_ppfg: Optional[WellPPFGBase]
-    well_casing: Optional[List[WellCasingBase]]
-    well_schematic: Optional[WellSchematicBase]
-    well_stratigraphy: Optional[List[WellStratigraphyBase]]
+    well_summary: Optional[List[WellSummaryBase]] = []
+    well_trajectory: Optional[WellTrajectoryBase] = None
+    well_ppfg: Optional[WellPPFGBase] = None
+    well_casing: Optional[List[WellCasingBase]] = []
+    well_schematic: Optional[WellSchematicBase] = None
+    well_stratigraphy: Optional[List[WellStratigraphyBase]]  = []
 
 class WellMandatoryBaseWithNests(WellMandatoryBase):
-    well_summary: Optional[List[WellSummaryBase]]
-    well_trajectory: Optional[WellTrajectoryBase]
-    well_ppfg: Optional[WellPPFGBase]
-    well_casing: Optional[List[WellCasingBase]]
-    well_schematic: Optional[WellSchematicBase]
-    well_stratigraphy: Optional[List[WellStratigraphyBase]]
+    well_summary: Optional[List[WellSummaryBase]] = []
+    well_trajectory: Optional[WellTrajectoryBase] = None
+    well_ppfg: Optional[WellPPFGBase] = None
+    well_casing: Optional[List[WellCasingBase]] = []
+    well_schematic: Optional[WellSchematicBase] = None
+    well_stratigraphy: Optional[List[WellStratigraphyBase]] = []
 
 class CreatePlanWell(WellBaseWithNests):
     
@@ -221,9 +221,9 @@ class CreateDummyPlanWell(CreatePlanWell):
         from_attributes = True
 
 class ActualWellBase(WellBaseWithNests):
-    well_documents: Optional[List[WellDocumentBase]]
-    well_logs: Optional[List[WellLogBase]]
-    well_drilling_parameter: Optional[WellDrillingParameterBase]
+    well_documents: Optional[List[WellDocumentBase]] = []
+    well_logs: Optional[List[WellLogBase]] = []
+    well_drilling_parameter: Optional[WellDrillingParameterBase] = None
 
     well_status: WellStatus
     remark: str
