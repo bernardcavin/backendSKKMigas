@@ -75,10 +75,10 @@ class JobPlanInstanceBase(BaseModel):
     end_date: date
     total_budget: Decimal = Field(default=None, max_digits=10, decimal_places=2)
     
-    job_operation_days: Optional[List[JobOperationDayBase]]
-    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]]
-    job_hazards: Optional[List[JobHazardBase]]
-    job_documents: Optional[List[JobDocumentBase]]
+    job_operation_days: Optional[List[JobOperationDayBase]] = []
+    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]] = []
+    job_hazards: Optional[List[JobHazardBase]] = []
+    job_documents: Optional[List[JobDocumentBase]] = []
 
     class Config:
         from_attributes = True
@@ -89,10 +89,10 @@ class JobActualInstanceBase(BaseModel):
     end_date: date
     total_budget: Decimal = Field(default=None, max_digits=10, decimal_places=2)
     
-    job_operation_days: Optional[List[JobOperationDayBase]]
-    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]]
-    job_hazards: Optional[List[JobHazardBase]]
-    job_documents: Optional[List[JobDocumentBase]]
+    job_operation_days: Optional[List[JobOperationDayBase]] = []
+    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]] = []
+    job_hazards: Optional[List[JobHazardBase]] = []
+    job_documents: Optional[List[JobDocumentBase]] = []
 
     class Config:
         from_attributes = True
