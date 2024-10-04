@@ -75,10 +75,10 @@ class JobPlanInstanceBase(BaseModel):
     end_date: date
     total_budget: Decimal = Field(default=None, max_digits=10, decimal_places=2)
     
-    job_operation_days: Optional[List[JobOperationDayBase]] = []
-    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]] = []
-    job_hazards: Optional[List[JobHazardBase]] = []
-    job_documents: Optional[List[JobDocumentBase]] = []
+    job_operation_days: Optional[List[JobOperationDayBase]]
+    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]]
+    job_hazards: Optional[List[JobHazardBase]]
+    job_documents: Optional[List[JobDocumentBase]]
 
     class Config:
         from_attributes = True
@@ -89,10 +89,10 @@ class JobActualInstanceBase(BaseModel):
     end_date: date
     total_budget: Decimal = Field(default=None, max_digits=10, decimal_places=2)
     
-    job_operation_days: Optional[List[JobOperationDayBase]] = []
-    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]] = []
-    job_hazards: Optional[List[JobHazardBase]] = []
-    job_documents: Optional[List[JobDocumentBase]] = []
+    job_operation_days: Optional[List[JobOperationDayBase]]
+    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]]
+    job_hazards: Optional[List[JobHazardBase]]
+    job_documents: Optional[List[JobDocumentBase]]
 
     class Config:
         from_attributes = True
@@ -174,7 +174,7 @@ class CreatePlanWorkover(JobPlanInstanceBase):
     target_gas: Decimal
     target_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase] = None
+    well_schematic: Optional[WellSchematicBase]
 
     class Meta:
         orm_model = PlanWorkover
@@ -201,7 +201,7 @@ class CreatePlanWellService(JobPlanInstanceBase):
     target_gas: Decimal
     target_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase] = None
+    well_schematic: Optional[WellSchematicBase]
 
     class Meta:
         orm_model = PlanWellService
@@ -298,7 +298,7 @@ class CreateActualWorkover(JobActualInstanceBase):
     onstream_gas: Decimal
     onstream_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase] = None
+    well_schematic: Optional[WellSchematicBase]
     
     class Meta:
         orm_model = ActualWorkover
@@ -320,7 +320,7 @@ class UpdateActualWorkover(JobActualInstanceBase):
     onstream_gas: Decimal
     onstream_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase] = None
+    well_schematic: Optional[WellSchematicBase]
     
     class Meta:
         orm_model = ActualWorkover
@@ -342,7 +342,7 @@ class CreateActualWellService(JobActualInstanceBase):
     onstream_gas: Decimal
     onstream_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase] = None
+    well_schematic: Optional[WellSchematicBase]
     
     class Meta:
         orm_model = ActualWellService
@@ -364,7 +364,7 @@ class UpdateActualWellService(JobActualInstanceBase):
     onstream_gas: Decimal
     onstream_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase] = None
+    well_schematic: Optional[WellSchematicBase]
     
     class Meta:
         orm_model = ActualWellService
