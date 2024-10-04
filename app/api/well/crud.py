@@ -11,11 +11,13 @@ from app.api.auth.schemas import GetUser
 from app.core.schema_operations import parse_schema
 import uuid
 
-def create_well(db: Session, well: CreatePlanWell, user):
+def create_well(db: Session, well: CreateExistingWell, user):
 
     db_well = ActualWell(
         **parse_schema(well)
     )
+    
+    db_well.kkks_id = user.kkks_id
     
     db.add(db_well)
     db.commit()

@@ -1,5 +1,7 @@
 from typing import List, ClassVar
 
+from sqlalchemy import Update
+
 from app.api.job.models import *
 from app.api.well.schemas import *
 
@@ -229,6 +231,19 @@ class CreateActualExploration(JobActualInstanceBase):
         orm_model = ActualExploration
     class Config:
         from_attributes = True
+
+class UpdateActualExploration(JobActualInstanceBase):
+    
+    rig_name: str
+    rig_type: RigType
+    rig_horse_power: Decimal
+
+    well: UpdateActualWell
+
+    class Meta:
+        orm_model = ActualDevelopment
+    class Config:
+        from_attributes = True
         
 class CreateActualDevelopment(JobActualInstanceBase):
     
@@ -254,8 +269,43 @@ class CreateActualDevelopment(JobActualInstanceBase):
         orm_model = ActualDevelopment
     class Config:
         from_attributes = True
-           
+        
+class UpdateActualDevelopment(JobActualInstanceBase):
+    
+    rig_name: str
+    rig_type: RigType
+    rig_horse_power: Decimal
+
+    well: UpdateActualWell
+
+    class Meta:
+        orm_model = ActualDevelopment
+    class Config:
+        from_attributes = True
+
 class CreateActualWorkover(JobActualInstanceBase):
+    
+    equipment: str
+    equipment_specifications: str
+    
+    well_id: str
+    
+    job_category: WOWSJobType
+    job_description: str
+    
+    #target
+    onstream_oil: Decimal
+    onstream_gas: Decimal
+    onstream_water_cut: Decimal
+    
+    well_schematic: Optional[WellSchematicBase] = None
+    
+    class Meta:
+        orm_model = ActualWorkover
+    class Config:
+        from_attributes = True
+
+class UpdateActualWorkover(JobActualInstanceBase):
     
     equipment: str
     equipment_specifications: str
@@ -278,6 +328,28 @@ class CreateActualWorkover(JobActualInstanceBase):
         from_attributes = True
                
 class CreateActualWellService(JobActualInstanceBase):
+    
+    equipment: str
+    equipment_specifications: str
+    
+    well_id: str
+    
+    job_category: WOWSJobType
+    job_description: str
+    
+    #target
+    onstream_oil: Decimal
+    onstream_gas: Decimal
+    onstream_water_cut: Decimal
+    
+    well_schematic: Optional[WellSchematicBase] = None
+    
+    class Meta:
+        orm_model = ActualWellService
+    class Config:
+        from_attributes = True
+
+class UpdateActualWellService(JobActualInstanceBase):
     
     equipment: str
     equipment_specifications: str

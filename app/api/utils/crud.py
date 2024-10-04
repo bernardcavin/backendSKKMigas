@@ -29,6 +29,7 @@ def save_upload_file(db: Session, upload_file: UploadFile, user) -> FileInfo:
             shutil.copyfileobj(upload_file.file, file_object)
         
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail="Failed to upload file")
 
     try:
@@ -45,6 +46,7 @@ def save_upload_file(db: Session, upload_file: UploadFile, user) -> FileInfo:
         db.refresh(db_file)
     
     except Exception as e:
+        print(e)
         os.remove(file_location)
         raise HTTPException(status_code=500, detail="Failed to save file")
 

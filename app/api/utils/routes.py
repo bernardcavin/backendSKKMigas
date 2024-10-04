@@ -23,6 +23,7 @@ async def create_upload_file(file: UploadFile = File(...), db: Session = Depends
             data={"file_info": file_info}
         )
     except Exception as e:
+        print(e)
         return create_api_response(success=False, message="Failed to upload file", status_code=500)
 
 @router.post("/upload/files")

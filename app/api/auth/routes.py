@@ -31,9 +31,9 @@ async def create_admin(admin: schemas.CreateAdmin, db: Session = Depends(get_db)
         return create_api_response(success=False, message="Failed to create admin user", status_code=400)
     return create_api_response(success=True, message="Admin created successfully")
 
-@router.get('/user/me', summary='Get details of currently logged in user', response_model=schemas.GetUser)
-async def get_me(user: schemas.GetUser = Depends(get_current_user)):
-    return user
+@router.get('/user/me', summary='Get details of currently logged in user', response_model=schemas.GetKKKSUser, response_model_exclude_unset=True)
+async def get_me(user = Depends(get_current_user)):
+    return schemas.GetKKKSUser.model_validate(user)
 
 @router.post('/user/verify/{user_id}', response_model=schemas.VerifyUser)
 @authorize(role=[models.Role.Admin])

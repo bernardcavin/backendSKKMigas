@@ -4,14 +4,9 @@ from datetime import date
 from app.api.well.models import *
 from app.core.constants import UnitType
 
-class WellBase(BaseModel):
+class WellMandatoryBase(BaseModel):
     
     unit_type: UnitType
-
-    #uwi: Optional[str]
-    well_name: str
-    alias_long_name: Optional[str]
-
     well_type: WellType
     well_profile_type: WellProfileType
     well_directional_type: WellDirectionalType
@@ -40,6 +35,13 @@ class WellBase(BaseModel):
 
     class Config:
         from_attributes = True
+
+class WellBase(WellMandatoryBase):
+    
+    uwi: Optional[str]
+    well_name: str
+    alias_long_name: Optional[str]
+
 
 class WellDocumentBase(BaseModel):
     
@@ -189,11 +191,19 @@ class WellBaseWithNests(WellBase):
     well_ppfg: Optional[WellPPFGBase] = None
     well_casing: Optional[List[WellCasingBase]] = []
     well_schematic: Optional[WellSchematicBase] = None
+    well_stratigraphy: Optional[List[WellStratigraphyBase]]  = []
+
+class WellMandatoryBaseWithNests(WellMandatoryBase):
+    well_summary: Optional[List[WellSummaryBase]] = []
+    well_trajectory: Optional[WellTrajectoryBase] = None
+    well_ppfg: Optional[WellPPFGBase] = None
+    well_casing: Optional[List[WellCasingBase]] = []
+    well_schematic: Optional[WellSchematicBase] = None
     well_stratigraphy: Optional[List[WellStratigraphyBase]] = []
 
 class CreatePlanWell(WellBaseWithNests):
     
-    well_test: Optional[List[WellTestBase]] = []
+    well_test: Optional[List[WellTestBase]]
 
     class Meta:
         orm_model = PlanWell
@@ -210,24 +220,44 @@ class CreateDummyPlanWell(CreatePlanWell):
     class Config:
         from_attributes = True
 
-class CreateActualWell(WellBaseWithNests):
-    
-    area_id: str
-    field_id: str
-    kkks_id: str
-
+class ActualWellBase(WellBaseWithNests):
     well_documents: Optional[List[WellDocumentBase]] = []
     well_logs: Optional[List[WellLogBase]] = []
     well_drilling_parameter: Optional[WellDrillingParameterBase] = None
 
-    # well_status: WellStatus
-    # remark: str
+    well_status: WellStatus
+    remark: str
 
     class Meta:
         orm_model = ActualWell
     
     class Config:
         from_attributes = True
+
+class UpdateActualWell(WellMandatoryBaseWithNests):
+    well_documents: Optional[List[WellDocumentBase]]
+    well_logs: Optional[List[WellLogBase]]
+    well_drilling_parameter: Optional[WellDrillingParameterBase]
+
+    well_status: WellStatus
+    remark: str
+
+    class Meta:
+        orm_model = ActualWell
+    
+    class Config:
+        from_attributes = True
+    pass
+
+class CreateActualWell(ActualWellBase):
+    
+    area_id: str
+    field_id: str
+    kkks_id: str
+
+class CreateExistingWell(CreateActualWell):
+    area_id: str
+    field_id: str
 
 class GetWell(BaseModel):
     well_name: str
