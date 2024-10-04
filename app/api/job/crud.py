@@ -743,6 +743,16 @@ def update_operation_actual(db: Session, job_id: str, actual: CreateActualExplor
     db_job_actual_new = ActualExploration(**parse_schema(actual))
     db_job_actual_new.id = db_job_actual.id
     db_job.actual_job = db_job_actual_new
+    db_job_actual_new.wrm_amdal=db_job_actual.wrm_amdal
+    db_job_actual_new.wrm_pembebasan_lahan=db_job_actual.wrm_pembebasan_lahan
+    db_job_actual_new.wrm_ippkh=db_job_actual.wrm_ippkh
+    db_job_actual_new.wrm_ukl_upl=db_job_actual.wrm_ukl_upl
+    db_job_actual_new.wrm_persiapan_lokasi=db_job_actual.wrm_persiapan_lokasi
+    db_job_actual_new.wrm_internal_kkks=db_job_actual.wrm_internal_kkks
+    db_job_actual_new.wrm_evaluasi_subsurface=db_job_actual.wrm_evaluasi_subsurface
+    db_job_actual_new.wrm_pengadaan_rig=db_job_actual.wrm_pengadaan_rig
+    db_job_actual_new.wrm_pengadaan_drilling_services=db_job_actual.wrm_pengadaan_drilling_services
+    db_job_actual_new.wrm_pengadaan_lli=db_job_actual.wrm_pengadaan_lli
     db.commit()
     db.refresh(db_job_actual_new)
     return db_job_actual_new
@@ -753,6 +763,16 @@ def update_operation_actual_development(db: Session, job_id: str, actual: Create
     db_job_actual_new = ActualDevelopment(**parse_schema(actual))
     db_job_actual_new.id = db_job_actual.id
     db_job.actual_job = db_job_actual_new
+    db_job_actual_new.wrm_amdal=db_job_actual.wrm_amdal
+    db_job_actual_new.wrm_pembebasan_lahan=db_job_actual.wrm_pembebasan_lahan
+    db_job_actual_new.wrm_ippkh=db_job_actual.wrm_ippkh
+    db_job_actual_new.wrm_ukl_upl=db_job_actual.wrm_ukl_upl
+    db_job_actual_new.wrm_persiapan_lokasi=db_job_actual.wrm_persiapan_lokasi
+    db_job_actual_new.wrm_internal_kkks=db_job_actual.wrm_internal_kkks
+    db_job_actual_new.wrm_evaluasi_subsurface=db_job_actual.wrm_evaluasi_subsurface
+    db_job_actual_new.wrm_pengadaan_rig=db_job_actual.wrm_pengadaan_rig
+    db_job_actual_new.wrm_pengadaan_drilling_services=db_job_actual.wrm_pengadaan_drilling_services
+    db_job_actual_new.wrm_pengadaan_lli=db_job_actual.wrm_pengadaan_lli
     db.commit()
     db.refresh(db_job_actual_new)
     return db_job_actual_new
