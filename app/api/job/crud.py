@@ -286,6 +286,8 @@ def operate_job(id: str, db: Session, user):
 
 def get_job_plan(id: str, db: Session) -> dict:
     db_job = db.query(Job).get(id)
+    print('test')
+    print(db_job)
     if not db_job:
         raise HTTPException(status_code=404, detail="Job plan not found")
 

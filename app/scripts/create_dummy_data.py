@@ -11,6 +11,7 @@ from app.api.spatial.models import *
 import pandas as pd
 import uuid
 import random
+from app.core.config import settings
 
 from app.api.well.models import *
 
@@ -224,7 +225,7 @@ def generate_dummy_data(db, n: int):
                     id =  drilling_trajectory_file_id,
                     filename = 'drilling_trajectory.xlsx',
                     file_extension = 'xlsx',
-                    file_location = f'app/scripts/dummy_data/{str(uuid.uuid4())}.xlsx',
+                    file_location = f'app/scripts/dummy_data/drilling_trajectory.xlsx',
                     uploaded_by_id = user_id,
                 ),
             ]
