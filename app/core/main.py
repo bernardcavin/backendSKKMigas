@@ -12,12 +12,14 @@ from app.core.error_handlers import (
     custom_exception_handler, 
     sqlalchemy_exception_handler,
     custom_request_validation_exception_handler,
-    custom_starlette_http_exception_handler
+    custom_starlette_http_exception_handler,
+    validation_exception_handler
 )
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from pydantic import ValidationError
 from fastapi.routing import APIRoute
 from app.core.config import settings
 import os
@@ -46,11 +48,12 @@ init_db()
 os.makedirs(settings.upload_dir, exist_ok=True)
 
 
-# app.add_exception_handler(HTTPException, custom_http_exception_handler)
-# app.add_exception_handler(Exception, custom_exception_handler)
-# app.add_exception_handler(SQLAlchemyError, sqlalchemy_exception_handler)
-# app.add_exception_handler(RequestValidationError, custom_request_validation_exception_handler)
-# app.add_exception_handler(StarletteHTTPException, custom_starlette_http_exception_handler)
+app.add_exception_handler(HTTPException, custom_http_exception_handler)
+app.add_exception_handler(Exception, custom_exception_handler)
+app.add_exception_handler(SQLAlchemyError, sqlalchemy_exception_handler)
+app.add_exception_handler(RequestValidationError, custom_request_validation_exception_handler)
+app.add_exception_handler(StarletteHTTPException, custom_starlette_http_exception_handler)
+app.add_exception_handler(ValidationError, validation_exception_handler)
 
 app.include_router(auth_routes.router, prefix=settings.API_V1_STR)
 app.include_router(job_routes.router, prefix=settings.API_V1_STR)
