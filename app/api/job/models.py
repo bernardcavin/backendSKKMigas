@@ -1,6 +1,6 @@
 from os import close
 from sqlalchemy import Column, String, Enum as SQLAlchemyEnum
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, Enum, Text, Boolean, Float, Date, func, select
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Numeric, Enum, Text, Boolean, Float, Date, func, select, case, and_
 from app.api.well.models import ActualWell, DepthDatum, PlanWell, WellInstance
 from sqlalchemy.orm import relationship, declared_attr, with_polymorphic, aliased
 from app.core.database import Base
@@ -334,14 +334,68 @@ class Job(Base, CreateBase, ValidationBase, EditBase):
     date_co_approved = Column(Date)
     
     closeout_status = Column(Enum(CloseOutStatus))
+
+    # @hybrid_property
+    # def job_current_status(self):
+    #     if self.closeout_status is not None:
+    #         return self.closeout_status
+    #     elif self.ppp_status is not None:
+    #         return self.ppp_status
+    #     elif self.operation_status is not None:
+    #         return self.operation_status
+    #     else:
+    #         return self.planning_status
+
+    # @job_current_status.expression
+    # def job_current_status(cls):
+    #     return case(
+            
+    #         (
+    #             and_(
+    #                 cls.closeout_status.is_(None),
+    #                 cls.ppp_status.is_(None),
+    #                 cls.operation_status.is_(None),
+    #                 cls.planning_status.isnot(None),
+    #             ),
+    #             cls.planning_status
+    #         ),
+    #         # (
+    #         #     and_(
+    #         #         cls.closeout_status.is_(None),
+    #         #         cls.ppp_status.is_(None),
+    #         #         cls.operation_status.isnot(None),
+    #         #         cls.planning_status.isnot(None),
+    #         #     ),
+    #         #     cls.operation_status
+    #         # ),
+    #         # (
+    #         #     and_(
+    #         #         cls.closeout_status.is_(None),
+    #         #         cls.ppp_status.isnot(None),
+    #         #         cls.operation_status.isnot(None),
+    #         #         cls.planning_status.isnot(None),
+    #         #     ),
+    #         #     cls.ppp_status
+    #         # ),
+    #         # (
+    #         #     and_(
+    #         #         cls.closeout_status.isnot(None),
+    #         #         cls.ppp_status.isnot(None),
+    #         #         cls.operation_status.isnot(None),
+    #         #         cls.planning_status.isnot(None),
+    #         #     ),
+    #         #     cls.closeout_status
+    #         # )
+    #     )
+        
     
     @property
     def job_current_status(self):
-        if self.closeout_status:
+        if self.closeout_status is not None:
             return self.closeout_status
-        elif self.ppp_status:
+        elif self.ppp_status is not None:
             return self.ppp_status
-        elif self.operation_status:
+        elif self.operation_status is not None:
             return self.operation_status
         else:
             return self.planning_status
@@ -361,13 +415,17 @@ class JobInstance(Base):
     total_budget = Column(Numeric(precision=10, scale=2))
     
     job_operation_days = relationship('JobOperationDay', back_populates='job_instance')
-    work_breakdown_structure = relationship('WorkBreakdownStructure', back_populates='job_instance')
+    
     job_hazards = relationship('JobHazard', back_populates='job_instance')
     job_documents = relationship('JobDocument', back_populates='job_instance')
+    
+    work_breakdown_structure_id = Column(String(36), ForeignKey('job_wbs.id'))
+    work_breakdown_structure = relationship('WorkBreakdownStructure', foreign_keys=[work_breakdown_structure_id])
     
     __mapper_args__ = {
         "polymorphic_on": "job_phase_type",
     }
+    
     def get_job_date_list(self) -> List[str]:
         """
         Generate a list of dates for the job instance.
@@ -474,6 +532,18 @@ class PlanWorkover(JobInstance):
     target_gas = Column(Float)
     target_water_cut = Column(Float)
 
+    wrm_internal_kkks = Column(Boolean)
+    wrm_pengadaan_equipment = Column(Boolean)
+    wrm_pengadaan_services = Column(Boolean)
+    wrm_pengadaan_handak = Column(Boolean)
+    wrm_pengadaan_octg = Column(Boolean)
+    wrm_pengadaan_lli = Column(Boolean)
+    wrm_pengadaan_artificial_lift = Column(Boolean)
+    wrm_sumur_berproduksi = Column(Boolean)
+    wrm_fasilitas_produksi = Column(Boolean)
+    wrm_persiapan_lokasi = Column(Boolean)
+    wrm_well_integrity = Column(Boolean)
+
     #well schematic
     well_schematic_id = Column(String(36), ForeignKey('job_well_schematics.id'))
     well_schematic = relationship('WellSchematic', foreign_keys=[well_schematic_id])
@@ -505,6 +575,18 @@ class PlanWellService(JobInstance):
     target_oil = Column(Float)
     target_gas = Column(Float)
     target_water_cut = Column(Float)
+    
+    wrm_internal_kkks = Column(Boolean)
+    wrm_pengadaan_equipment = Column(Boolean)
+    wrm_pengadaan_services = Column(Boolean)
+    wrm_pengadaan_handak = Column(Boolean)
+    wrm_pengadaan_octg = Column(Boolean)
+    wrm_pengadaan_lli = Column(Boolean)
+    wrm_pengadaan_artificial_lift = Column(Boolean)
+    wrm_sumur_berproduksi = Column(Boolean)
+    wrm_fasilitas_produksi = Column(Boolean)
+    wrm_persiapan_lokasi = Column(Boolean)
+    wrm_well_integrity = Column(Boolean)
 
     #well schematic
     well_schematic_id = Column(String(36), ForeignKey('job_well_schematics.id'))
@@ -589,6 +671,18 @@ class ActualWorkover(JobInstance):
     onstream_gas = Column(Float)
     onstream_water_cut = Column(Float)
     
+    wrm_internal_kkks = Column(Enum(Percentage))
+    wrm_pengadaan_equipment = Column(Enum(Percentage))
+    wrm_pengadaan_services = Column(Enum(Percentage))
+    wrm_pengadaan_handak = Column(Enum(Percentage))
+    wrm_pengadaan_octg = Column(Enum(Percentage))
+    wrm_pengadaan_lli = Column(Enum(Percentage))
+    wrm_pengadaan_artificial_lift = Column(Enum(Percentage))
+    wrm_sumur_berproduksi = Column(Enum(Percentage))
+    wrm_fasilitas_produksi = Column(Enum(Percentage))
+    wrm_persiapan_lokasi = Column(Enum(Percentage))
+    wrm_well_integrity = Column(Enum(Percentage))
+    
     #well schematic
     well_schematic_id = Column(String(36), ForeignKey('job_well_schematics.id'))
     well_schematic = relationship('WellSchematic', foreign_keys=[well_schematic_id])
@@ -619,6 +713,18 @@ class ActualWellService(JobInstance):
     onstream_gas = Column(Float)
     onstream_water_cut = Column(Float)
     
+    wrm_internal_kkks = Column(Enum(Percentage))
+    wrm_pengadaan_equipment = Column(Enum(Percentage))
+    wrm_pengadaan_services = Column(Enum(Percentage))
+    wrm_pengadaan_handak = Column(Enum(Percentage))
+    wrm_pengadaan_octg = Column(Enum(Percentage))
+    wrm_pengadaan_lli = Column(Enum(Percentage))
+    wrm_pengadaan_artificial_lift = Column(Enum(Percentage))
+    wrm_sumur_berproduksi = Column(Enum(Percentage))
+    wrm_fasilitas_produksi = Column(Enum(Percentage))
+    wrm_persiapan_lokasi = Column(Enum(Percentage))
+    wrm_well_integrity = Column(Enum(Percentage))
+    
     #well schematic
     well_schematic_id = Column(String(36), ForeignKey('job_well_schematics.id'))
     well_schematic = relationship('WellSchematic', foreign_keys=[well_schematic_id])
@@ -632,13 +738,121 @@ class WorkBreakdownStructure(Base):
     __tablename__ = 'job_wbs'
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
-    job_instance_id = Column(String(36), ForeignKey('job_instances.job_instance_id'))
-    job_instance = relationship('JobInstance', back_populates='work_breakdown_structure')
+    job_instance = relationship('JobInstance', back_populates='work_breakdown_structure', single_parent=True)
     
-    event = Column(String(255))
+    wbs_type = Column(String(4))
+    
+    events = relationship('WBSCustomEvent', secondary='job_wbs_events_r')
+
+    wrm_internal_kkks_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_internal_kkks = relationship('WBSWRMEvent', foreign_keys=[wrm_internal_kkks_id])
+
+    wrm_persiapan_lokasi_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_persiapan_lokasi = relationship('WBSWRMEvent', foreign_keys=[wrm_persiapan_lokasi_id])
+
+    wrm_pengadaan_lli_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_pengadaan_lli = relationship('WBSWRMEvent', foreign_keys=[wrm_pengadaan_lli_id])
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'wrm_event',
+        'polymorphic_on': wbs_type
+    }
+
+class WBSCustomEventRelationship(Base):
+    __tablename__ = 'job_wbs_events_r'
+    
+    wbs_id = Column(String(36), ForeignKey('job_wbs.id'), primary_key=True)
+    event_id = Column(String(36), ForeignKey('job_wbs_events.id'), primary_key=True)
+    
+class WorkBreakdownStructureDrilling(WorkBreakdownStructure):
+    
+    wrm_pembebasan_lahan_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_pembebasan_lahan = relationship('WBSWRMEvent', foreign_keys=[wrm_pembebasan_lahan_id])
+    
+    wrm_ippkh_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_ippkh = relationship('WBSWRMEvent', foreign_keys=[wrm_ippkh_id])
+    
+    wrm_ukl_upl_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_ukl_upl = relationship('WBSWRMEvent', foreign_keys=[wrm_ukl_upl_id])
+    
+    wrm_amdal_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_amdal = relationship('WBSWRMEvent', foreign_keys=[wrm_amdal_id])
+    
+    wrm_pengadaan_rig_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_pengadaan_rig = relationship('WBSWRMEvent', foreign_keys=[wrm_pengadaan_rig_id])
+    
+    wrm_pengadaan_drilling_services_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_pengadaan_drilling_services = relationship('WBSWRMEvent', foreign_keys=[wrm_pengadaan_drilling_services_id])
+    
+    wrm_evaluasi_subsurface_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_evaluasi_subsurface = relationship('WBSWRMEvent', foreign_keys=[wrm_evaluasi_subsurface_id])
+    
+    wrm_cutting_dumping_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_cutting_dumping = relationship('WBSWRMEvent', foreign_keys=[wrm_cutting_dumping_id])
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'drl',
+    }
+
+class WorkBreakdownStructureWOWS(WorkBreakdownStructure):
+    
+    wrm_pengadaan_equipment_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_pengadaan_equipment = relationship('WBSWRMEvent', foreign_keys=[wrm_pengadaan_equipment_id])
+    
+    wrm_pengadaan_services_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_pengadaan_services = relationship('WBSWRMEvent', foreign_keys=[wrm_pengadaan_services_id])
+    
+    wrm_pengadaan_handak_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_pengadaan_handak = relationship('WBSWRMEvent', foreign_keys=[wrm_pengadaan_handak_id])
+    
+    wrm_pengadaan_octg_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_pengadaan_octg = relationship('WBSWRMEvent', foreign_keys=[wrm_pengadaan_octg_id])
+    
+    wrm_pengadaan_artificial_lift_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_pengadaan_artificial_lift = relationship('WBSWRMEvent', foreign_keys=[wrm_pengadaan_artificial_lift_id])
+    
+    wrm_sumur_berproduksi_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_sumur_berproduksi = relationship('WBSWRMEvent', foreign_keys=[wrm_sumur_berproduksi_id])
+    
+    wrm_fasilitas_produksi_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_fasilitas_produksi = relationship('WBSWRMEvent', foreign_keys=[wrm_fasilitas_produksi_id])
+    
+    wrm_well_integrity_id = Column(String(36), ForeignKey('job_wbs_events.id'))
+    wrm_well_integrity = relationship('WBSWRMEvent', foreign_keys=[wrm_well_integrity_id])
+    
+    __mapper_args__ = {
+        'polymorphic_identity': 'wows',
+    }
+
+class WBSEvent(Base):
+    
+    __tablename__ = 'job_wbs_events'
+    
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+    
+    event_type = Column(String(12))
     start_date = Column(Date)
     end_date = Column(Date)
     remarks = Column(Text)
+    
+    __mapper_args__ = {
+        'polymorphic_identity': 'event',
+        'polymorphic_on': event_type
+    }
+
+class WBSWRMEvent(WBSEvent):
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'wrm_event',
+    }
+
+class WBSCustomEvent(WBSEvent):
+    
+    event = Column(String(255))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'custom_event',
+    }
 
 class JobHazard(Base):
     

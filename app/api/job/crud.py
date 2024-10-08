@@ -42,32 +42,35 @@ def map_to_schema(schema, row):
             data[field] = row.get(field)
     return schema(**data)
 
-def upload_batch_exploration(db: Session, content: bytes, job_type: JobType, user):
+def upload_batch(db: Session, content: bytes, job_type: JobType, user):
 
     error_list = []
     validated_data = []
     
     dtype_map = job_schema_map[job_type]['upload_headers']['plan']
 
-    # try:
-    df = pd.read_excel(io.BytesIO(content), skiprows=1,
-        converters=dtype_map
-    )
+    try:
+        df = pd.read_excel(io.BytesIO(content), skiprows=1,
+            converters=dtype_map
+        )
 
-    # Check if all required columns are present
-    required_columns = set(dtype_map.keys())
-    missing_columns = required_columns - set(df.columns)
+        # Check if all required columns are present
+        required_columns = set(dtype_map.keys())
+        missing_columns = required_columns - set(df.columns)
+        
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {missing_columns}")
+
+        # Rename the columns based on the provided dictionary
+        df.rename(columns=plan_label_key_mapping, inplace=True)
+        
+        df = df.replace({float('nan'): None})
     
-    if missing_columns:
-        raise ValueError(f"Missing required columns: {missing_columns}")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-    # Rename the columns based on the provided dictionary
-    df.rename(columns=plan_label_key_mapping, inplace=True)
-    
-    df = df.replace({float('nan'): None})
-
-    # except Exception as e:
-    #     raise HTTPException(status_code=400, detail="Invalid file format")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Invalid file format")
     
     area_names = db.query(Area.name).all()
     field_names = db.query(Lapangan.name).all()
@@ -341,7 +344,7 @@ def get_job_plan(id: str, db: Session) -> dict:
         }
     }
 
-    job_wbs = db_plan.work_breakdown_structure
+    job_wbs = db_plan.work_breakdown_structure.events
     view_plan['operational']['work_breakdown_structure'] = create_gantt_chart(
         [wbs.event for wbs in job_wbs],
         [wbs.start_date for wbs in job_wbs],

@@ -234,6 +234,7 @@ class ActualWellBase(WellBaseWithNests):
     class Config:
         from_attributes = True
 
+
 class UpdateActualWell(WellMandatoryBaseWithNests):
     well_documents: Optional[List[WellDocumentBase]]
     well_logs: Optional[List[WellLogBase]]
