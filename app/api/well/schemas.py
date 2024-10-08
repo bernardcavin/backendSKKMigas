@@ -101,6 +101,8 @@ class WellSummaryBase(BaseModel):
     
     unit_type: UnitType
     
+    section_name: str
+    
     depth_datum: Optional[DepthDatum]
     top_depth: Optional[float]
     bottom_depth: Optional[float]
