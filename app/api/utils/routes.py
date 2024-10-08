@@ -7,7 +7,7 @@ from app.core.security import authorize, get_db, get_current_user
 from app.api.utils.schemas import TabularData,DrillingOperationResponse,BHAResponse
 from app.api.job.models import *
 from app.api.utils.models import FileDB
-from app.api.utils.crud import *, delete_uploaded_file
+from app.api.utils.crud import *
 from well_profile import load
 from app.core.schema_operations import create_api_response
 from app.api.visualize.lib.well_profile_func import render_well_profile

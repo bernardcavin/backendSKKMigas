@@ -1,11 +1,11 @@
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, String, ForeignKey, Enum, Text, Float, Date
 from enum import Enum as PyEnum
+from app.api.visualize.lib.wellschematicspy.models import Casing
 from app.core.database import Base
 import uuid
 
 from app.core.constants import uom, UnitType
-
 
 class WellInstanceType(PyEnum):
     PROPOSED = 'PROPOSED'
@@ -101,8 +101,7 @@ class WellInstance(Base):
     kkks = relationship('KKKS', back_populates='well_instances')
 
     # actual= relationship('ActualWell', back_populates='well_instances')
-
-
+    
     # Basic Information
     well_name = Column(String(50))
     alias_long_name = Column(String(50))
@@ -323,7 +322,11 @@ class WellDrillingParameter(WellDigitalData):
 
     actual_well_id = Column(String(36), ForeignKey('well_actuals.id'))
     actual_well = relationship('ActualWell', back_populates='well_drilling_parameter', single_parent=True)
-    
+
+class MudType(PyEnum):
+    WATER_BASED_MUD = 'WATER BASED MUD'
+    OIL_BASED_MUD = 'OIL BASED MUD'
+
 class WellSummary(Base):
     
     __tablename__ = 'well_summary'
@@ -336,6 +339,8 @@ class WellSummary(Base):
     well_instance = relationship('WellInstance', back_populates='well_summary')
 
     depth_datum = Column(Enum(DepthDatum))  # Changed to String if not using Enums
+    
+    section_name = Column(String(50))
     
     top_depth = Column(Float)
     bottom_depth = Column(Float)
@@ -351,16 +356,28 @@ class WellSummary(Base):
     
     logging = Column(String(255))
     
-    mud_program_id = Column(String(36), ForeignKey('well_summary_mud_program.id'))
-    mud_program = relationship('WellSummaryMudProgram', foreign_keys=[mud_program_id])
+    # mud_program_id = Column(String(36), ForeignKey('well_summary_mud_program.id'))
+    # mud_program = relationship('WellSummaryMudProgram', foreign_keys=[mud_program_id])
     
-    cementing_program_id = Column(String(36), ForeignKey('well_summary_cementing_program.id'))
-    cementing_program = relationship('WellSummaryCementingProgram', foreign_keys=[cementing_program_id])
+    # cementing_program_id = Column(String(36), ForeignKey('well_summary_cementing_program.id'))
+    # cementing_program = relationship('WellSummaryCementingProgram', foreign_keys=[cementing_program_id])
+    
+    #mud_program
+    mud_type = Column(Enum(MudType))
+    mud_weight = Column(Float)
+    mud_viscosity = Column(Float)
+    mud_ph_level = Column(Float)
+    
+    #cementing program
+    slurry_volume = Column(Float)
+    slurry_mix = Column(String)
     
     bottom_hole_temperature = Column(Float)
     bottom_hole_temperature_uom = Column(String(20))
     
     rate_of_penetration = Column(Float)
+    weight_on_bit = Column(Float)
+    rotary_speed = Column(Float)
     
     remarks = Column(Text)
 
@@ -377,27 +394,23 @@ class WellSummary(Base):
         
         super().__init__(*args, **kwargs)
 
-class MudType(PyEnum):
-    WATER_BASED_MUD = 'WATER BASED MUD'
-    OIL_BASED_MUD = 'OIL BASED MUD'
-
-class WellSummaryMudProgram(Base):
-    __tablename__ = 'well_summary_mud_program'
+# class WellSummaryMudProgram(Base):
+#     __tablename__ = 'well_summary_mud_program'
     
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+#     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
     
-    mud_type = Column(Enum(MudType))
-    weight = Column(Float)
-    viscosity = Column(Float)
-    ph_level = Column(Float)
+#     mud_type = Column(Enum(MudType))
+#     weight = Column(Float)
+#     viscosity = Column(Float)
+#     ph_level = Column(Float)
 
-class WellSummaryCementingProgram(Base):
-    __tablename__ = 'well_summary_cementing_program'
+# class WellSummaryCementingProgram(Base):
+#     __tablename__ = 'well_summary_cementing_program'
     
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
+#     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()), nullable=False)
 
-    slurry_volume = Column(Float)
-    slurry_mix = Column(String)
+#     slurry_volume = Column(Float)
+#     slurry_mix = Column(String)
 
 class WellTest(Base):
     __tablename__ = 'well_test'
@@ -434,6 +447,8 @@ class WellCasing(Base):
     well_instance = relationship('WellInstance', back_populates='well_casing')
     
     unit_type = Column(Enum(UnitType))
+    
+    casing_type = Column(Enum(CasingType))
     
     depth_datum = Column(Enum(DepthDatum))  # Changed to String if not using Enums
     depth = Column(Float)

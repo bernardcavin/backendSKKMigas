@@ -23,6 +23,7 @@ from pydantic import ValidationError
 from fastapi.routing import APIRoute
 from app.core.config import settings
 import os
+from fastapi.middleware.wsgi import WSGIMiddleware
 
 
 app = FastAPI(
@@ -40,10 +41,9 @@ if settings.app_CORS_ORIGINS:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    
+
 init_db()
 os.makedirs(settings.upload_dir, exist_ok=True)
-
 
 app.add_exception_handler(HTTPException, custom_http_exception_handler)
 app.add_exception_handler(Exception, custom_exception_handler)

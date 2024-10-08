@@ -245,7 +245,7 @@ class CreatePlanWorkover(JobPlanInstanceBase):
     target_gas: Decimal
     target_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase]
+    well_schematic: Optional[WellSchematicBase] = None
 
     class Meta:
         orm_model = PlanWorkover
@@ -274,7 +274,7 @@ class CreatePlanWellService(JobPlanInstanceBase):
     target_gas: Decimal
     target_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase]
+    well_schematic: Optional[WellSchematicBase] = None
 
     class Meta:
         orm_model = PlanWellService
@@ -377,7 +377,7 @@ class CreateActualWorkover(JobActualInstanceBase):
     onstream_gas: Decimal
     onstream_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase]
+    well_schematic: Optional[WellSchematicBase] = None
     
     class Meta:
         orm_model = ActualWorkover
@@ -399,7 +399,7 @@ class UpdateActualWorkover(JobActualInstanceBase):
     onstream_gas: Decimal
     onstream_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase]
+    well_schematic: Optional[WellSchematicBase] = None
     
     class Meta:
         orm_model = ActualWorkover
@@ -423,7 +423,7 @@ class CreateActualWellService(JobActualInstanceBase):
     onstream_gas: Decimal
     onstream_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase]
+    well_schematic: Optional[WellSchematicBase] = None
     
     class Meta:
         orm_model = ActualWellService
@@ -445,7 +445,7 @@ class UpdateActualWellService(JobActualInstanceBase):
     onstream_gas: Decimal
     onstream_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase]
+    well_schematic: Optional[WellSchematicBase] = None
     
     class Meta:
         orm_model = ActualWellService

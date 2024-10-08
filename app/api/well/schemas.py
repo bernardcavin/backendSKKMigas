@@ -79,23 +79,23 @@ class WellDrillingParameterBase(WellDigitalDataBase):
     class Meta:
         orm_model = WellDrillingParameter
 
-class WellSummaryMudProgramBase(BaseModel):
+# class WellSummaryMudProgramBase(BaseModel):
     
-    mud_type: Optional[MudType]
-    weight: Optional[float]
-    viscosity: Optional[float]
-    ph_level: Optional[float]
+#     mud_type: Optional[MudType]
+#     weight: Optional[float]
+#     viscosity: Optional[float]
+#     ph_level: Optional[float]
     
-    class Meta:
-        orm_model = WellSummaryMudProgram
+#     class Meta:
+#         orm_model = WellSummaryMudProgram
 
-class WellSummaryCementingProgramBase(BaseModel):
+# class WellSummaryCementingProgramBase(BaseModel):
     
-    slurry_volume: Optional[float]
-    slurry_mix: Optional[str]
+#     slurry_volume: Optional[float]
+#     slurry_mix: Optional[str]
     
-    class Meta:
-        orm_model = WellSummaryCementingProgram
+#     class Meta:
+#         orm_model = WellSummaryCementingProgram
 
 class WellSummaryBase(BaseModel):
     
@@ -108,17 +108,33 @@ class WellSummaryBase(BaseModel):
     bit: Optional[str]
     casing_outer_diameter: Optional[float]
     logging: Optional[str]
-    mud_program: Optional[WellSummaryMudProgramBase]
-    cementing_program: Optional[WellSummaryCementingProgramBase]
+    # mud_program: Optional[WellSummaryMudProgramBase]
+    # cementing_program: Optional[WellSummaryCementingProgramBase]
+    
+    #mud program
+    mud_type: Optional[float]
+    mud_weight: Optional[float]
+    mud_viscosity: Optional[float]
+    mud_ph_level: Optional[float]
+    
+    #cementing program
+    slurry_volume: Optional[float]
+    slurry_mix: Optional[float]
+    
     bottom_hole_temperature: Optional[float]
     rate_of_penetration: Optional[float]
+    
+    rate_of_penetration: Optional[float]
+    weight_on_bit: Optional[float]
+    rotary_speed: Optional[float]
+    
     remarks: Optional[str]
     
     class Meta:
         orm_model = WellSummary
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class WellTestBase(BaseModel):
     
@@ -138,6 +154,8 @@ class WellTestBase(BaseModel):
 class WellCasingBase(BaseModel):
     
     unit_type: UnitType
+    
+    casing_type: CasingType
     
     depth_datum: Optional[DepthDatum]
     depth: Optional[float]
@@ -186,24 +204,24 @@ class WellSchematicBase(BaseModel):
 
 class WellBaseWithNests(WellBase):
     
-    well_summary: Optional[List[WellSummaryBase]]
-    well_trajectory: Optional[WellTrajectoryBase]
-    well_ppfg: Optional[WellPPFGBase]
-    well_casing: Optional[List[WellCasingBase]]
-    well_schematic: Optional[WellSchematicBase]
-    well_stratigraphy: Optional[List[WellStratigraphyBase]]
+    well_summary: Optional[List[WellSummaryBase]] = []
+    well_trajectory: Optional[WellTrajectoryBase] = None
+    well_ppfg: Optional[WellPPFGBase] = None
+    well_casing: Optional[List[WellCasingBase]] = []
+    well_schematic: Optional[WellSchematicBase] = None
+    well_stratigraphy: Optional[List[WellStratigraphyBase]] = []
 
 class WellMandatoryBaseWithNests(WellMandatoryBase):
-    well_summary: Optional[List[WellSummaryBase]]
-    well_trajectory: Optional[WellTrajectoryBase]
-    well_ppfg: Optional[WellPPFGBase]
-    well_casing: Optional[List[WellCasingBase]]
-    well_schematic: Optional[WellSchematicBase]
-    well_stratigraphy: Optional[List[WellStratigraphyBase]]
+    well_summary: Optional[List[WellSummaryBase]] = []
+    well_trajectory: Optional[WellTrajectoryBase] = None
+    well_ppfg: Optional[WellPPFGBase] = None
+    well_casing: Optional[List[WellCasingBase]] = []
+    well_schematic: Optional[WellSchematicBase] = None
+    well_stratigraphy: Optional[List[WellStratigraphyBase]] = []
 
 class CreatePlanWell(WellBaseWithNests):
     
-    well_test: Optional[List[WellTestBase]]
+    well_test: Optional[List[WellTestBase]] = []
 
     class Meta:
         orm_model = PlanWell
@@ -221,12 +239,9 @@ class CreateDummyPlanWell(CreatePlanWell):
         from_attributes = True
 
 class ActualWellBase(WellBaseWithNests):
-    well_documents: Optional[List[WellDocumentBase]]
-    well_logs: Optional[List[WellLogBase]]
-    well_drilling_parameter: Optional[WellDrillingParameterBase]
-
-    well_status: Optional[WellStatus]
-    remark: Optional[str]
+    well_documents: Optional[List[WellDocumentBase]] = []
+    well_logs: Optional[List[WellLogBase]] = []
+    well_drilling_parameter: Optional[WellDrillingParameterBase] = None
 
     class Meta:
         orm_model = ActualWell
@@ -236,19 +251,18 @@ class ActualWellBase(WellBaseWithNests):
 
 
 class UpdateActualWell(WellMandatoryBaseWithNests):
-    well_documents: Optional[List[WellDocumentBase]]
-    well_logs: Optional[List[WellLogBase]]
-    well_drilling_parameter: Optional[WellDrillingParameterBase]
+    well_documents: Optional[List[WellDocumentBase]] = []
+    well_logs: Optional[List[WellLogBase]] = []
+    well_drilling_parameter: Optional[WellDrillingParameterBase] = None
 
-    well_status: Optional[WellStatus]
-    remark: Optional[str]
+    # well_status: Optional[WellStatus]
+    # remark: Optional[str]
 
     class Meta:
         orm_model = ActualWell
     
     class Config:
         from_attributes = True
-    pass
 
 class CreateActualWell(ActualWellBase):
     
@@ -259,6 +273,10 @@ class CreateActualWell(ActualWellBase):
 class CreateExistingWell(ActualWellBase):
     area_id: str
     field_id: str
+    
+    
+    well_status: Optional[WellStatus]
+    remark: Optional[str]
 
 class GetWell(BaseModel):
     well_name: str
@@ -267,4 +285,4 @@ class GetWell(BaseModel):
     well_status: Optional[str]  # Izinkan None untuk status
     kkks_id: Optional[str]
     class Config:
-        orm_mode = True
+        from_attributes = True

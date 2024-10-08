@@ -236,6 +236,7 @@ def generate_dummy_data(db, n: int):
         plan_casing.append(
             {
                 "unit_type": "Metrics",
+                "casing_type":CasingType.SURFACE_CASING,
                 "depth_datum": "RT",
                 "depth": row["End Depth"],
                 "length": row["End Depth"] - row["Start Depth"],
