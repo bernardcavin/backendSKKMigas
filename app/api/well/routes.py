@@ -32,3 +32,18 @@ def read_wells(kkks_id: str, db: Session = Depends(get_db)):
     if not wells:
         raise HTTPException(status_code=404, detail="Data wells not found")
     return wells
+
+@router.delete("/wells/{wellactual_id}")
+# @authorize(role=[Role.KKKS, Role.Admin])
+async def delete_well(wellactual_id: str, db: Session = Depends(get_db)):
+    deleted = crud.delete_wells(db, wellactual_id,)
+    if not deleted:
+        return create_api_response(success=False, message="Well not found", status_code=404)
+    return create_api_response(success=True, message="Well deleted successfully")
+
+@router.patch("/edit_wells/{wellactual_id}")
+async def edit_well(wellactual_id: str, actual: schemas.UpdateActualWell, db: Session = Depends(get_db)):
+    edited = crud.edit_well(db, wellactual_id, actual)
+    if not edited:
+        return create_api_response(success=False, message="Well not found", status_code=404)
+    return create_api_response(success=True, message="Well edited successfully")

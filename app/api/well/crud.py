@@ -49,3 +49,16 @@ def get_wells(db: Session, kkks_id: str):
     ]
 
     return wells_with_relations
+
+def delete_wells(db:Session, wellactual_id:str):
+    get_well=db.query(ActualWell).filter(ActualWell.id==wellactual_id).first()
+    print(get_well)
+    db.delete(get_well) 
+    db.commit()
+    return get_well
+
+def edit_well(db:Session, wellactual_id:str, actual: UpdateActualWell):
+    get_well=db.query(ActualWell).filter(ActualWell.id==wellactual_id).first()
+    edit_well=ActualWell(**parse_schema(actual))
+    db.commit()
+    return edit_well

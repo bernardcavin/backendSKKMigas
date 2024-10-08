@@ -118,7 +118,7 @@ class WellSummaryBase(BaseModel):
         orm_model = WellSummary
     
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class WellTestBase(BaseModel):
     
