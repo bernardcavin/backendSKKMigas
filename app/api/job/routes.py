@@ -264,3 +264,4 @@ def patch_actual_wellservice_route(
     print(job_id)
     exploration_update = crud.update_operation_actual_wellservice(db, job_id, actual,user)
     return exploration_update
+

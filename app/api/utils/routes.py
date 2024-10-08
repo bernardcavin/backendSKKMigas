@@ -5,7 +5,7 @@ from app.api.auth.models import Role
 from app.core.security import authorize, get_db, get_current_user
 from app.api.utils.schemas import TabularData,DrillingOperationResponse,BHAResponse
 from app.api.job.models import *
-from app.api.utils.crud import save_upload_file, save_upload_multiple_files, jsonify_tabular_file
+from app.api.utils.crud import *
 from well_profile import load
 from app.core.schema_operations import create_api_response
 from app.api.visualize.lib.well_profile_func import render_well_profile
@@ -83,4 +83,50 @@ async def list_bhacomponents():
        BHAResponse(bhacomponent=op)
         for op in BHAComponentType
     ]
-
+    
+@router.post("/wbs/upload-excel/")
+async def upload_excel(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    # Memeriksa apakah file adalah Excel
+    return excel_wbs(file, db)
+@router.post("/drillingfluid/upload-excell/")
+async def upload_excel_drillingfluid(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    return excel_drillingfluid(file, db)
+@router.post("/mudaddictive/upload-excell/")
+async def upload_excel_mudaddictive(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    return excel_mudadditive(file, db)
+@router.post("/bulk-material/upload-excell/")
+async def upload_excel_bulkmaterial(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    return excel_bulkmaterial(file, db)
+@router.post("/directionalsurvey/upload-excell/")
+async def upload_excel_directionalsurvey(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    return excel_directionalsurvey(file, db)
+@router.post("/personnel/upload-excell/")
+async def upload_excel_personnel(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    return excel_personnel(file, db)
+@router.post("/pumps/upload-excell/")
+async def upload_excel_pumps(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    return excel_pumps(file, db)
+@router.post("/weather/upload-excell/")
+async def upload_excel_weather(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    return excel_weather(file, db)
+@router.post("/wellsummary/upload-excell/")
+async def upload_excel_wellsummary(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    return excel_well_summary(file, db)
+@router.post("/wellcasing/upload-excell/")
+async def upload_excel_wellcasing(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    return excel_well_casing(file, db)
+@router.post("/wellstatigraphy/upload-excell/")
+async def upload_excel_wellstatigraphy(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    return excel_well_stratigraphy(file, db)
+@router.post("/welltest/upload-excell/")
+async def upload_excel_welltest(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    return excel_well_test(file, db)
+@router.post("/jobhazard/upload-excell/")
+async def upload_excel_jobhazard(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    return excel_job_hazard(file, db)
+@router.post("/joboperationdays/upload-excell/")
+async def upload_excel_joboperationdays(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    return excel_job_operation_day(file, db)
+@router.post("/jobdocument/upload-excell/")
+async def upload_excel_jobdocument(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    return excel_job_document(file, db)
