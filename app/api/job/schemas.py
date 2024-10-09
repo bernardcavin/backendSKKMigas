@@ -13,15 +13,84 @@ import re
 
 from app.core.constants import UnitType
 
-class WorkBreakdownStructureBase(BaseModel):
-    
+class WBCustomSEventSchema(BaseModel):
     event: str
     start_date: date
     end_date: date
     remarks: Optional[str]
     
     class Meta:
-        orm_model = WorkBreakdownStructure
+        orm_model = WBSCustomEvent
+
+class WBSWRMEventSchema(BaseModel):
+    start_date: date
+    end_date: date
+    remarks: Optional[str]
+    
+    class Meta:
+        orm_model = WBSWRMEvent
+    
+class WBSExplorationSchema(BaseModel):
+    
+    wrm_pembebasan_lahan: WBSWRMEventSchema
+    wrm_ippkh: WBSWRMEventSchema
+    wrm_ukl_upl: WBSWRMEventSchema
+    wrm_amdal: WBSWRMEventSchema
+    wrm_pengadaan_rig: WBSWRMEventSchema
+    wrm_pengadaan_drilling_services: WBSWRMEventSchema
+    wrm_pengadaan_lli: WBSWRMEventSchema
+    wrm_persiapan_lokasi: WBSWRMEventSchema
+    wrm_internal_kkks: WBSWRMEventSchema
+    wrm_evaluasi_subsurface: WBSWRMEventSchema
+    
+    events: List[WBCustomSEventSchema]
+    
+    class Meta:
+        orm_model = WorkBreakdownStructureDrilling
+    
+    class Config:
+        from_attributes = True
+
+class WBSDevelopmentSchema(BaseModel):
+    
+    wrm_pembebasan_lahan: WBSWRMEventSchema
+    wrm_ippkh: WBSWRMEventSchema
+    wrm_ukl_upl: WBSWRMEventSchema
+    wrm_amdal: WBSWRMEventSchema
+    wrm_pengadaan_rig: WBSWRMEventSchema
+    wrm_pengadaan_drilling_services: WBSWRMEventSchema
+    wrm_pengadaan_lli: WBSWRMEventSchema
+    wrm_persiapan_lokasi: WBSWRMEventSchema
+    wrm_internal_kkks: WBSWRMEventSchema
+    wrm_evaluasi_subsurface: WBSWRMEventSchema
+    wrm_cutting_dumping: WBSWRMEventSchema
+    
+    events: List[WBCustomSEventSchema]
+    
+    class Meta:
+        orm_model = WorkBreakdownStructureDrilling
+    
+    class Config:
+        from_attributes = True
+
+class WBSWOWSSchema(BaseModel):
+    
+    wrm_internal_kkks: WBSWRMEventSchema
+    wrm_pengadaan_equipment: WBSWRMEventSchema
+    wrm_pengadaan_services: WBSWRMEventSchema
+    wrm_pengadaan_handak: WBSWRMEventSchema
+    wrm_pengadaan_octg: WBSWRMEventSchema
+    wrm_pengadaan_lli: WBSWRMEventSchema
+    wrm_pengadaan_artificial_lift: WBSWRMEventSchema
+    wrm_sumur_berproduksi: WBSWRMEventSchema
+    wrm_fasilitas_produksi: WBSWRMEventSchema
+    wrm_persiapan_lokasi: WBSWRMEventSchema 
+    wrm_well_integrity: WBSWRMEventSchema
+    
+    events: List[WBCustomSEventSchema]
+    
+    class Meta:
+        orm_model = WorkBreakdownStructureWOWS
     
     class Config:
         from_attributes = True
@@ -66,8 +135,6 @@ class JobOperationDayBase(BaseModel):
         orm_model = JobOperationDay
     class Config:
         from_attributes = True
-
-
         
 class JobPlanInstanceBase(BaseModel):
     
@@ -75,10 +142,9 @@ class JobPlanInstanceBase(BaseModel):
     end_date: date
     total_budget: Decimal = Field(default=None, max_digits=10, decimal_places=2)
     
-    job_operation_days: Optional[List[JobOperationDayBase]]
-    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]]
-    job_hazards: Optional[List[JobHazardBase]]
-    job_documents: Optional[List[JobDocumentBase]]
+    job_operation_days: Optional[List[JobOperationDayBase]] = []
+    job_hazards: Optional[List[JobHazardBase]] = []
+    job_documents: Optional[List[JobDocumentBase]] = []
 
     class Config:
         from_attributes = True
@@ -89,15 +155,16 @@ class JobActualInstanceBase(BaseModel):
     end_date: date
     total_budget: Decimal = Field(default=None, max_digits=10, decimal_places=2)
     
-    job_operation_days: Optional[List[JobOperationDayBase]]
-    work_breakdown_structure: Optional[List[WorkBreakdownStructureBase]]
-    job_hazards: Optional[List[JobHazardBase]]
-    job_documents: Optional[List[JobDocumentBase]]
+    job_operation_days: Optional[List[JobOperationDayBase]] = []
+    job_hazards: Optional[List[JobHazardBase]] = []
+    job_documents: Optional[List[JobDocumentBase]] = []
 
     class Config:
         from_attributes = True
 
 class CreatePlanExploration(JobPlanInstanceBase):
+    
+    work_breakdown_structure: Optional[WBSExplorationSchema] = None
     
     rig_name: str
     rig_type: RigType
@@ -126,6 +193,8 @@ class CreateDummyPlanExploration(CreatePlanExploration):
     well: CreateDummyPlanWell
         
 class CreatePlanDevelopment(JobPlanInstanceBase):
+    
+    work_breakdown_structure: Optional[WBSDevelopmentSchema] = None
     
     rig_name: str
     rig_type: RigType
@@ -156,6 +225,8 @@ class CreateDummyPlanDevelopment(CreatePlanDevelopment):
         
 class CreatePlanWorkover(JobPlanInstanceBase):
     
+    work_breakdown_structure: Optional[WBSWOWSSchema] = None
+    
     equipment: str
     equipment_specifications: str
     
@@ -174,7 +245,7 @@ class CreatePlanWorkover(JobPlanInstanceBase):
     target_gas: Decimal
     target_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase]
+    well_schematic: Optional[WellSchematicBase] = None
 
     class Meta:
         orm_model = PlanWorkover
@@ -183,6 +254,8 @@ class CreatePlanWorkover(JobPlanInstanceBase):
         
 class CreatePlanWellService(JobPlanInstanceBase):
     
+    work_breakdown_structure: Optional[WBSWOWSSchema] = None
+    
     equipment: str
     equipment_specifications: str
     
@@ -201,7 +274,7 @@ class CreatePlanWellService(JobPlanInstanceBase):
     target_gas: Decimal
     target_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase]
+    well_schematic: Optional[WellSchematicBase] = None
 
     class Meta:
         orm_model = PlanWellService
@@ -209,6 +282,8 @@ class CreatePlanWellService(JobPlanInstanceBase):
         from_attributes = True
         
 class CreateActualExploration(JobActualInstanceBase):
+    
+    work_breakdown_structure: Optional[WBSExplorationSchema] = None
     
     rig_name: str
     rig_type: RigType
@@ -259,6 +334,8 @@ class UpdateActualExploration(JobActualInstanceBase):
         
 class CreateActualDevelopment(JobActualInstanceBase):
     
+    work_breakdown_structure: Optional[WBSDevelopmentSchema] = None
+    
     rig_name: str
     rig_type: RigType
     rig_horse_power: Decimal
@@ -297,6 +374,8 @@ class UpdateActualDevelopment(JobActualInstanceBase):
 
 class CreateActualWorkover(JobActualInstanceBase):
     
+    work_breakdown_structure: Optional[WBSWOWSSchema] = None
+    
     equipment: str
     equipment_specifications: str
     
@@ -310,7 +389,7 @@ class CreateActualWorkover(JobActualInstanceBase):
     onstream_gas: Decimal
     onstream_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase]
+    well_schematic: Optional[WellSchematicBase] = None
     
     class Meta:
         orm_model = ActualWorkover
@@ -332,7 +411,7 @@ class UpdateActualWorkover(JobActualInstanceBase):
     onstream_gas: Decimal
     onstream_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase]
+    well_schematic: Optional[WellSchematicBase] = None
     
     class Meta:
         orm_model = ActualWorkover
@@ -340,6 +419,8 @@ class UpdateActualWorkover(JobActualInstanceBase):
         from_attributes = True
                
 class CreateActualWellService(JobActualInstanceBase):
+    
+    work_breakdown_structure: Optional[WBSWOWSSchema] = None
     
     equipment: str
     equipment_specifications: str
@@ -354,7 +435,7 @@ class CreateActualWellService(JobActualInstanceBase):
     onstream_gas: Decimal
     onstream_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase]
+    well_schematic: Optional[WellSchematicBase] = None
     
     class Meta:
         orm_model = ActualWellService
@@ -376,7 +457,7 @@ class UpdateActualWellService(JobActualInstanceBase):
     onstream_gas: Decimal
     onstream_water_cut: Decimal
     
-    well_schematic: Optional[WellSchematicBase]
+    well_schematic: Optional[WellSchematicBase] = None
     
     class Meta:
         orm_model = ActualWellService
@@ -852,7 +933,7 @@ class ActualExplorationUpdate(BaseModel):
     wrm_evaluasi_subsurface: Optional[Percentage] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ActualDevelopmentUpdate(BaseModel):
     wrm_pembebasan_lahan: Optional[Percentage] = None
@@ -867,7 +948,7 @@ class ActualDevelopmentUpdate(BaseModel):
     wrm_evaluasi_subsurface: Optional[Percentage] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ActualWorkoverUpdate(BaseModel):
     wrm_pembebasan_lahan: Optional[Percentage] = None
@@ -882,7 +963,7 @@ class ActualWorkoverUpdate(BaseModel):
     wrm_evaluasi_subsurface: Optional[Percentage] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ActualWellServiceUpdate(BaseModel):
     wrm_pembebasan_lahan: Optional[Percentage] = None
@@ -897,7 +978,7 @@ class ActualWellServiceUpdate(BaseModel):
     wrm_evaluasi_subsurface: Optional[Percentage] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class JobIssueCreate(BaseModel):
     job_id: str
@@ -908,7 +989,7 @@ class JobIssueCreate(BaseModel):
     resolved_date_time: Optional[datetime] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class JobIssueResponse(JobIssueCreate):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -918,7 +999,7 @@ class JobIssueUpdate(BaseModel):
     resolved_date_time: Optional[datetime] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ColoredDate(BaseModel):
