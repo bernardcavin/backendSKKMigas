@@ -22,6 +22,9 @@ from fastapi.routing import APIRoute
 from app.core.config import settings
 import os
 
+from fastapi.middleware.wsgi import WSGIMiddleware
+from app.core.mlmodule.app import app as ml_app
+
 def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
 
@@ -45,6 +48,7 @@ if settings.app_CORS_ORIGINS:
 init_db()
 os.makedirs(settings.upload_dir, exist_ok=True)
 
+app.mount("/machine-learning", WSGIMiddleware(ml_app.server))
 
 # app.add_exception_handler(HTTPException, custom_http_exception_handler)
 # app.add_exception_handler(Exception, custom_exception_handler)
