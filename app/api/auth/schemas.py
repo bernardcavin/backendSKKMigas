@@ -33,12 +33,9 @@ class GetUser(UserBase):
     class Config:
         from_attributes = True
         
-class GetKKKSUser(UserBase):
+class GetKKKSUser(GetUser):
     id: str
-    kkks_id: Optional[str] = None
-    
-    class Config:
-        from_attributes = True
+    kkks_id: str
 
 class VerifyUser(GetUser):
     verfied_status: bool

@@ -6,6 +6,7 @@ from datetime import timedelta
 from app.core.schema_operations import create_api_response
 from app.core.config import settings
 from app.core.security import authenticate_user, create_access_token, get_current_user, get_db, authorize,refresh_token
+from typing import Union
 
 router = APIRouter(prefix="/auth")
 
@@ -31,9 +32,12 @@ async def create_admin(admin: schemas.CreateAdmin, db: Session = Depends(get_db)
         return create_api_response(success=False, message="Failed to create admin user", status_code=400)
     return create_api_response(success=True, message="Admin created successfully")
 
-@router.get('/user/me', summary='Get details of currently logged in user', response_model=schemas.GetUser, tags=['User'])
-async def get_me(user: schemas.GetUser = Depends(get_current_user)):
-    return user
+@router.get('/user/me', summary='Get details of currently logged in user', response_model=Union[schemas.GetUser, schemas.GetKKKSUser], tags=['User'])
+async def get_me(user: models.User = Depends(get_current_user)):
+    if user.role == models.Role.Admin:
+        return schemas.GetUser.model_validate(user)
+    else:
+        return schemas.GetKKKSUser.model_validate(user)
 
 @router.patch('/user/verify/{user_id}', response_model=schemas.VerifyUser, summary='Verify User (Admin Only)', tags=['User'])
 @authorize(role=[models.Role.Admin])
