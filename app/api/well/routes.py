@@ -47,3 +47,10 @@ async def edit_well(wellactual_id: str, actual: schemas.UpdateActualWell, db: Se
     if not edited:
         return create_api_response(success=False, message="Well not found", status_code=404)
     return create_api_response(success=True, message="Well edited successfully")
+
+@router.get("/getexisting_well/{well_actual_id}", response_model=schemas.UpdateActualWell)
+async def getexisting_well(well_actual_id: str, db: Session = Depends(get_db)):
+    existing_well = crud.get_existing_well(db, well_actual_id)
+    if existing_well is None:
+        raise HTTPException(status_code=404, detail="Well not found")
+    return existing_well

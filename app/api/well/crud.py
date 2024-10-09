@@ -62,3 +62,5 @@ def edit_well(db:Session, wellactual_id:str, actual: UpdateActualWell):
     edit_well=ActualWell(**parse_schema(actual))
     db.commit()
     return edit_well
+def get_existing_well(db: Session, well_actual_id: str) -> Optional[ActualWell]:
+    return db.query(ActualWell).filter(ActualWell.id == well_actual_id).first()

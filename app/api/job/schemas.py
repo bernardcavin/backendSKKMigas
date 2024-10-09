@@ -239,6 +239,18 @@ class UpdateActualExploration(JobActualInstanceBase):
     rig_horse_power: Decimal
 
     well: UpdateActualWell
+    
+    wrm_pembebasan_lahan: Optional[Percentage] = Percentage.P0
+    wrm_ippkh: Optional[Percentage] = Percentage.P0
+    wrm_ukl_upl: Optional[Percentage] = Percentage.P0
+    wrm_amdal: Optional[Percentage] = Percentage.P0
+    wrm_pengadaan_rig: Optional[Percentage] = Percentage.P0
+    wrm_pengadaan_drilling_services: Optional[Percentage] = Percentage.P0
+    wrm_pengadaan_lli: Optional[Percentage] = Percentage.P0
+    wrm_persiapan_lokasi: Optional[Percentage] = Percentage.P0
+    wrm_internal_kkks: Optional[Percentage] = Percentage.P0
+    wrm_evaluasi_subsurface: Optional[Percentage] = Percentage.P0
+    
 
     class Meta:
         orm_model = ActualDevelopment
