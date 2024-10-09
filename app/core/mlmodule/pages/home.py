@@ -69,21 +69,21 @@ layout = dmc.SimpleGrid(
                                     title="Regression",
                                     image='assets/regression.png',
                                     description="Regression is a supervised learning task that involves predicting a continuous target variable based on one or more input features.",
-                                    link="/regression",
+                                    link="/machine-learning/regression",
                                     page_state=PageState.ONLINE
                                 ),
                                 FeatureCard(
                                     title="Classification",
                                     image="assets/classification.png",
                                     description="Classification is a supervised learning task that involves predicting a discrete target variable based on one or more input features.",
-                                    link="/classification",
+                                    link="/machine-learning/classification",
                                     page_state=PageState.ONLINE
                                 ),
                                 FeatureCard(
                                     title="Clustering",
                                     image="assets/clustering.png",
                                     description="Clustering is a supervised learning task that involves grouping data points based on their similarity",
-                                    link="/clustering",
+                                    link="/machine-learning/clustering",
                                     page_state=PageState.ONLINE
                                 ),
                             ],
