@@ -168,4 +168,3 @@ def generate_stimulation_graph(stimulation_data: dict):
     fig_data = json.loads(fig_json)
     
     return fig_data
-

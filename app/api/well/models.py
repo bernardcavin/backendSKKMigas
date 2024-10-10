@@ -323,7 +323,7 @@ class WellDrillingParameter(WellDigitalData):
     actual_well_id = Column(String(36), ForeignKey('well_actuals.id'))
     actual_well = relationship('ActualWell', back_populates='well_drilling_parameter', single_parent=True)
 
-class MudType(PyEnum):
+class WellSummaryMudType(PyEnum):
     WATER_BASED_MUD = 'WATER BASED MUD'
     OIL_BASED_MUD = 'OIL BASED MUD'
 
@@ -363,7 +363,7 @@ class WellSummary(Base):
     # cementing_program = relationship('WellSummaryCementingProgram', foreign_keys=[cementing_program_id])
     
     #mud_program
-    mud_type = Column(Enum(MudType))
+    mud_type = Column(Enum(WellSummaryMudType))
     mud_weight = Column(Float)
     mud_viscosity = Column(Float)
     mud_ph_level = Column(Float)

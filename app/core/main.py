@@ -50,7 +50,7 @@ app.add_exception_handler(Exception, custom_exception_handler)
 app.add_exception_handler(SQLAlchemyError, sqlalchemy_exception_handler)
 app.add_exception_handler(RequestValidationError, custom_request_validation_exception_handler)
 app.add_exception_handler(StarletteHTTPException, custom_starlette_http_exception_handler)
-app.add_exception_handler(ValidationError, validation_exception_handler)
+# app.add_exception_handler(ValidationError, validation_exception_handler)
 
 app.include_router(auth_routes.router, prefix=settings.API_V1_STR)
 app.include_router(job_routes.router, prefix=settings.API_V1_STR)

@@ -320,11 +320,57 @@ class Job(Base, CreateBase, ValidationBase, EditBase):
         return select(JobInstance.end_date).where(cls.actual_job_id == JobInstance.job_instance_id).as_scalar()
         
     job_issues = relationship('JobIssue', back_populates='job')
-    
     operation_status = Column(Enum(OperationStatus))
     
     #PPP
     date_ppp_proposed = Column(Date)
+    
+    #syarat PPP
+    surat_pengajuan_ppp_id = Column(String(36), ForeignKey('job_documents.id'))
+    nomor_surat_pengajuan_ppp = Column(String(50))
+    surat_pengajuan_ppp = relationship('JobDocument', foreign_keys=[surat_pengajuan_ppp_id])
+    surat_pengajuan_ppp_approval = Column(Boolean)
+    
+    # Field for Dokumen Persetujuan AFE/WP&B
+    dokumen_persetujuan_afe_id = Column(String(36), ForeignKey('job_documents.id'))
+    dokumen_persetujuan_afe = relationship('JobDocument', foreign_keys=[dokumen_persetujuan_afe_id])
+    surat_pengajuan_persetujuan_afe_approval = Column(Boolean, default=False)
+
+    # Field for Dokumen Project Summary
+    dokumen_project_summary_id = Column(String(36), ForeignKey('job_documents.id'))
+    dokumen_project_summary = relationship('JobDocument', foreign_keys=[dokumen_project_summary_id])
+    surat_pengajuan_project_summary_approval = Column(Boolean, default=False)
+
+    # Field for Dokumen Pernyataan
+    dokumen_pernyataan_id = Column(String(36), ForeignKey('job_documents.id'))
+    dokumen_pernyataan = relationship('JobDocument', foreign_keys=[dokumen_pernyataan_id])
+    surat_pengajuan_pernyataan_approval = Column(Boolean, default=False)
+
+    # Field for Dokumen Laporan Pekerjaan
+    dokumen_laporan_pekerjaan_id = Column(String(36), ForeignKey('job_documents.id'))
+    dokumen_laporan_pekerjaan = relationship('JobDocument', foreign_keys=[dokumen_laporan_pekerjaan_id])
+    surat_pengajuan_laporan_pekerjaan_approval = Column(Boolean, default=False)
+
+    # Field for Dokumen Formulir
+    dokumen_formulir_id = Column(String(36), ForeignKey('job_documents.id'))
+    dokumen_formulir = relationship('JobDocument', foreign_keys=[dokumen_formulir_id])
+    surat_pengajuan_formulir_approval = Column(Boolean, default=False)
+
+    # Field for Dokumen Korespondensi
+    dokumen_korespondensi_id = Column(String(36), ForeignKey('job_documents.id'))
+    dokumen_korespondensi = relationship('JobDocument', foreign_keys=[dokumen_korespondensi_id])
+    surat_pengajuan_korespondensi_approval = Column(Boolean, default=False)
+
+    # Field for Dokumen Sumur Tidak Berproduksi
+    dokumen_sumur_tidak_berproduksi_id = Column(String(36), ForeignKey('job_documents.id'))
+    dokumen_sumur_tidak_berproduksi = relationship('JobDocument', foreign_keys=[dokumen_sumur_tidak_berproduksi_id])
+    surat_pengajuan_sumur_tidak_berproduksi_approval = Column(Boolean, default=False)
+
+    # Field for Dokumen Daftar Material
+    dokumen_daftar_material_id = Column(String(36), ForeignKey('job_documents.id'))
+    dokumen_daftar_material = relationship('JobDocument', foreign_keys=[dokumen_daftar_material_id])
+    surat_pengajuan_daftar_material_approval = Column(Boolean, default=False)
+    
     date_ppp_approved = Column(Date)
     
     ppp_status = Column(Enum(PPPStatus))
@@ -426,30 +472,30 @@ class JobInstance(Base):
         "polymorphic_on": "job_phase_type",
     }
     
-    def get_job_date_list(self) -> List[str]:
-        """
-        Generate a list of dates for the job instance.
+    # def get_job_date_list(self) -> List[str]:
+    #     """
+    #     Generate a list of dates for the job instance.
         
-        :return: A list of date strings in 'YYYY-MM-DD' format
-        """
-        if self.start_date and self.end_date:
-            return generate_date_list(self.start_date, self.end_date)
-        return []
+    #     :return: A list of date strings in 'YYYY-MM-DD' format
+    #     """
+    #     if self.start_date and self.end_date:
+    #         return generate_date_list(self.start_date, self.end_date)
+    #     return []
 
-def generate_date_list(start_date: datetime, end_date: datetime) -> List[str]:
-    """
-    Generate a list of dates between start_date and end_date (inclusive).
+# def generate_date_list(start_date: datetime, end_date: datetime) -> List[str]:
+#     """
+#     Generate a list of dates between start_date and end_date (inclusive).
     
-    :param start_date: The start date
-    :param end_date: The end date
-    :return: A list of date strings in 'YYYY-MM-DD' format
-    """
-    date_list = []
-    current_date = start_date
-    while current_date <= end_date:
-        date_list.append(current_date.strftime('%Y-%m-%d'))
-        current_date += timedelta(days=1)
-    return date_list
+#     :param start_date: The start date
+#     :param end_date: The end date
+#     :return: A list of date strings in 'YYYY-MM-DD' format
+#     """
+#     date_list = []
+#     current_date = start_date
+#     while current_date <= end_date:
+#         date_list.append(current_date.strftime('%Y-%m-%d'))
+#         current_date += timedelta(days=1)
+#     return date_list
 
 class PlanExploration(JobInstance):
     
@@ -884,6 +930,8 @@ class JobDocumentType(PyEnum):
     HYDRAULICS_PLAN = "Hydraulics Plan"
     CASING_PLAN = "Casing Plan"
     CONTINGENCY_PLAN = "Contingency Plan"
+    SURAT_TAJAK = "Surat Tajak"
+    PPP = "Dokumen Kelengkapan PPP"
 
 class JobDocument(Base):
     
@@ -941,7 +989,7 @@ class JobIssue(Base):
     severity = Column(Enum(Severity))
     description = Column(Text)
     
-    resolved = Column(Boolean)
+    resolved = Column(Boolean, default=False)
     resolved_date_time = Column(DateTime)
 
 class YesNo(PyEnum):

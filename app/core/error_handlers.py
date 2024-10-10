@@ -45,8 +45,7 @@ async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
     )
 
 async def validation_exception_handler(request: Request, exc: ValidationError):
-    print(exc)
-    
+
     error_list = []
 
     for error in exc.errors():
@@ -54,6 +53,6 @@ async def validation_exception_handler(request: Request, exc: ValidationError):
         error_list.append(f'Error at {error["loc"][-1]}: {error["msg"]}, Your input was {error["input"]}')
     
     return JSONResponse(
-        status_code=HTTP_422_UNPROCESSABLE_ENTITY,
-        content={"success": False, "message": exc.errors()},
+        status_code=422,
+        content={"success": False, "message": error_list},
     )

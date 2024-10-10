@@ -4,7 +4,9 @@ import plotly.express as px
 from plotly import graph_objects as go
 from plotly.subplots import make_subplots
 import json
-from app.api.job.schemas import *
+from .schemas.dor import *
+from .schemas.job import *
+from .models import *
 
 colors = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52']
 
@@ -198,7 +200,9 @@ job_schema_map = {
         'model':{
             'plan': PlanExploration,
             'actual': ActualExploration
-        }
+        },
+        'wrm': ExplorationWRM,
+        'validation': ValidateActualExploration
     },
     JobType.DEVELOPMENT:{
         'upload_headers':{
@@ -216,7 +220,9 @@ job_schema_map = {
         'model':{
             'plan': PlanDevelopment,
             'actual': ActualDevelopment
-        }
+        },
+        'wrm': DevelopmentWRM,
+        'validation': ValidateActualDevelopment
     },
     JobType.WORKOVER:{  
         'upload_headers':{
@@ -233,7 +239,9 @@ job_schema_map = {
         'model':{
             'plan': PlanWorkover,
             'actual': ActualWorkover
-        }
+        },
+        'wrm': WorkoverWRM,
+        'validation': ValidateActualWorkover
     },
     JobType.WELLSERVICE:{  
         'upload_headers':{
@@ -250,10 +258,34 @@ job_schema_map = {
         'model':{
             'plan': PlanWellService,
             'actual': ActualWellService
-        }
+        },
+        'wrm': WellServiceWRM,
+        'validation': ValidateActualWellService
     }
 }
 
+def check_fields(value, key=None):
+    validations = []
+    print(f"checking {key}, with value -> {str(value)[:20]}")
+    if isinstance(value, dict):
+        for key, value in value.items():
+            _validations = check_fields(value, key)
+            validations += _validations
+    if isinstance(value, BaseModel):
+        schema_fields = value.model_dump()
+        for key, value in schema_fields.items():
+            _validations = check_fields(value, key)
+            validations += _validations
+    elif value is None or value == "" or value == []:
+        validations.append(
+            f"{plan_key_label_mapping.get(key, key)} is required"
+        )
+    return validations
+
+def daterange(date1, date2):
+    for n in range(int((date2 - date1).days) + 1):
+        yield date1 + timedelta(n)
+    
 class AreaDoesntExist(Exception):...
 
 class FieldDoesntExist(Exception):...
@@ -745,4 +777,5 @@ def create_well_path(
     return {
         'plot': fig_data
     }
+
 

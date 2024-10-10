@@ -1,8 +1,11 @@
+from xml.dom import ValidationErr
+from xml.dom.minidom import Document
 from fastapi.exceptions import HTTPException
+from pyparsing import C
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from app.api.job.models import *
-from app.api.job.schemas import *
+from app.api.job.schemas import job
 from app.api.well.models import ActualWell
 from app.core.schema_operations import create_api_response, parse_schema
 from app.api.job.utils import *
@@ -207,7 +210,7 @@ def return_job_plan(id: str, remarks: str, db: Session, user):
     db.commit()
     return {"message": "Job plan returned successfully"}
 
-def operate_job(id: str, db: Session, user):
+def operate_job(id: str, db: Session, surat_tajak: SuratTajakSchema):
     db_job = db.query(Job).filter_by(id=id).first()
     if not db_job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -283,7 +286,18 @@ def operate_job(id: str, db: Session, user):
                 'work_breakdown_structure':True,
             }
         ))
-    db_job.actual_job = job_schema_map[db_job.job_type]['model']['actual'](**parse_schema(job_actual_temporary_schema))
+        
+    actual_job_id = str(uuid4())
+    
+    db_job.actual_job = job_schema_map[db_job.job_type]['model']['actual'](**parse_schema(job_actual_temporary_schema), id=actual_job_id)
+    
+    #surat_tajak
+    db_surat_tajak_document = JobDocument(
+        job_instance_id = actual_job_id,
+        file_id=surat_tajak.file_id,
+        document_type=JobDocumentType.SURAT_TAJAK
+    )
+    db.add(db_surat_tajak_document)
     db.commit()
     return {"message": "Job operation started successfully"}
 
@@ -397,213 +411,68 @@ def string_to_time(s: str) -> time:
 #                 parsed_dict[k] = v
 #     return parsed_dict
 
-def create_daily_operations_report(db: Session, report: DailyOperationsReportCreate):
-    db_report = DailyOperationsReport(**report.dict(exclude={'time_breakdowns', 'personnel', 'Incidents', 'bit_records','bottom_hole_assemblies','drilling_fluids','mud_additives','bulk_materials','directional_surveys','pumps','weather'}))
+def create_daily_operations_report(db: Session, job_id: str, report: DailyOperationsReportCreate):
     
-    for tb in report.time_breakdowns:
-        start_datetime = datetime.combine(report.report_date, tb.start_time)
-        end_datetime = datetime.combine(report.report_date, tb.end_time)
-        
-        # If end_time is earlier than start_time, assume it's the next day
-        if end_datetime <= start_datetime:
-            end_datetime += timedelta(days=1)
-        
-        db_time_breakdown = TimeBreakdown(
-            daily_operations_report_id=db_report.id,
-            start_time=start_datetime.replace(microsecond=0),
-            end_time=end_datetime.replace(microsecond=0),
-            start_measured_depth=tb.start_measured_depth,
-            end_measured_depth=tb.end_measured_depth,
-            category=tb.category,
-            p=tb.p,
-            npt=tb.npt,
-            code=tb.code,
-            operation=tb.operation
-        )
-        db_report.time_breakdowns.append(db_time_breakdown)
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
     
-    for p in report.personnel:
-        db_personnel = Personnel(
-            daily_operations_report_id=db_report.id,
-            company=p.company,
-            people=p.people
-        )
-        db_report.personnel.append(db_personnel)
+    existing_dor = db.query(DailyOperationsReport).filter(DailyOperationsReport.job_id == job_id, DailyOperationsReport.report_date == report.report_date).first()
+    if existing_dor:
+        raise HTTPException(status_code=400, detail="Daily Operations Report already exists")
     
-    for incident in report.Incidents:
-        db_incident = Incident(
-            daily_operations_report_id=db_report.id,
-            incidents_time=incident.incidents_time,
-            incident=incident.incident,
-            incident_type=incident.incident_type,
-            comments=incident.comments
-        )
-        db_report.Incidents.append(db_incident)
-    for br_data in report.bit_records:
-        db_bit_record = BitRecord(
-            daily_operations_report_id=db_report.id,
-            bit_number=br_data.bit_number,
-            bit_run=br_data.bit_run,
-            bit_size=br_data.bit_size,
-            manufacturer=br_data.manufacturer,
-            iadc_code=br_data.iadc_code,
-            jets=br_data.jets,
-            serial=br_data.serial,
-            depth_out=br_data.depth_out,
-            depth_in=br_data.depth_in,
-            meterage=br_data.meterage,
-            bit_hours=br_data.bit_hours,
-            nozzels=br_data.nozzels,
-            dull_grade=br_data.dull_grade
-        )
-        db_report.bit_records.append(db_bit_record)
-
-    for bha_data in report.bottom_hole_assemblies:
-        db_bha = BottomHoleAssembly(
-            daily_operations_report_id=db_report.id,
-            bha_number=bha_data.bha_number,
-            bha_run=bha_data.bha_run
-        )
-        for component_data in bha_data.components:
-            db_component = BHAComponent(
-                component=component_data.component,
-                outer_diameter=component_data.outer_diameter,
-                length=component_data.length
-            )
-            db_bha.components.append(db_component)
-        db_report.bottom_hole_assemblies.append(db_bha)
-
-    for drilling_fluid in report.drilling_fluids:
-        db_drilling_fluid = DrillingFluid(  # Assuming you're using UUID
-            daily_operations_report_id=db_report.id,  # Link to the current report
-            mud_type=drilling_fluid.mud_type,
-            time=drilling_fluid.time,
-            mw_in=drilling_fluid.mw_in,
-            mw_out=drilling_fluid.mw_out,
-            temp_in=drilling_fluid.temp_in,
-            temp_out=drilling_fluid.temp_out,
-            pres_grad=drilling_fluid.pres_grad,
-            visc=drilling_fluid.visc,
-            pv=drilling_fluid.pv,
-            yp=drilling_fluid.yp,
-            gels_10_sec=drilling_fluid.gels_10_sec,
-            gels_10_min=drilling_fluid.gels_10_min,
-            fluid_loss=drilling_fluid.fluid_loss,
-            ph=drilling_fluid.ph,
-            solids=drilling_fluid.solids,
-            sand=drilling_fluid.sand,
-            water=drilling_fluid.water,
-            oil=drilling_fluid.oil,
-            hgs=drilling_fluid.hgs,
-            lgs=drilling_fluid.lgs,
-            ltlp=drilling_fluid.ltlp,
-            hthp=drilling_fluid.hthp,
-            cake=drilling_fluid.cake,
-            e_stb=drilling_fluid.e_stb,
-            pf=drilling_fluid.pf,
-            mf=drilling_fluid.mf,
-            pm=drilling_fluid.pm,
-            ecd=drilling_fluid.ecd
-        )
-        db_report.drilling_fluids.append(db_drilling_fluid)
-
-    for mud_additive in report.mud_additives:
-        db_mud_additive = MudAdditive(
-            daily_operations_report_id=db_report.id,
-            mud_additive_type=mud_additive.mud_additive_type,
-            amount=mud_additive.amount
-        )
-        db_report.mud_additives.append(db_mud_additive)
-
-    for bulk_material in report.bulk_materials:
-        db_bulk_material = BulkMaterial(
-            id=str(uuid4()),
-            daily_operations_report_id=db_report.id,
-            material_type=bulk_material.material_type,
-            material_name=bulk_material.material_name,
-            material_uom=bulk_material.material_uom,
-            received=bulk_material.received,
-            consumed=bulk_material.consumed,
-            returned=bulk_material.returned,
-            adjust=bulk_material.adjust,
-            ending=bulk_material.ending
-        )
-        db_report.bulk_materials.append(db_bulk_material)
-
-    for directional_survey in report.directional_surveys:
-        db_directional_survey = DirectionalSurvey(
-            daily_operations_report_id=db_report.id,
-            measured_depth=directional_survey.measured_depth,
-            azimuth=directional_survey.azimuth,
-            inclination=directional_survey.inclination
-        )
-        db_report.directional_surveys.append(db_directional_survey)
-    for pump in report.pumps:
-        db_pump = Pumps(
-            daily_operations_report_id=db_report.id,
-            slow_speed=pump.slow_speed,
-            circulate=pump.circulate,
-            strokes=pump.strokes,
-            pressure=pump.pressure,
-            liner_size=pump.liner_size,
-            efficiency=pump.efficiency 
-        )
-        db_report.pumps.append(db_pump)
-
-    db_weather = Weather(
-        daily_operations_report_id=db_report.id,
-        temperature_high=report.weather.temperature_high,
-        temperature_low=report.weather.temperature_low,
-        wind_direction=report.weather.wind_direction,
-        wind_speed=report.weather.wind_speed,
-        chill_factor=report.weather.chill_factor,
-        wave_height=report.weather.wave_height,
-        wave_current_speed=report.weather.wave_current_speed,
-        road_condition=report.weather.road_condition,
-        visibility=report.weather.visibility,
-        barometric_pressure=report.weather.barometric_pressure
+    db_report = DailyOperationsReport(
+        **parse_schema(report), job_id = job_id
     )
-    db_report.weather = db_weather
+    
     db.add(db_report)
     db.commit()
-    db.refresh(db_report)
-    return create_api_response(
-        success=True,
-        message="Daily Operations Report created successfully",
+
+def edit_daily_operations_report(db: Session, job_id: str, report_date: date, report: DailyOperationsReportEdit):
+    
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    old_report = db.query(DailyOperationsReport).filter(DailyOperationsReport.job_id == job_id, DailyOperationsReport.report_date == report_date).first()
+    
+    new_report = DailyOperationsReport(
+        **parse_schema(report), job_id = job_id, report_date = old_report.report_date, id = old_report.id
     )
+    db.delete(old_report)
 
-def update_actual_exploration(
-    db: Session, 
-    exploration_id: str, 
-    exploration_update: ActualExplorationUpdate) -> ActualExploration:
-    db_exploration = db.query(ActualExploration).filter(ActualExploration.id == exploration_id).first()
-    if not db_exploration:
-        return None
-    
-    update_data = exploration_update.dict(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(db_exploration, key, value)
-    
-    db.add(db_exploration)
     db.commit()
-    db.refresh(db_exploration)
-    return db_exploration
 
-def create_job_issue(db: Session, job_issue: JobIssueCreate) -> JobIssue:
+# def update_actual_exploration(
+#     db: Session, 
+#     exploration_id: str, 
+#     exploration_update: ActualExplorationUpdate) -> ActualExploration:
+#     db_exploration = db.query(ActualExploration).filter(ActualExploration.id == exploration_id).first()
+#     if not db_exploration:
+#         return None
+    
+#     update_data = exploration_update.dict(exclude_unset=True)
+#     for key, value in update_data.items():
+#         setattr(db_exploration, key, value)
+    
+#     db.add(db_exploration)
+#     db.commit()
+#     db.refresh(db_exploration)
+#     return db_exploration
+
+
+#job issues
+def get_job_issues(db: Session, job_id: str) -> List[JobIssue]:
+    return db.query(JobIssue).filter(JobIssue.job_id == job_id).all()
+
+def create_job_issue(db: Session, job_id: str, job_issue: JobIssueCreate) -> JobIssue:
     db_job_issue = JobIssue(
-        job_id=job_issue.job_id,
-        date_time=job_issue.date_time,
-        severity=job_issue.severity,
-        description=job_issue.description,
-        resolved=job_issue.resolved,
-        resolved_date_time=job_issue.resolved_date_time
+        **parse_schema(job_issue), job_id = job_id
     )
     db.add(db_job_issue)
     db.commit()
-    db.refresh(db_job_issue)
-    return db_job_issue
 
-def update_job_issue(db: Session, job_issue_id: str, job_issue_update: JobIssueUpdate) -> Optional[JobIssue]:
+def edit_job_issue(db: Session, job_issue_id: str, job_issue_update: JobIssueEdit) -> Optional[JobIssue]:
     db_job_issue = db.query(JobIssue).filter(JobIssue.id == job_issue_id).first()
     if db_job_issue is None:
         return None
@@ -614,75 +483,180 @@ def update_job_issue(db: Session, job_issue_id: str, job_issue_update: JobIssueU
     
     db.add(db_job_issue)
     db.commit()
-    db.refresh(db_job_issue)
-    return db_job_issue
 
-def get_wrm_data_by_job_id(
+def delete_job_issue(db: Session, job_issue_id: str) -> Optional[JobIssue]:
+    db_job_issue = db.query(JobIssue).filter(JobIssue.id == job_issue_id).first()
+    if db_job_issue is None:
+        raise HTTPException(status_code=404, detail="Job issue not found")
+    db.delete(db_job_issue)
+    db.commit()
+
+def resolve_job_issue(db: Session, job_issue_id: str) -> Optional[JobIssue]:
+    db_job_issue = db.query(JobIssue).filter(JobIssue.id == job_issue_id).first()
+    if db_job_issue is None:
+        raise HTTPException(status_code=404, detail="Job issue not found")
+    db_job_issue.resolved = True
+    db_job_issue.resolved_date_time = datetime.now()
+    db.commit()
+
+def get_wrm_requirements(
     db: Session, 
-    actual_job_id: str, 
-    model: Type[Union[ActualExploration, ActualDevelopment, ActualWorkover, ActualWellService]]
-) -> Optional[Union[ActualExplorationUpdate, ActualDevelopmentUpdate, ActualWorkoverUpdate, ActualWellServiceUpdate]]:
-    # Query untuk mendapatkan data WRM berdasarkan model yang diberikan
-    wrm_data = db.query(model).filter(model.id == actual_job_id).first()
+    job_id: str
+):
+    job = db.query(Job).filter(Job.id == job_id).first()
+    job_plan = job.job_plan
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    output = {}
 
-    if wrm_data is None:
-        return None
+    for wrm in list(job_schema_map[job.job_type]['wrm'].model_fields.keys()):
+        output[wrm] = getattr(job_plan, wrm)
+    
+    return output
 
-    # Menentukan jenis Update berdasarkan model
-    if model == ActualExploration:
-        return ActualExplorationUpdate(
-            wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
-            wrm_ippkh=wrm_data.wrm_ippkh,
-            wrm_ukl_upl=wrm_data.wrm_ukl_upl,
-            wrm_amdal=wrm_data.wrm_amdal,
-            wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
-            wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
-            wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
-            wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
-            wrm_internal_kkks=wrm_data.wrm_internal_kkks,
-            wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
+def get_wrm_progress(
+    db: Session, 
+    job_id: str
+):
+    job = db.query(Job).filter(Job.id == job_id).first()
+    job_plan = job.job_plan
+    actual_job = job.actual_job
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    output = {}
+
+    for wrm in list(job_schema_map[job.job_type]['wrm'].model_fields.keys()):
+        if getattr(job_plan, wrm):
+            output[wrm] = getattr(actual_job, wrm)
+    
+    return output
+                
+def update_wrm(
+    db: Session, 
+    job_id: str, 
+    wrm_data: object
+):
+    job = db.query(Job).filter(Job.id == job_id).first()
+    job_actual = job.job_plan
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    for wrm in list(job_schema_map[job.job_type]['wrm'].model_fields.keys()):
+        setattr(job_actual, wrm, wrm_data.get(wrm))
+    
+    db.commit()
+
+
+# def get_wrm_data_by_job_id(
+#     db: Session, 
+#     actual_job_id: str, 
+#     model: Type[Union[ActualExploration, ActualDevelopment, ActualWorkover, ActualWellService]]
+# ) -> Optional[Union[ActualExplorationUpdate, ActualDevelopmentUpdate, ActualWorkoverUpdate, ActualWellServiceUpdate]]:
+#     # Query untuk mendapatkan data WRM berdasarkan model yang diberikan
+#     wrm_data = db.query(model).filter(model.id == actual_job_id).first()
+
+#     if wrm_data is None:
+#         return None
+
+#     # Menentukan jenis Update berdasarkan model
+#     if model == ActualExploration:
+#         return ActualExplorationUpdate(
+#             wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
+#             wrm_ippkh=wrm_data.wrm_ippkh,
+#             wrm_ukl_upl=wrm_data.wrm_ukl_upl,
+#             wrm_amdal=wrm_data.wrm_amdal,
+#             wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
+#             wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
+#             wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
+#             wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
+#             wrm_internal_kkks=wrm_data.wrm_internal_kkks,
+#             wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
+#         )
+#     elif model == ActualDevelopment:
+#         return ActualDevelopmentUpdate(
+#             wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
+#             wrm_ippkh=wrm_data.wrm_ippkh,
+#             wrm_ukl_upl=wrm_data.wrm_ukl_upl,
+#             wrm_amdal=wrm_data.wrm_amdal,
+#             wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
+#             wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
+#             wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
+#             wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
+#             wrm_internal_kkks=wrm_data.wrm_internal_kkks,
+#             wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
+#         )
+#     elif model == ActualWorkover:
+#         return ActualWorkoverUpdate(
+#            wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
+#             wrm_ippkh=wrm_data.wrm_ippkh,
+#             wrm_ukl_upl=wrm_data.wrm_ukl_upl,
+#             wrm_amdal=wrm_data.wrm_amdal,
+#             wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
+#             wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
+#             wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
+#             wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
+#             wrm_internal_kkks=wrm_data.wrm_internal_kkks,
+#             wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
+#         )
+#     elif model == ActualWellService:
+#         return ActualWellServiceUpdate(
+#             wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
+#             wrm_ippkh=wrm_data.wrm_ippkh,
+#             wrm_ukl_upl=wrm_data.wrm_ukl_upl,
+#             wrm_amdal=wrm_data.wrm_amdal,
+#             wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
+#             wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
+#             wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
+#             wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
+#             wrm_internal_kkks=wrm_data.wrm_internal_kkks,
+#             wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
+#         )
+#     else:
+#         raise ValueError("Unsupported model type")
+
+def get_dor_dates(db: Session, job_id: str):
+    
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    dor_dates = [date for (date,) in db.query(DailyOperationsReport.report_date).filter(DailyOperationsReport.job_id == job_id).all()]
+    
+    colored_dates = []
+
+    actual_start_date = job.actual_start_date if job.actual_start_date is not None else job.plan_start_date
+    actual_end_date = job.actual_end_date if job.actual_end_date is not None else job.plan_end_date
+    
+    # print(dor_dates)
+    
+    for _date in daterange(actual_start_date, actual_end_date):
+        # if actual_start_date >= _date >= actual_end_date:
+        if _date in dor_dates:
+            color = 'green'
+        elif _date == date.today():
+            color = 'blue'
+        else:
+            color = 'gray'
+        colored_dates.append(
+            ColoredDate(
+                date=_date,
+                color=color
+            )
         )
-    elif model == ActualDevelopment:
-        return ActualDevelopmentUpdate(
-            wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
-            wrm_ippkh=wrm_data.wrm_ippkh,
-            wrm_ukl_upl=wrm_data.wrm_ukl_upl,
-            wrm_amdal=wrm_data.wrm_amdal,
-            wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
-            wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
-            wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
-            wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
-            wrm_internal_kkks=wrm_data.wrm_internal_kkks,
-            wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
-        )
-    elif model == ActualWorkover:
-        return ActualWorkoverUpdate(
-           wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
-            wrm_ippkh=wrm_data.wrm_ippkh,
-            wrm_ukl_upl=wrm_data.wrm_ukl_upl,
-            wrm_amdal=wrm_data.wrm_amdal,
-            wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
-            wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
-            wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
-            wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
-            wrm_internal_kkks=wrm_data.wrm_internal_kkks,
-            wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
-        )
-    elif model == ActualWellService:
-        return ActualWellServiceUpdate(
-            wrm_pembebasan_lahan=wrm_data.wrm_pembebasan_lahan,
-            wrm_ippkh=wrm_data.wrm_ippkh,
-            wrm_ukl_upl=wrm_data.wrm_ukl_upl,
-            wrm_amdal=wrm_data.wrm_amdal,
-            wrm_pengadaan_rig=wrm_data.wrm_pengadaan_rig,
-            wrm_pengadaan_drilling_services=wrm_data.wrm_pengadaan_drilling_services,
-            wrm_pengadaan_lli=wrm_data.wrm_pengadaan_lli,
-            wrm_persiapan_lokasi=wrm_data.wrm_persiapan_lokasi,
-            wrm_internal_kkks=wrm_data.wrm_internal_kkks,
-            wrm_evaluasi_subsurface=wrm_data.wrm_evaluasi_subsurface
-        )
-    else:
-        raise ValueError("Unsupported model type")
+    
+    return colored_dates
+
+def get_dor_by_date(db: Session, job_id: str, dor_date: date):
+    
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    dor = db.query(DailyOperationsReport).filter(DailyOperationsReport.report_date == dor_date).first()
+    
+    return dor
 
 def get_wrmissues_data_by_job_id(db: Session, job_id: str) -> List[JobIssueResponse]:
     wrm_data = db.query(JobIssue).filter(JobIssue.job_id == job_id).all()
@@ -703,104 +677,99 @@ def get_BHA(value: str) -> BHAComponentType:
 def get_job_instance(db: Session, job_instance_id: str):
     return db.query(JobInstance).filter(JobInstance.job_instance_id == job_instance_id).first()
 
-def check_daily_operation_report(db: Session, job_instance_id: str, date: str) -> bool:
-    """
-    Check if a daily operation report exists for the given job instance and date.
+def get_job_operation_validations(db: Session, job_id: str):
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    job_actual = job.actual_job
     
-    :param db: Database session
-    :param job_instance_id: ID of the job instance
-    :param date: Date to check
-    :return: True if a report exists, False otherwise
-    """
-    return db.query(DailyOperationsReport)\
-        .join(Job, and_(Job.id == DailyOperationsReport.job_id, Job.job_plan_id == job_instance_id))\
-        .filter(DailyOperationsReport.report_date == date)\
-        .first() is not None
+    error_list = check_fields(
+        job_schema_map[job.job_type]['validation'].model_validate(job_actual)
+    )
+    
+    return error_list
 
-def get_date_color(db: Session, job_instance_id: str, check_date: date) -> str:
-    """
-    Determine the color for a given date based on the specified conditions.
+def finish_operation(
+    db: Session, 
+    job_id: str, 
+):
+    db_job = db.query(Job).filter(Job.id == job_id).first()
+    if not db_job:
+        raise HTTPException(status_code=404, detail="Job not found")
     
-    :param db: Database session
-    :param job_instance_id: ID of the job instance
-    :param check_date: Date to check
-    :return: Color string ('white', 'red', or 'green')
-    """
-    today = date.today()
+    db_job.operation_status = OperationStatus.FINISHED
+    db_job.date_finished = datetime.now().date()
+    db.commit()
     
-    if check_date > today:
-        return "gray"
-    elif check_date < today:
-        if check_daily_operation_report(db, job_instance_id, check_date.strftime('%Y-%m-%d')):
-            return "green"
-        else:
-            return "red"
-    else:  # check_date == today
-        if check_daily_operation_report(db, job_instance_id, check_date.strftime('%Y-%m-%d')):
-            return "green"
-        else:
-            return "white"
+
+def update_operation(
+    db: Session, 
+    job_id: str, 
+    actual: Union[CreateActualExploration, CreateActualDevelopment, CreateActualWorkover, CreateActualWellService]
+):
+    db_job = db.query(Job).filter(Job.id ==job_id).first()
+    db_job_actual_old = db_job.actual_job
+    
+    #find job_type
+    actual_job_schema = job_schema_map[db_job.job_type]['schema']['actual']
+    db_job_actual_new = actual_job_schema(**parse_schema(actual))
+    
+    #id
+    db_job_actual_new.id = db_job_actual_old.id
+    
+    #wrm
+    for wrm in list(job_schema_map[job.job_type]['wrm'].model_fields.keys()):
+        setattr(db_job_actual_new, wrm, getattr(db_job_actual_old, wrm))
+    
+    db.delete(db_job_actual_old)
+    db.add(db_job_actual_new)
+
+    db.commit()
+
+def propose_ppp(db: Session, job_id: str, ppp: ProposePPP):
+    job = db.query(Job).filter(Job.id == job_id).first()
+    
+    propose_ppp_model_fields = ProposePPP.model_fields().keys()
+    
+    syarat_ppp_fields = [x for x in propose_ppp_model_fields if x not in ["dokumen_lainnya"]]
+    
+    for syarat_ppp in syarat_ppp_fields:
         
-
-def update_operation_actual(db: Session, job_id: str, actual: CreateActualExploration, user):
-    db_job = db.query(Job).filter(Job.id ==job_id).first()
-    db_job_actual=db_job.actual_job
-    db_job_actual_new = ActualExploration(**parse_schema(actual))
-    db_job_actual_new.id = db_job_actual.id
-    db_job.actual_job = db_job_actual_new
-    db_job_actual_new.wrm_amdal=db_job_actual.wrm_amdal
-    db_job_actual_new.wrm_pembebasan_lahan=db_job_actual.wrm_pembebasan_lahan
-    db_job_actual_new.wrm_ippkh=db_job_actual.wrm_ippkh
-    db_job_actual_new.wrm_ukl_upl=db_job_actual.wrm_ukl_upl
-    db_job_actual_new.wrm_persiapan_lokasi=db_job_actual.wrm_persiapan_lokasi
-    db_job_actual_new.wrm_internal_kkks=db_job_actual.wrm_internal_kkks
-    db_job_actual_new.wrm_evaluasi_subsurface=db_job_actual.wrm_evaluasi_subsurface
-    db_job_actual_new.wrm_pengadaan_rig=db_job_actual.wrm_pengadaan_rig
-    db_job_actual_new.wrm_pengadaan_drilling_services=db_job_actual.wrm_pengadaan_drilling_services
-    db_job_actual_new.wrm_pengadaan_lli=db_job_actual.wrm_pengadaan_lli
+        dokumen_syarat_obj = JobDocument(**getattr(ppp, syarat_ppp).model_dump(), job_instance_id = job.actual_job_id)
+        
+        setattr(job, syarat_ppp, dokumen_syarat_obj)
+    
+    documents = []
+    
+    for dokumen in ppp.dokumen_lainnya:
+        documents.append(
+            JobDocument(
+                **dokumen.model_dump()
+            )
+        )
+    
+    db.add_all(documents)
+    
+    job.date_ppp_proposed = date.today()
+    
     db.commit()
-    db.refresh(db_job_actual_new)
-    return db_job_actual_new
 
-def update_operation_actual_development(db: Session, job_id: str, actual: CreateActualDevelopment, user):
-    db_job = db.query(Job).filter(Job.id ==job_id).first()
-    db_job_actual=db_job.actual_job
-    db_job_actual_new = ActualDevelopment(**parse_schema(actual))
-    db_job_actual_new.id = db_job_actual.id
-    db_job.actual_job = db_job_actual_new
-    db_job_actual_new.wrm_amdal=db_job_actual.wrm_amdal
-    db_job_actual_new.wrm_pembebasan_lahan=db_job_actual.wrm_pembebasan_lahan
-    db_job_actual_new.wrm_ippkh=db_job_actual.wrm_ippkh
-    db_job_actual_new.wrm_ukl_upl=db_job_actual.wrm_ukl_upl
-    db_job_actual_new.wrm_persiapan_lokasi=db_job_actual.wrm_persiapan_lokasi
-    db_job_actual_new.wrm_internal_kkks=db_job_actual.wrm_internal_kkks
-    db_job_actual_new.wrm_evaluasi_subsurface=db_job_actual.wrm_evaluasi_subsurface
-    db_job_actual_new.wrm_pengadaan_rig=db_job_actual.wrm_pengadaan_rig
-    db_job_actual_new.wrm_pengadaan_drilling_services=db_job_actual.wrm_pengadaan_drilling_services
-    db_job_actual_new.wrm_pengadaan_lli=db_job_actual.wrm_pengadaan_lli
+def approve_ppp(db: Session, job_id: str, approval: ApprovePPP):
+    
+    job = db.query(Job).filter(Job.id == job_id).first()
+    
+    approve_ppp_model_fields = ApprovePPP.model_fields().keys()
+    
+    for syarat_ppp in approve_ppp_model_fields:
+        
+        setattr(job, syarat_ppp, getattr(approval, syarat_ppp))
+    
     db.commit()
-    db.refresh(db_job_actual_new)
-    return db_job_actual_new
+    
+    
+    
+    
 
-def update_operation_actual_workover(db: Session, job_id: str, actual: CreateActualWorkover, user):
-    db_job = db.query(Job).filter(Job.id ==job_id).first()
-    db_job_actual=db_job.actual_job
-    db_job_actual_new = ActualWorkover(**parse_schema(actual))
-    db_job_actual_new.id = db_job_actual.id
-    db_job.actual_job = db_job_actual_new
-    db.commit()
-    db.refresh(db_job_actual_new)
-    return db_job_actual_new
-
-def update_operation_actual_wellservice(db: Session, job_id: str, actual: CreateActualWellService, user):
-    db_job = db.query(Job).filter(Job.id ==job_id).first()
-    db_job_actual=db_job.actual_job
-    db_job_actual_new = ActualWellService(**parse_schema(actual))
-    db_job_actual_new.id = db_job_actual.id
-    db_job.actual_job = db_job_actual_new
-    db.commit()
-    db.refresh(db_job_actual_new)
-    return db_job_actual_new
 
 
 

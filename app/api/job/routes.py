@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Depends,HTTPException, UploadFile, File,Query
+from venv import create
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File,Query
+from pyparsing import C
 from sqlalchemy.orm import Session
 from app.api.auth.models import Role
 from app.core.security import authorize, get_db, get_current_user
-from app.api.job import crud, schemas,models
-from app.api.job.models import JobType,Job
+from app.api.job import crud, models
+from .schemas.dor import *
+from .schemas.job import *
+from app.api.job.models import JobType, Job
 from app.core.schema_operations import create_api_response
 from typing import Any, Union, List
 from datetime import datetime
@@ -38,31 +42,31 @@ async def upload_batch_wellservice(file: UploadFile = File(...), db: Session = D
     responses = crud.upload_batch(db, content, JobType.WELLSERVICE, user)
     return create_api_response(success=True, message="Job plan batch uploaded successfully")
 
-@router.post("/planning/create/exploration", summary="Create Job Exploration (KKKS Only)" , tags=["Job"])
+@router.post("/planning/create/exploration", summary="Create Job Exploration (KKKS Only)" , tags=["Job Planning"])
 @authorize(role=[Role.KKKS])
-async def create_planning(plan: schemas.CreateExplorationJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
+async def create_planning(plan: CreateExplorationJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_id = crud.create_job_plan(db, JobType.EXPLORATION, plan, user)
     return create_api_response(success=True, message="Exploration job plan created successfully")
 
-@router.post("/planning/create/development", summary="Create Job Development (KKKS Only)", tags=["Job"])
+@router.post("/planning/create/development", summary="Create Job Development (KKKS Only)", tags=["Job Planning"])
 @authorize(role=[Role.KKKS])
-async def create_planning_development(plan: schemas.CreateDevelopmentJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
+async def create_planning_development(plan: CreateDevelopmentJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_id = crud.create_job_plan(db, JobType.DEVELOPMENT, plan, user)
     return create_api_response(success=True, message="Development job plan created successfully")
 
-@router.post("/planning/create/workover", summary="Create Job Workover (KKKS Only)", tags=["Job"])
+@router.post("/planning/create/workover", summary="Create Job Workover (KKKS Only)", tags=["Job Planning"])
 @authorize(role=[Role.KKKS])
-async def create_planning_workover(plan: schemas.CreateWorkoverJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
+async def create_planning_workover(plan: CreateWorkoverJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_id = crud.create_job_plan(db, JobType.WORKOVER, plan, user)
     return create_api_response(success=True, message="Workover job plan created successfully")
 
-@router.post("/planning/create/wellservice", summary="Create Job Well Service (KKKS Only)", tags=["Job"])
+@router.post("/planning/create/wellservice", summary="Create Job Well Service (KKKS Only)", tags=["Job Planning"])
 @authorize(role=[Role.KKKS])
-async def create_planning_wellservice(plan: schemas.CreateWellServiceJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
+async def create_planning_wellservice(plan: CreateWellServiceJob, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_id = crud.create_job_plan(db, JobType.WELLSERVICE, plan, user)
     return create_api_response(success=True, message="Well service job plan created successfully")
 
-@router.delete('/planning/delete/{job_id}', summary="Delete Job Plan", tags=["Job"])
+@router.delete('/planning/delete/{job_id}', summary="Delete Job Plan", tags=["Job Planning"])
 @authorize(role=[Role.Admin, Role.KKKS])
 async def delete_planning_exploration(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     deleted = crud.delete_job_plan(job_id, db, user)
@@ -70,7 +74,7 @@ async def delete_planning_exploration(job_id: str, db: Session = Depends(get_db)
         return create_api_response(success=False, message="Job plan not found", status_code=404)
     return create_api_response(success=True, message="Job plan deleted successfully")
 
-@router.patch('/planning/approve/{job_id}', summary="Approve Job Plan (Admin Only)", tags=["Job"])
+@router.patch('/planning/approve/{job_id}', summary="Approve Job Plan (Admin Only)", tags=["Job Planning"])
 @authorize(role=[Role.Admin])
 async def approve_planning_exploration(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     approved = crud.approve_job_plan(job_id, db, user)
@@ -78,7 +82,7 @@ async def approve_planning_exploration(job_id: str, db: Session = Depends(get_db
         return create_api_response(success=False, message="Job plan not found", status_code=404)
     return create_api_response(success=True, message="Job plan approved successfully")
 
-@router.patch('/planning/return/{job_id}', summary="Return Job Plan (Admin Only)", tags=["Job"])
+@router.patch('/planning/return/{job_id}', summary="Return Job Plan (Admin Only)", tags=["Job Planning"])
 @authorize(role=[Role.Admin])
 async def return_planning_exploration(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     returned = crud.return_job_plan(job_id, db, user)
@@ -86,34 +90,34 @@ async def return_planning_exploration(job_id: str, db: Session = Depends(get_db)
         return create_api_response(success=False, message="Job plan not found", status_code=404)
     return create_api_response(success=True, message="Job plan returned successfully")
 
-@router.get("/planning/get/{job_id}", summary="View Job Plan (Raw)", tags=["Job"])
+@router.get("/planning/get/{job_id}", summary="View Job Plan (Raw)", tags=["Job Planning"])
 @authorize(role=[Role.Admin, Role.KKKS])
 async def view_plan(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_plan = db.query(Job).get(job_id)
     if not job_plan:
         return create_api_response(success=False, message="Job plan not found", status_code=404)
     if job_plan.job_type == JobType.EXPLORATION:
-        data = schemas.CreateExplorationJob.model_validate(job_plan, from_attributes=True)
+        data = CreateExplorationJob.model_validate(job_plan, from_attributes=True)
     elif job_plan.job_type == JobType.DEVELOPMENT:
-        data = schemas.CreateDevelopmentJob.model_validate(job_plan, from_attributes=True)
+        data = CreateDevelopmentJob.model_validate(job_plan, from_attributes=True)
     elif job_plan.job_type == JobType.WORKOVER:
-        data = schemas.CreateWorkoverJob.model_validate(job_plan, from_attributes=True)
+        data = CreateWorkoverJob.model_validate(job_plan, from_attributes=True)
     elif job_plan.job_type == JobType.WELLSERVICE:
-        data = schemas.CreateWellServiceJob.model_validate(job_plan, from_attributes=True)
+        data = CreateWellServiceJob.model_validate(job_plan, from_attributes=True)
     return create_api_response(success=True, message="Job plan retrieved successfully", data=data)
 
-@router.put("/planning/update/{job_id}", summary="Update Job Plan (KKKS Only)", tags=["Job"])
+@router.put("/planning/update/{job_id}", summary="Update Job Plan (KKKS Only)", tags=["Job Planning"])
 @authorize(role=[Role.KKKS])
 async def update_planning_exploration(
     job_id: str,
-    plan: Union[schemas.CreateExplorationJob, schemas.CreateDevelopmentJob, schemas.CreateWorkoverJob, schemas.CreateWellServiceJob],
+    plan: Union[CreateExplorationJob, CreateDevelopmentJob, CreateWorkoverJob, CreateWellServiceJob],
     db: Session = Depends(get_db),
     user = Depends(get_current_user)
 ) -> Any:
     crud.update_job_plan(db, job_id, plan, user)
     return create_api_response(success=True, message="Job Updated Successfully")
 
-@router.get('/planning/view/{job_id}', summary="View Job Plan", tags=["Job"])
+@router.get('/planning/view/{job_id}', summary="View Job Plan", tags=["Job Planning"])
 @authorize(role=[Role.Admin, Role.KKKS])
 async def view_plan(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
     job_plan = crud.get_job_plan(job_id, db)
@@ -121,151 +125,135 @@ async def view_plan(job_id: str, db: Session = Depends(get_db), user = Depends(g
         return create_api_response(success=False, message="Job plan not found", status_code=404)
     return create_api_response(success=True, message="Job plan retrieved successfully", data=job_plan)
 
-@router.patch('/operations/operate/{job_id}', summary="Operate Job (KKKS Only)", tags=["Job"])
+#operation
+@router.patch('/operation/operate/{job_id}', summary="Operate Job (KKKS Only)", tags=["Job Operation"])
 @authorize(role=[Role.KKKS])
-async def operate_job(job_id: str, db: Session = Depends(get_db), user = Depends(get_current_user)):
-    operated = crud.operate_job(job_id, db, user)
+async def operate_job(job_id: str, surat_tajak: SuratTajakSchema, db: Session = Depends(get_db), user = Depends(get_current_user)):
+    operated = crud.operate_job(job_id, surat_tajak, db)
     if not operated:
         return create_api_response(success=False, message="Job not found or operation failed", status_code=404)
     return create_api_response(success=True, message="Job operation started successfully")
 
-# @router.get("/jobs/{job_id}", response_model=schemas.JobDetail)
-# def get_job_detail(job_id: str, db: Session = Depends(get_db)):
-#     job = db.query(Job).filter(Job.id == job_id).first()
-#     if not job:
-#         raise HTTPException(status_code=404, detail="Job not found")
-#     return job
+#dor
+@router.post("/operation/{job_id}/dor/create/", summary="Create Daily Operations Report by Job ID (KKKS Only)", tags=["Job Operation"])
+async def create_daily_operations_report(job_id: str,report: DailyOperationsReportCreate, db: Session = Depends(get_db)):
+    crud.create_daily_operations_report(db, job_id, report)
+    return create_api_response(success=True, message="Daily Operations Report created successfully")
 
+@router.get("/operation/{job_id}/dor/dates/", summary="Get Daily Operations Report Dates", tags=["Job Operation"])
+async def get_daily_opeartions_report_dates(job_id: str, db: Session = Depends(get_db)):
+    data = crud.get_dor_dates(db, job_id)
+    return create_api_response(success=True, message="Daily Operations Report dates retrieved successfully", data=data)
 
-@router.post("/operation/create/daily-operations-reports/")
-def create_daily_operations_report(report: schemas.DailyOperationsReportCreate, db: Session = Depends(get_db)):
-    job = db.query(Job).filter(Job.id == report.job_id).first()
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return crud.create_daily_operations_report(db=db, report=report)
+@router.get("/operation/{job_id}/dor/{report_date}/get", summary="Get Daily Operations Report by Job ID and Report Date", tags=["Job Operation"])
+async def get_daily_operations_report_by_job_id_and_date(job_id: str, report_date: date, db: Session = Depends(get_db)):
+    dor = crud.get_dor_by_date(db, job_id, report_date)
+    if dor is None:
+        raise HTTPException(status_code=404, detail="Daily Operations Report not found")
+    dor_output = DailyOperationsReportCreate.model_validate(dor)
+    return create_api_response(success=True, message="Daily Operations Report retrieved successfully", data=dor_output)
 
-@router.patch("/operation/update/wrm/{actual_exploration_id}", response_model=schemas.ActualExplorationUpdate)
-def update_actual_exploration(
-    exploration_id: str,
-    exploration_update: schemas.ActualExplorationUpdate,
-    db: Session = Depends(get_db)) -> Any:
-    updated_exploration = crud.update_actual_exploration(db, exploration_id, exploration_update)
-    if not updated_exploration:
-        raise HTTPException(status_code=404, detail="Actual Exploration not found")
-    return updated_exploration
+@router.put("/operation/{job_id}/dor/{report_date}/edit/", summary="Edit Daily Operations Report identified by Job ID and Report Date (KKKS Only)", tags=["Job Operation"])
+async def edit_daily_operations_report(job_id: str, report_date: date, report: DailyOperationsReportEdit, db: Session = Depends(get_db)):
+    crud.edit_daily_operations_report(db, job_id, report_date, report)
+    return create_api_response(success=True, message="Daily Operations Report edited successfully")
 
-@router.post("/operation/create/issues/", response_model=schemas.JobIssueResponse)
-def create_job_issue(
-    job_issue: schemas.JobIssueCreate,
+#issues
+@router.get("/operation/{job_id}/issues/", summary="Get Job Issues (KKKS Only)", tags=["Job Operation"])
+async def get_job_issues(
+    job_id: str,
     db: Session = Depends(get_db)
 ) -> Any:
-    return crud.create_job_issue(db=db, job_issue=job_issue)
+    data = crud.get_job_issues(db, job_id)
+    return create_api_response(success=True, message="Job issues retrieved successfully", data=data)
 
-@router.patch("/operation/update/job-issues/{job_issue_id}", response_model=schemas.JobIssueResponse)
-def update_job_issue(
+@router.post("/operation/{job_id}/issues/create/", summary="Create Job Issue identified by Job ID (KKKS Only)", tags=["Job Operation"])
+async def create_job_issue(
+    job_id: str,
+    job_issue: JobIssueCreate,
+    db: Session = Depends(get_db)
+) -> Any:
+    crud.create_job_issue(db, job_id, job_issue)
+    return create_api_response(success=True, message="Job issue created successfully")
+
+@router.patch("/issues/{job_issue_id}/edit/", summary="Edit Job Issue identified by Job Issue ID (KKKS Only)", tags=["Job Operation"])
+async def edit_job_issue(
     job_issue_id: str,
-    job_issue_update: schemas.JobIssueUpdate,
+    job_issue: JobIssueEdit,
     db: Session = Depends(get_db)
 ) -> Any:
-    updated_job_issue = crud.update_job_issue(db=db, job_issue_id=job_issue_id, job_issue_update=job_issue_update)
-    if updated_job_issue is None:
-        raise HTTPException(status_code=404, detail="Job issue not found")
-    return updated_job_issue
+    crud.edit_job_issue(db, job_issue_id, job_issue)
+    return create_api_response(success=True, message="Job issue created successfully")
 
-@router.get("/operation/update/wrm/{actual_job_id}", response_model=Union[schemas.ActualExplorationUpdate, schemas.ActualDevelopmentUpdate, schemas.ActualWorkoverUpdate, schemas.ActualWellServiceUpdate])
-async def read_wrm_data(
-    actual_job_id: str,
-    model_type: str = Query(..., description="Type of actual data (exploration, development, workover, wellservice)"),
+@router.patch("/issues/{job_issue_id}/resolve", summary="Resolve Job Issue identified by Job Issue ID (KKKS Only)", tags=["Job Operation"])
+async def resolve_job_issue(
+    job_issue_id: str,
+    db: Session = Depends(get_db)
+) -> Any:
+    crud.resolve_job_issue(db, job_issue_id)
+    return create_api_response(success=True, message="Job issue resolved successfully")
+
+#wrm
+@router.get("/operation/{job_id}/wrm/requirements", summary="Get WRM Requirements (KKKS Only)", tags=["Job Operation"])
+async def get_wrm_requirements(
+    job_id: str,
     db: Session = Depends(get_db)
 ):
-    model_map = {
-        "exploration": models.ActualExploration,
-        "development": models.ActualDevelopment,
-        "workover": models.ActualWorkover,
-        "wellservice": models.ActualWellService
-    }
+    data = crud.get_wrm_requirements(db, job_id)
+    return create_api_response(success=True, message="WRM progress retrieved successfully", data=data)
 
-    if model_type not in model_map:
-        raise HTTPException(status_code=400, detail="Invalid model type")
+@router.get("/operation/{job_id}/wrm/progress", summary="Get WRM Progress Cut by requirements (KKKS Only)", tags=["Job Operation"])
+async def get_wrm_progress(
+    job_id: str,
+    db: Session = Depends(get_db)
+):
+    data = crud.get_wrm_progress(db, job_id)
+    return create_api_response(success=True, message="WRM progress retrieved successfully", data=data)
 
-    model = model_map[model_type]
-    wrm_data = crud.get_wrm_data_by_job_id(db, actual_job_id, model)
+@router.post("/operation/{job_id}/wrm/update", summary="Update WRM Progress (KKKS Only)", tags=["Job Operation"])
+async def update_wrm(
+    job_id: str,
+    wrm_data: Union[ExplorationWRM, DevelopmentWRM, WorkoverWRM, WellServiceWRM],
+    db: Session = Depends(get_db)
+):
+    crud.update_wrm(db, job_id, wrm_data)
+    return create_api_response(success=True, message="WRM updated successfully")
 
-    if wrm_data is None:
-        raise HTTPException(status_code=404, detail=f"WRM data not found for {model_type} with actual_job_id {actual_job_id}")
+@router.put("/operation/{job_id}/update", summary="Update Job Operation (Actual Job) (KKKS Only)", tags=["Job Operation"])
+async def patch_actual_exploration_route(
+    job_id: str,
+    actual: Union[UpdateActualExploration, UpdateActualDevelopment, UpdateActualWorkover, UpdateActualWellService],
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    crud.update_operation(db, job_id, actual)
+    return create_api_response(True, "Job operation updated successfully")
 
-    return wrm_data
+@router.get("/operation/{job_id}/validate", summary="Validate Job Operation before Finishing", tags=["Job Operation"])
+async def validate_actual_operation(
+    job_id: str,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    data = crud.get_job_operation_validations(db, job_id)
+    return create_api_response(success=True, message="Validation Successful", data=data)
 
-@router.get("/operatrion/get/job-issues/{job_id}", response_model=List[schemas.JobIssueResponse])
-def read_job_issues(job_id: str, db: Session = Depends(get_db)):
-    job_issues = crud.get_wrmissues_data_by_job_id(db, job_id)
-    if job_issues is None:
-        raise HTTPException(status_code=404, detail="Job issues not found")
-    return job_issues
-
-# @router.get("/job-instances/{job_instance_id}/dates", response_model=List[str])
-# def read_job_instance_dates(job_instance_id: str, db: Session = Depends(get_db)):
-#     job_instance = crud.get_job_instance(db, job_instance_id)
-#     if job_instance is None:
-#         raise HTTPException(status_code=404, detail="Job instance not found")
-#     return job_instance.get_job_date_list()
-
-@router.get("/operationn/get/dor-dates/{job_instance_id}", response_model=List[schemas.ColoredDate])
-def read_job_instance_dates(job_instance_id: str, db: Session = Depends(get_db)):
-    job_instance = crud.get_job_instance(db, job_instance_id)
-    if job_instance is None:
-        raise HTTPException(status_code=404, detail="Job instance not found")
+@router.get("/operation/{job_id}/finish", summary="Finish Job Operation", tags=["Job Operation"])
+async def finish_actual_operation(
+    job_id: str,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
+    crud.finish_operation(db, job_id)
+    return create_api_response(success=True, message="Job Operation finished successfully")
     
-    date_list = job_instance.get_job_date_list()
-    colored_dates = []
-    
-    for date_str in date_list:
-        check_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        color = crud.get_date_color(db, job_instance_id, check_date)
-        colored_dates.append(schemas.ColoredDate(date=date_str, color=color))
-    
-    return colored_dates
-@router.post("/operation/update/actual_exploration/{job_id}", response_model=schemas.UpdateActualExploration)
-def patch_actual_exploration_route(
-    job_id: str,
-    actual: schemas.UpdateActualExploration,
-    db: Session = Depends(get_db),
-    user=Depends(get_current_user)
-):
-    print(job_id)
-    exploration_update = crud.update_operation_actual(db, job_id, actual,user)
-    return exploration_update
+#PPP
+@router.patch("/ppp/{job_id}/propose", summary="Propose PPP (KKKS Only)", tags=["Job PPP"])
+async def propose_ppp(job_id: str, proposal: ProposePPP, db: Session = Depends(get_db), user=Depends(get_current_user)):
+    crud.propose_ppp(db, job_id, proposal)
+    return create_api_response(True, "Propose PPP successfully")
 
-@router.post("/operation/update/actual_development/{job_id}", response_model=schemas.UpdateActualDevelopment)
-def patch_actual_development_route(
-    job_id: str,
-    actual: schemas.UpdateActualDevelopment,
-    db: Session = Depends(get_db),
-    user=Depends(get_current_user)
-):
-    print(job_id)
-    exploration_update = crud.update_operation_actual_development(db, job_id, actual,user)
-    return exploration_update
-
-@router.post("/operation/update/actual_workover/{job_id}", response_model=schemas.UpdateActualWorkover)
-def patch_actual_workover_route(
-    job_id: str,
-    actual: schemas.UpdateActualWorkover,
-    db: Session = Depends(get_db),
-    user=Depends(get_current_user)
-):
-    print(job_id)
-    exploration_update = crud.update_operation_actual_workover(db, job_id, actual,user)
-    return exploration_update
-
-@router.post("/operation/update/actual_wellservice/{job_id}", response_model=schemas.UpdateActualWellService)
-def patch_actual_wellservice_route(
-    job_id: str,
-    actual: schemas.CreateActualWellService,
-    db: Session = Depends(get_db),
-    user=Depends(get_current_user)
-):
-    print(job_id)
-    exploration_update = crud.update_operation_actual_wellservice(db, job_id, actual,user)
-    return exploration_update
-
+@router.patch("/ppp/{job_id}/approve", summary="Approve PPP (Admin Only)", tags=["Job PPP"])
+async def approve_ppp(job_id: str, approval: ApprovePPP, db: Session = Depends(get_db), user=Depends(get_current_user)):
+    crud.approve_ppp(db, job_id, approval)
+    return create_api_response(True, "PPP Approved successfully")

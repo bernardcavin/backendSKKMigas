@@ -58,7 +58,7 @@ async def create_user(kkks: schemas.CreateKKKS, db: Session = Depends(get_db), u
         raise HTTPException(status_code=400, detail="Failed to create KKKS")
     return created_kkks
 
-@router.get("/kkks/{kkks_id}", response_model=schemas.GetKKKS, summary='Gett KKKS Info (Admin Only)', tags=['KKKS'])
+@router.get("/kkks/{kkks_id}", response_model=schemas.GetKKKS, summary='Get KKKS Info (Admin Only)', tags=['KKKS'])
 @authorize(role=[models.Role.Admin , models.Role.KKKS])
 async def get_user(kkks_id: str, db: Session = Depends(get_db), user: schemas.GetUser = Depends(get_current_user)):
     kkks = crud.get_kkks(db, kkks_id)

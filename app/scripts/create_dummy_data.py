@@ -3,7 +3,7 @@ from app.api.auth.crud import pwd_context
 from app.api.spatial import models as spatial_models
 from datetime import datetime, timedelta
 from app.api.job import crud as job_crud
-from app.api.job.schemas import *
+from app.api.job.schemas.job import *
 from app.api.job.models import *
 from app.api.well.schemas import *
 from app.api.utils import models as utils_models
